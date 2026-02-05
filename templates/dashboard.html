@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - AgroTech Digital</title>
+    
+    <!-- Favicon -->
+    <link rel="shortcut icon" href="../images/agrotech solo negro.png">
+    
+    <!-- Liquid Glass Design System -->
+    <link rel="stylesheet" href="../css/liquid-glass-system.css">
+    
+    <!-- 🌍 Configuración global (debe cargarse primero) -->
+    <script src="../js/config.js"></script>
+    
+    <!-- Tabler Icons -->
+    <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
+    
+    <style>
+        body {
+            margin: 0;
+            overflow-x: hidden;
+        }
+        
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--glass-white);
+            backdrop-filter: var(--glass-blur);
+            border-right: 1px solid var(--glass-border);
+            padding: var(--space-xl) var(--space-lg);
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 100;
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: var(--space-2xl);
+        }
+        
+        .logo-container img {
+            max-width: 120px;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.1));
+        }
+        
+        .brand-name {
+            font-size: 1.25rem;
+            font-weight: var(--font-weight-bold);
+            margin-top: var(--space-sm);
+            background: linear-gradient(135deg, var(--agrotech-primary) 0%, var(--agrotech-primary-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .nav-section {
+            margin-bottom: var(--space-lg);
+        }
+        
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: var(--space-sm);
+            padding: 0 var(--space-md);
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: var(--space-2xl);
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-2xl);
+        }
+        
+        .header-title h1 {
+            font-size: 2rem;
+            font-weight: var(--font-weight-bold);
+            margin-bottom: var(--space-xs);
+        }
+        
+        .header-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .header-actions {
+            display: flex;
+            gap: var(--space-md);
+            align-items: center;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            background: var(--glass-white);
+            backdrop-filter: var(--glass-blur-light);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-full);
+            padding: var(--space-xs) var(--space-md);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .user-profile:hover {
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--agrotech-primary) 0%, var(--agrotech-primary-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: var(--font-weight-semibold);
+            font-size: 0.875rem;
+        }
+        
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: var(--space-lg);
+            margin-bottom: var(--space-2xl);
+        }
+        
+        /* Content Grid */
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: var(--space-lg);
+            margin-bottom: var(--space-lg);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--glass-border);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: var(--space-lg);
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-md);
+            }
+        }
+        
+        /* Loading Skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, 
+                var(--glass-medium) 0%, 
+                var(--glass-light) 50%, 
+                var(--glass-medium) 100%
+            );
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: var(--radius-md);
+        }
+        
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: var(--space-md);
+        }
+        
+        .icon-circle.green {
+            background: linear-gradient(135deg, rgba(47, 179, 68, 0.15) 0%, rgba(47, 179, 68, 0.05) 100%);
+            color: var(--agrotech-primary-dark);
+        }
+        
+        .icon-circle.orange {
+            background: linear-gradient(135deg, rgba(255, 159, 10, 0.15) 0%, rgba(255, 159, 10, 0.05) 100%);
+            color: #D97706;
+        }
+        
+        .icon-circle.blue {
+            background: linear-gradient(135deg, rgba(0, 122, 255, 0.15) 0%, rgba(0, 122, 255, 0.05) 100%);
+            color: #0A7AFF;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <img src="../images/agrotech solo negro.png" alt="AgroTech">
+                <div class="brand-name">AgroTech</div>
+            </div>
+            
+            <nav>
+                <div class="nav-section">
+                    <div class="nav-section-title">Principal</div>
+                    <a href="dashboard.html" class="nav-item-glass active">
+                        <i class="ti ti-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="http://localhost:8080/templates/parcels/parcels-dashboard.html" class="nav-item-glass">
+                        <i class="ti ti-map"></i>
+                        <span>Parcelas</span>
+                    </a>
+                    <a href="http://localhost:8080/templates/crop/crop_list.html" class="nav-item-glass">
+                        <i class="ti ti-plant"></i>
+                        <span>Cultivos</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestión</div>
+                    <a href="http://localhost:8080/templates/inventory/inventario-dashboard.html" class="nav-item-glass">
+                        <i class="ti ti-box"></i>
+                        <span>Inventario</span>
+                    </a>
+                    <a href="http://localhost:8080/templates/employees/RRHH-dashboard.html" class="nav-item-glass">
+                        <i class="ti ti-users"></i>
+                        <span>Empleados</span>
+                    </a>
+                    <a href="http://localhost:8080/templates/labores/labores-dashboard.html" class="nav-item-glass">
+                        <i class="ti ti-checkbox"></i>
+                        <span>Labores</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Suscripción</div>
+                    <a href="billing.html" class="nav-item-glass">
+                        <i class="ti ti-credit-card"></i>
+                        <span>Facturación</span>
+                    </a>
+                    <a href="billing.html" class="nav-item-glass">
+                        <i class="ti ti-chart-bar"></i>
+                        <span>Uso & Límites</span>
+                    </a>
+                </div>
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Cuenta</div>
+                    <a href="http://localhost:8080/templates/pages/profile.html" class="nav-item-glass">
+                        <i class="ti ti-settings"></i>
+                        <span>Configuración</span>
+                    </a>
+                    <a href="#" class="nav-item-glass" onclick="logout()">
+                        <i class="ti ti-logout"></i>
+                        <span>Cerrar Sesión</span>
+                    </a>
+                </div>
+            </nav>
+        </aside>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-title">
+                    <h1>Bienvenido de nuevo 👋</h1>
+                    <p class="header-subtitle">Aquí está el resumen de tu operación agrícola</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-glass">
+                        <i class="ti ti-bell"></i>
+                    </button>
+                    <div class="user-profile" id="userProfile">
+                        <div class="user-avatar">U</div>
+                        <span id="userName">Usuario</span>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon-circle green">
+                        <i class="ti ti-map"></i>
+                    </div>
+                    <div class="stat-value" id="parcelCount">--</div>
+                    <div class="stat-label">Parcelas Activas</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="icon-circle blue">
+                        <i class="ti ti-plant"></i>
+                    </div>
+                    <div class="stat-value" id="cropCount">--</div>
+                    <div class="stat-label">Cultivos</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="icon-circle orange">
+                        <i class="ti ti-users"></i>
+                    </div>
+                    <div class="stat-value" id="employeeCount">--</div>
+                    <div class="stat-label">Empleados</div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="icon-circle green">
+                        <i class="ti ti-satellite"></i>
+                    </div>
+                    <div class="stat-value" id="eosdaUsage">--</div>
+                    <div class="stat-label">Análisis EOSDA</div>
+                </div>
+            </div>
+            
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Subscription Status -->
+                <div class="glass-card">
+                    <h2 style="margin-bottom: var(--space-lg); font-size: 1.25rem;">Estado de Suscripción</h2>
+                    <div id="subscriptionInfo">
+                        <div class="skeleton" style="height: 100px; margin-bottom: var(--space-md);"></div>
+                        <div class="skeleton" style="height: 60px;"></div>
+                    </div>
+                </div>
+                
+                <!-- Quick Actions -->
+                <div class="glass-card">
+                    <h2 style="margin-bottom: var(--space-lg); font-size: 1.25rem;">Acciones Rápidas</h2>
+                    <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
+                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='parcels.html'">
+                            <i class="ti ti-plus"></i>
+                            <span>Nueva Parcela</span>
+                        </button>
+                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='crops.html'">
+                            <i class="ti ti-plant"></i>
+                            <span>Registrar Cultivo</span>
+                        </button>
+                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='billing.html'">
+                            <i class="ti ti-file-invoice"></i>
+                            <span>Ver Facturación</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="glass-card">
+                <h2 style="margin-bottom: var(--space-lg); font-size: 1.25rem;">Actividad Reciente</h2>
+                <div id="recentActivity">
+                    <p style="color: var(--text-secondary); text-align: center; padding: var(--space-xl);">
+                        Cargando actividad...
+                    </p>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Scripts -->
+    <script src="../js/dashboard-liquid.js"></script>
+</body>
+</html>
