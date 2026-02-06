@@ -42,7 +42,9 @@ body {
 }
 
 .logo-icon {
-    font-size: 32px;
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
     filter: drop-shadow(0 0 20px rgba(0, 122, 32, 0.8));
 }
 
@@ -81,7 +83,8 @@ body {
 /* Hero Section - Estilo grande con imagen central */
 .hero-main {
     position: relative;
-    min-height: 100vh;
+    height: 100vh;
+    min-height: 800px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -137,16 +140,26 @@ body {
 /* Cards flotantes con glassmorphism */
 .floating-card {
     position: absolute;
-    background: rgba(255, 255, 255, 0.08);
-    backdrop-filter: saturate(180%) blur(30px);
-    -webkit-backdrop-filter: saturate(180%) blur(30px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: saturate(180%) blur(40px);
+    -webkit-backdrop-filter: saturate(180%) blur(40px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 24px;
     padding: 28px 32px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
     transition: all 0.4s cubic-bezier(0.28, 0.11, 0.32, 1);
     cursor: default;
     animation: float-card 4s ease-in-out infinite;
+    z-index: 5;
+}
+
+/* Cards decorativas de fondo */
+.floating-card.decorative {
+    background: rgba(0, 122, 32, 0.03);
+    border: 1px solid rgba(0, 122, 32, 0.08);
+    padding: 40px;
+    z-index: 1;
+    opacity: 0.6;
 }
 
 @keyframes float-card {
@@ -198,34 +211,9 @@ body {
     animation-delay: 2.5s;
 }
 
-/* Mockup de móvil */
+/* Ocultar mockup móvil - no hay app */
 .mobile-mockup {
-    position: absolute;
-    bottom: 12%;
-    left: 5%;
-    width: 280px;
-    animation: float-card 5s ease-in-out infinite;
-}
-
-.mobile-mockup img {
-    width: 100%;
-    border-radius: 30px;
-    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
-    border: 8px solid rgba(255, 255, 255, 0.1);
-}
-
-.download-badge {
-    position: absolute;
-    top: -20px;
-    left: -20px;
-    background: rgba(0, 122, 32, 0.95);
-    backdrop-filter: blur(10px);
-    padding: 12px 24px;
-    border-radius: 20px;
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    box-shadow: 0 10px 30px rgba(0, 122, 32, 0.5);
+    display: none;
 }
 
 /* Stats card grande */
@@ -298,9 +286,16 @@ body {
 }
 
 .card-icon {
-    font-size: 32px;
+    width: 48px;
+    height: 48px;
     margin-bottom: 12px;
-    filter: drop-shadow(0 4px 12px rgba(0, 122, 32, 0.5));
+    border-radius: 12px;
+    background: rgba(0, 122, 32, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    box-shadow: 0 4px 12px rgba(0, 122, 32, 0.3);
 }
 
 .card-value.success {
@@ -315,46 +310,39 @@ body {
     color: #4facfe;
 }
 
-/* CTA Button grande central */
+/* CTA Button moderno rectangular */
 .cta-button {
     position: absolute;
-    bottom: 5%;
+    bottom: 8%;
     left: 50%;
     transform: translateX(-50%);
-    width: 200px;
-    height: 200px;
+    padding: 18px 48px;
     background: linear-gradient(135deg, #35B835 0%, #007A20 100%);
-    border-radius: 50%;
+    border-radius: 30px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    justify-content: center;
-    box-shadow: 0 30px 80px rgba(0, 122, 32, 0.6);
+    gap: 12px;
+    box-shadow: 0 20px 60px rgba(0, 122, 32, 0.5);
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.28, 0.11, 0.32, 1);
     text-decoration: none;
-    animation: pulse 3s ease-in-out infinite;
-}
-
-@keyframes pulse {
-    0%, 100% { transform: translateX(-50%) scale(1); }
-    50% { transform: translateX(-50%) scale(1.05); }
+    z-index: 100;
 }
 
 .cta-button:hover {
-    transform: translateX(-50%) scale(1.1);
-    box-shadow: 0 40px 100px rgba(0, 122, 32, 0.8);
+    transform: translateX(-50%) translateY(-4px);
+    box-shadow: 0 30px 80px rgba(0, 122, 32, 0.7);
 }
 
 .cta-text {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: 20px;
+    font-weight: 600;
     color: #fff;
-    margin-bottom: 8px;
+    letter-spacing: -0.01em;
 }
 
 .cta-icon {
-    font-size: 32px;
+    font-size: 20px;
 }
 
 /* Sección de descripción */
@@ -413,9 +401,12 @@ body {
 }
 
 .feature-icon {
-    font-size: 56px;
+    width: 100%;
+    height: 200px;
     margin-bottom: 24px;
-    filter: drop-shadow(0 4px 16px rgba(0, 122, 32, 0.4));
+    border-radius: 16px;
+    object-fit: cover;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .feature-card h3 {
@@ -456,32 +447,43 @@ body {
 
 .pricing-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     gap: 32px;
-    align-items: start;
+    align-items: stretch;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+@media (max-width: 1024px) {
+    .pricing-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .pricing-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: saturate(180%) blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(0, 122, 32, 0.08);
+    backdrop-filter: saturate(180%) blur(40px);
+    -webkit-backdrop-filter: saturate(180%) blur(40px);
+    border: 1px solid rgba(0, 122, 32, 0.2);
     border-radius: 28px;
     padding: 56px 40px;
     transition: all 0.4s ease;
     position: relative;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 20px 60px rgba(0, 0, 0, 0.4);
 }
 
 .pricing-card:hover {
-    transform: translateY(-8px) scale(1.02);
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(53, 184, 53, 0.4);
-    box-shadow: 0 30px 80px rgba(0, 122, 32, 0.4);
+    transform: translateY(-8px);
+    background: rgba(0, 122, 32, 0.12);
+    border-color: rgba(53, 184, 53, 0.5);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 40px 100px rgba(0, 122, 32, 0.5);
 }
 
 .pricing-card.featured {
-    background: linear-gradient(135deg, rgba(0, 122, 32, 0.2) 0%, rgba(53, 184, 53, 0.1) 100%);
-    border: 1px solid rgba(0, 122, 32, 0.5);
-    transform: scale(1.05);
+    background: linear-gradient(135deg, rgba(0, 122, 32, 0.15) 0%, rgba(53, 184, 53, 0.12) 100%);
+    border: 1.5px solid rgba(0, 122, 32, 0.6);
+    transform: scale(1);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 30px 80px rgba(0, 122, 32, 0.6);
 }
 
 .pricing-card.featured::before {
