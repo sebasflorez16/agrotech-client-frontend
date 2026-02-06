@@ -106,22 +106,22 @@ body {
     align-items: center;
     padding: 120px 0 80px;
     overflow: hidden;
-    background: linear-gradient(rgba(180, 200, 210, 0.4), rgba(180, 200, 210, 0.5)), url('images/planta-maiz-desarrollo.png') center center / cover no-repeat;
+    background: linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.08)), url('images/planta-maiz-desarrollo.png') center center / cover no-repeat;
     background-attachment: fixed;
 }
 
 .hero-bg-text {
     position: absolute;
-    top: 50%;
+    top: 15%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    font-size: clamp(100px, 18vw, 300px);
+    transform: translateX(-50%);
+    font-size: clamp(80px, 15vw, 220px);
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.15);
     white-space: nowrap;
     pointer-events: none;
     z-index: 1;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.1em;
 }
 
 .hero-content {
