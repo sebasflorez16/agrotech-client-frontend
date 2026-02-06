@@ -53,43 +53,5 @@ document.addEventListener('DOMContentLoaded', function() {
         observer.observe(el);
     });
 
-    // Counter animation
-    const statsNumber = document.querySelector('.stats-number');
-    if (statsNumber) {
-        let hasAnimated = false;
-        const animateCounter = () => {
-            if (hasAnimated) return;
-            hasAnimated = true;
-            
-            const target = 2500;
-            let current = 0;
-            const increment = target / 50;
-            const timer = setInterval(() => {
-                current += increment;
-                if (current >= target) {
-                    statsNumber.textContent = '2.5K+';
-                    clearInterval(timer);
-                } else {
-                    const value = Math.floor(current);
-                    if (value >= 1000) {
-                        statsNumber.textContent = (value / 1000).toFixed(1) + 'K+';
-                    } else {
-                        statsNumber.textContent = value + '+';
-                    }
-                }
-            }, 30);
-        };
-
-        const statsObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    animateCounter();
-                }
-            });
-        }, { threshold: 0.5 });
-
-        statsObserver.observe(statsNumber);
-    }
-
     console.log('AgroTech Digital Landing Page loaded successfully');
 });
