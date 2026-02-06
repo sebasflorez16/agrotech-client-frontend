@@ -1,24 +1,177 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgroTech Digital</title>
-<style>
-body{margin:0;padding:0;font-family:-apple-system,sans-serif;background:linear-gradient(135deg,#667eea,#764ba2);min-height:100vh;display:flex;align-items:center;justify-content:center}
-.box{max-width:600px;background:rgba(255,255,255,.1);backdrop-filter:blur(40px);border-radius:30px;border:1px solid rgba(255,255,255,.2);padding:60px 40px;text-align:center;box-shadow:0 25px 70px rgba(0,0,0,.3)}
-h1{font-size:48px;font-weight:800;color:#fff;margin-bottom:20px}
-.grad{background:linear-gradient(135deg,#43e97b,#38f9d7);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-p{font-size:20px;color:rgba(255,255,255,.9);margin-bottom:40px}
-a{display:inline-block;padding:18px 40px;margin:10px;background:linear-gradient(135deg,#43e97b,#38f9d7);color:#1a1a2e;text-decoration:none;border-radius:15px;font-weight:700;transition:.3s}
-a:hover{transform:translateY(-5px);box-shadow:0 15px 40px rgba(67,233,123,.4)}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroTech Digital - Agricultura de Precisión con IA</title>
+    <link rel="stylesheet" href="landing.css">
 </head>
 <body>
-<div class="box">
-<h1>🌱 AgroTech <span class="grad">Digital</span></h1>
-<p>Plataforma SaaS Agrícola</p>
-<a href="/templates/authentication/login.html">Iniciar Sesión</a>
-</div>
+    <!-- Blobs decorativos animados -->
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+    <div class="blob blob-3"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="logo">
+            <div class="logo-icon">🌱</div>
+            <span>AgroTech Digital</span>
+        </div>
+        <div class="nav-links">
+            <a href="#features">Características</a>
+            <a href="#pricing">Planes</a>
+            <a href="/templates/authentication/login.html" class="btn-login">Iniciar Sesión</a>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-badge">🚀 Tecnología Satelital Avanzada</div>
+            <h1>Agricultura de <span class="hero-gradient">Precisión</span><br>con Inteligencia Artificial</h1>
+            <p class="hero-subtitle">
+                Monitorea tus cultivos en tiempo real con análisis satelital avanzado. 
+                Optimiza tus recursos y aumenta tu producción con tecnología de punta.
+            </p>
+            <div class="hero-buttons">
+                <a href="#pricing" class="btn-primary">Ver Planes</a>
+                <a href="/templates/authentication/login.html" class="btn-secondary">Iniciar Sesión</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <h2 class="section-title">¿Por qué AgroTech Digital?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🛰️</div>
+                <h3>Análisis Satelital</h3>
+                <p>Imágenes satelitales de alta resolución actualizadas cada 3-5 días para monitorear tus cultivos desde el espacio.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>Índice NDVI</h3>
+                <p>Visualiza la salud de tus cultivos con mapas de vegetación que detectan estrés antes de que sea visible.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">💧</div>
+                <h3>Estrés Hídrico</h3>
+                <p>Detecta zonas con déficit de agua para optimizar el riego y reducir costos operativos.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📈</div>
+                <h3>Dashboard Inteligente</h3>
+                <p>Paneles de control con métricas en tiempo real, gráficos históricos y alertas automáticas.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🌦️</div>
+                <h3>Datos Climáticos</h3>
+                <p>Pronósticos meteorológicos precisos integrados con análisis de tus parcelas.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>Multi-dispositivo</h3>
+                <p>Accede desde cualquier lugar: web, móvil o tablet. Tus datos siempre disponibles.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="pricing">
+        <h2 class="section-title">Planes y Precios</h2>
+        <p class="pricing-subtitle">Selecciona el plan que mejor se adapte a tus necesidades</p>
+        <div class="pricing-grid">
+            <!-- Plan Básico -->
+            <div class="pricing-card">
+                <h3 class="plan-name">Básico</h3>
+                <div class="plan-price">
+                    <span class="currency">$</span>
+                    <span class="amount">29</span>
+                    <span class="period">/mes</span>
+                </div>
+                <ul class="plan-features">
+                    <li>✅ Hasta 50 hectáreas</li>
+                    <li>✅ Imágenes satelitales cada 5 días</li>
+                    <li>✅ NDVI básico</li>
+                    <li>✅ 1 usuario</li>
+                    <li>✅ Soporte por email</li>
+                    <li>❌ Sin análisis de estrés hídrico</li>
+                    <li>❌ Sin exportación de datos</li>
+                </ul>
+                <a href="/templates/authentication/login.html" class="plan-button">Comenzar</a>
+            </div>
+
+            <!-- Plan Profesional (Featured) -->
+            <div class="pricing-card featured">
+                <h3 class="plan-name">Profesional</h3>
+                <div class="plan-price">
+                    <span class="currency">$</span>
+                    <span class="amount">79</span>
+                    <span class="period">/mes</span>
+                </div>
+                <ul class="plan-features">
+                    <li>✅ Hasta 200 hectáreas</li>
+                    <li>✅ Imágenes satelitales cada 3 días</li>
+                    <li>✅ NDVI, NDMI, MSAVI</li>
+                    <li>✅ 5 usuarios</li>
+                    <li>✅ Análisis de estrés hídrico</li>
+                    <li>✅ Exportación de datos</li>
+                    <li>✅ Soporte prioritario</li>
+                </ul>
+                <a href="/templates/authentication/login.html" class="plan-button">Comenzar</a>
+            </div>
+
+            <!-- Plan Empresa -->
+            <div class="pricing-card">
+                <h3 class="plan-name">Empresa</h3>
+                <div class="plan-price">
+                    <span class="currency">$</span>
+                    <span class="amount">199</span>
+                    <span class="period">/mes</span>
+                </div>
+                <ul class="plan-features">
+                    <li>✅ Hectáreas ilimitadas</li>
+                    <li>✅ Imágenes diarias</li>
+                    <li>✅ Todos los índices disponibles</li>
+                    <li>✅ Usuarios ilimitados</li>
+                    <li>✅ API personalizada</li>
+                    <li>✅ Integración con otros sistemas</li>
+                    <li>✅ Soporte 24/7</li>
+                </ul>
+                <a href="/templates/authentication/login.html" class="plan-button">Contactar</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <div class="logo">
+                    <div class="logo-icon">🌱</div>
+                    <span>AgroTech Digital</span>
+                </div>
+                <p>Agricultura de precisión con inteligencia artificial</p>
+            </div>
+            <div class="footer-section">
+                <h4>Producto</h4>
+                <a href="#features">Características</a>
+                <a href="#pricing">Planes</a>
+                <a href="/templates/authentication/login.html">Iniciar Sesión</a>
+            </div>
+            <div class="footer-section">
+                <h4>Contacto</h4>
+                <p>info@agrotechdigital.com</p>
+                <p>+57 300 123 4567</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 AgroTech Digital. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <script src="landing.js"></script>
 </body>
 </html>
