@@ -106,7 +106,7 @@ body {
     align-items: center;
     padding: 120px 0 80px;
     overflow: hidden;
-    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(10, 15, 13, 0.5)), url('images/hero-agrotech-bg.jpg') center center / cover no-repeat;
+    background: linear-gradient(rgba(180, 200, 210, 0.4), rgba(180, 200, 210, 0.5)), url('images/planta-maiz-desarrollo.png') center center / cover no-repeat;
     background-attachment: fixed;
 }
 
@@ -117,10 +117,11 @@ body {
     transform: translate(-50%, -50%);
     font-size: clamp(100px, 18vw, 300px);
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.02);
+    color: rgba(255, 255, 255, 0.08);
     white-space: nowrap;
     pointer-events: none;
     z-index: 1;
+    letter-spacing: 0.05em;
 }
 
 .hero-content {
@@ -166,6 +167,11 @@ body {
     border-color: rgba(53, 184, 53, 0.4);
 }
 
+.card-icon {
+    display: inline-block;
+    margin: 0 8px 8px 0;
+}
+
 .data-label {
     font-size: 13px;
     color: rgba(255, 255, 255, 0.7);
@@ -187,9 +193,9 @@ body {
 /* Mobile Mockup */
 .mobile-mockup {
     position: absolute;
-    bottom: 12%;
-    left: 5%;
-    width: 260px;
+    bottom: 8%;
+    left: 3%;
+    width: 240px;
     z-index: 10;
     animation: floatCard 5s ease-in-out infinite;
 }
