@@ -106,6 +106,8 @@ body {
     align-items: center;
     padding: 120px 0 80px;
     overflow: hidden;
+    background: linear-gradient(rgba(0, 0, 0, 0.3), rgba(10, 15, 13, 0.5)), url('images/hero-agrotech-bg.jpg') center center / cover no-repeat;
+    background-attachment: fixed;
 }
 
 .hero-bg-text {
@@ -124,25 +126,6 @@ body {
 .hero-content {
     position: relative;
     z-index: 10;
-}
-
-.hero-main-image {
-    max-width: 900px;
-    margin: 0 auto;
-    position: relative;
-    z-index: 5;
-}
-
-.hero-main-image img {
-    width: 100%;
-    border-radius: 24px;
-    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
-    animation: float 6s ease-in-out infinite;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
 }
 
 /* Cards Decorativas de Fondo */
@@ -181,11 +164,6 @@ body {
     transform: translateY(-8px);
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(53, 184, 53, 0.4);
-}
-
-.data-icon {
-    font-size: 28px;
-    margin-bottom: 8px;
 }
 
 .data-label {
