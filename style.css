@@ -106,13 +106,13 @@ body {
     align-items: center;
     padding: 120px 0 80px;
     overflow: hidden;
-    background: linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.08)), url('images/planta-maiz-desarrollo.png') center center / cover no-repeat;
+    background: url('images/planta-maiz-desarrollo.png') center center / cover no-repeat;
     background-attachment: fixed;
 }
 
 .hero-bg-text {
     position: absolute;
-    top: 15%;
+    top: 20%;
     left: 50%;
     transform: translateX(-50%);
     font-size: clamp(80px, 15vw, 220px);
