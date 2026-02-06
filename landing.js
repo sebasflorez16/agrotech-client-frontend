@@ -1,58 +1,50 @@
 // AgroTech Digital - Landing Page JavaScript
-// Efectos profesionales de scroll y animaciones
+// Animaciones y efectos interactivos
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Smooth scroll para enlaces internos
+    // Smooth scroll
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
             e.preventDefault();
             const target = document.querySelector(this.getAttribute('href'));
             if (target) {
-                const navbarHeight = 60;
-                const targetPosition = target.offsetTop - navbarHeight;
-                
-                window.scrollTo({
-                    top: targetPosition,
-                    behavior: 'smooth'
-                });
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
     });
 
-    // Navbar transparente en scroll
+    // Navbar scroll effect
     const navbar = document.querySelector('.navbar');
-    let lastScroll = 0;
-
     window.addEventListener('scroll', () => {
-        const currentScroll = window.pageYOffset;
-        
-        if (currentScroll > 100) {
-            navbar.style.background = 'rgba(0, 0, 0, 0.95)';
-            navbar.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.3)';
+        if (window.pageYOffset > 100) {
+            navbar.style.background = 'rgba(0, 0, 0, 0.9)';
+            navbar.style.backdropFilter = 'saturate(180%) blur(20px)';
+            navbar.style.borderBottom = '0.5px solid rgba(255, 255, 255, 0.1)';
         } else {
-            navbar.style.background = 'rgba(0, 0, 0, 0.8)';
-            navbar.style.boxShadow = 'none';
+            navbar.style.background = 'transparent';
+            navbar.style.backdropFilter = 'none';
+            navbar.style.borderBottom = 'none';
         }
-        
-        lastScroll = currentScroll;
     });
 
-    // Parallax sutil para blobs
-    window.addEventListener('scroll', () => {
-        const scrolled = window.pageYOffset;
-        const blobs = document.querySelectorAll('.blob');
+    // Parallax para cards flotantes
+    const floatingCards = document.querySelectorAll('.floating-card');
+    window.addEventListener('mousemove', (e) => {
+        const mouseX = e.clientX / window.innerWidth;
+        const mouseY = e.clientY / window.innerHeight;
         
-        blobs.forEach((blob, index) => {
-            const speed = (index + 1) * 0.15;
-            const yPos = -(scrolled * speed);
-            blob.style.transform = `translateY(${yPos}px)`;
+        floatingCards.forEach((card, index) => {
+            const speed = (index + 1) * 5;
+            const x = (mouseX - 0.5) * speed;
+            const y = (mouseY - 0.5) * speed;
+            card.style.transform = `translate(${x}px, ${y}px)`;
         });
     });
 
-    // Intersection Observer para animaciones de entrada
+    // Intersection Observer para animaciones
     const observerOptions = {
-        threshold: 0.15,
-        rootMargin: '0px 0px -50px 0px'
+        threshold: 0.1,
+        rootMargin: '0px 0px -100px 0px'
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -64,24 +56,29 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, observerOptions);
 
-    // Animar cards al entrar en viewport
-    const cards = document.querySelectorAll('.feature-card, .pricing-card');
-    cards.forEach((card, index) => {
-        card.style.opacity = '0';
-        card.style.transform = 'translateY(30px)';
-        card.style.transition = `all 0.6s cubic-bezier(0.28, 0.11, 0.32, 1) ${index * 0.1}s`;
-        observer.observe(card);
+    // Animar elementos al entrar en viewport
+    const animatedElements = document.querySelectorAll('.feature-card, .pricing-card');
+    animatedElements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(40px)';
+        el.style.transition = `all 0.8s cubic-bezier(0.28, 0.11, 0.32, 1) ${index * 0.1}s`;
+        observer.observe(el);
     });
 
-    // Efecto de hover en cards con gradiente dinámico
-    cards.forEach(card => {
-        card.addEventListener('mousemove', (e) => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            card.style.setProperty('--mouse-x', `${x}px`);
-            card.style.setProperty('--mouse-y', `${y}px`);
-        });
-    });
+    // Efecto contador para stats
+    const statsNumber = document.querySelector('.stats-number');
+    if (statsNumber) {
+        const target = parseInt(statsNumber.textContent.replace(/\D/g, ''));
+        let current = 0;
+        const increment = target / 50;
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                statsNumber.textContent = target.toLocaleString() + '+';
+                clearInterval(timer);
+            } else {
+                statsNumber.textContent = Math.floor(current).toLocaleString() + '+';
+            }
+        }, 30);
+    }
 });
