@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroTech Digital - Agricultura de Precisión con Análisis Satelital</title>
     <meta name="description" content="Monitoreo satelital avanzado para tus cultivos. Análisis NDVI, estrés hídrico y datos climáticos en tiempo real.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -27,45 +30,72 @@
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-bg-text">AGROTECH</div>
+        <img src="images/hero-agrotech.png" alt="AgroTech Digital - Agricultura de Precisión" class="hero-image">
 
-        <!-- Data Cards distribuidas alrededor de la planta de maíz -->
-        <div class="data-card card-humidity">
-            <div class="data-label">Humedad del Suelo</div>
-            <div class="card-icon">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#333"/><path d="M10 5c-2 2-4 4-4 6 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-2-4-4-6z" fill="#999"/></svg>
+        <!-- Data Cards flotantes distribuidas alrededor de la planta -->
+        <div class="data-card card-top-left">
+            <div class="card-header">
+                <span class="card-dot" style="background: #34C759;"></span>
+                <span class="data-label">Humedad del Suelo</span>
             </div>
-            <div class="data-value green">23%</div>
+            <div class="data-value">23<span class="data-unit">%</span></div>
+            <div class="card-trend up">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3M3 7l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                +2.4% esta semana
+            </div>
         </div>
 
-        <div class="data-card card-growth">
-            <div class="data-label">Tasa de Crecimiento</div>
-            <div class="card-icon">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#35B835"/><path d="M10 6v8M6 10l4-4 4 4" stroke="#000" stroke-width="2" stroke-linecap="round"/></svg>
+        <div class="data-card card-top-right">
+            <div class="card-header">
+                <span class="card-dot" style="background: #30D158;"></span>
+                <span class="data-label">Tasa de Crecimiento</span>
             </div>
-            <div class="data-value green">56%</div>
+            <div class="data-value">56<span class="data-unit">%</span></div>
+            <div class="card-trend up">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3M3 7l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Óptimo
+            </div>
         </div>
 
-        <div class="data-card card-hydration">
-            <div class="data-label">Hidratación de Hoja</div>
-            <div class="card-icon">
-                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" fill="#E0E0E0"/><path d="M10 5c-2 2-4 4-4 6 0 2.2 1.8 4 4 4s4-1.8 4-4c0-2-2-4-4-6z" fill="#666"/></svg>
+        <div class="data-card card-bottom-left">
+            <div class="card-header">
+                <span class="card-dot" style="background: #5AC8FA;"></span>
+                <span class="data-label">Hidratación de Hoja</span>
             </div>
-            <div class="data-value green">Alta</div>
+            <div class="data-value">Alta</div>
+            <div class="card-trend up">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3M3 7l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Nivel excelente
+            </div>
+        </div>
+
+        <div class="data-card card-bottom-right">
+            <div class="card-header">
+                <span class="card-dot" style="background: #FF9F0A;"></span>
+                <span class="data-label">Índice NDVI</span>
+            </div>
+            <div class="data-value">0.82</div>
+            <div class="card-trend up">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 11V3M3 7l4-4 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Vegetación saludable
+            </div>
         </div>
 
         <!-- CTA Principal -->
         <a href="#pricing" class="cta-hero">
-            <span>¡Comienza Ahora!</span>
-            <span class="arrow">→</span>
+            <span class="cta-text">Comenzar</span>
+            <span class="cta-arrow">
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10h12M12 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
         </a>
     </section>
 
     <!-- Description -->
     <section class="description">
         <div class="container">
-            <h2>Nuestro equipo asegura análisis satelital preciso y monitoreo continuo</h2>
-            <p>Con tecnología de última generación en procesamiento de imágenes satelitales, AgroTech Digital transforma la manera en que monitoras y optimizas tu producción agrícola.</p>
+            <p class="description-eyebrow">Tecnología Satelital de Precisión</p>
+            <h2>Monitoreo inteligente para<br>una agricultura más eficiente.</h2>
+            <p>Con procesamiento avanzado de imágenes satelitales, AgroTech Digital transforma la manera en que monitoras y optimizas tu producción agrícola.</p>
         </div>
     </section>
 
