@@ -32,6 +32,47 @@
     <section class="hero">
         <img src="images/hero-agrotech.png" alt="AgroTech Digital - Agricultura de Precisión" class="hero-image">
 
+        <!-- SVG Connector Lines - líneas desde la planta hacia las cards -->
+        <svg class="hero-connectors" viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+                <linearGradient id="lineGradLeft" x1="100%" y1="0%" x2="0%" y2="0%">
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.6)"/>
+                    <stop offset="100%" stop-color="rgba(255,255,255,0.08)"/>
+                </linearGradient>
+                <linearGradient id="lineGradRight" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.6)"/>
+                    <stop offset="100%" stop-color="rgba(255,255,255,0.08)"/>
+                </linearGradient>
+                <filter id="glowDot">
+                    <feGaussianBlur stdDeviation="3" result="blur"/>
+                    <feMerge>
+                        <feMergeNode in="blur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+            </defs>
+
+            <!-- Línea → Top-Left (Humedad del Suelo) - desde hoja izq superior -->
+            <path d="M 640 280 Q 480 240, 250 215" class="connector-line line-left" />
+            <circle cx="640" cy="280" r="5" class="connector-dot" filter="url(#glowDot)"/>
+            <circle cx="640" cy="280" r="2.5" class="connector-dot-inner"/>
+
+            <!-- Línea → Top-Right (Tasa de Crecimiento) - desde mazorca -->
+            <path d="M 780 230 Q 950 190, 1200 175" class="connector-line line-right" />
+            <circle cx="780" cy="230" r="5" class="connector-dot" filter="url(#glowDot)"/>
+            <circle cx="780" cy="230" r="2.5" class="connector-dot-inner"/>
+
+            <!-- Línea → Bottom-Left (Hidratación Hoja) - desde hoja izq inferior -->
+            <path d="M 580 440 Q 400 450, 220 450" class="connector-line line-left" />
+            <circle cx="580" cy="440" r="5" class="connector-dot" filter="url(#glowDot)"/>
+            <circle cx="580" cy="440" r="2.5" class="connector-dot-inner"/>
+
+            <!-- Línea → Bottom-Right (Índice NDVI) - desde tallo -->
+            <path d="M 810 420 Q 1000 410, 1220 395" class="connector-line line-right" />
+            <circle cx="810" cy="420" r="5" class="connector-dot" filter="url(#glowDot)"/>
+            <circle cx="810" cy="420" r="2.5" class="connector-dot-inner"/>
+        </svg>
+
         <!-- Data Cards flotantes distribuidas alrededor de la planta -->
         <div class="data-card card-top-left">
             <div class="card-header">
