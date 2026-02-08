@@ -102,31 +102,34 @@ body {
 .hero {
     position: relative;
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    padding: 120px 0 80px;
+    display: block;
+    padding: 0;
     overflow: hidden;
-    background: url('images/planta-maiz-desarrollo.png') center center / cover no-repeat;
-    background-attachment: fixed;
+    background: #000 url('images/planta-maiz-desarrollo.png') center center / cover no-repeat;
+}
+
+.hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 50% 55%, transparent 30%, rgba(0, 8, 3, 0.45) 100%);
+    z-index: 1;
+    pointer-events: none;
 }
 
 .hero-bg-text {
     position: absolute;
-    top: 20%;
+    top: 85px;
     left: 50%;
     transform: translateX(-50%);
-    font-size: clamp(80px, 15vw, 220px);
+    font-size: clamp(80px, 15vw, 200px);
     font-weight: 900;
-    color: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.06);
     white-space: nowrap;
     pointer-events: none;
-    z-index: 1;
-    letter-spacing: 0.1em;
-}
-
-.hero-content {
-    position: relative;
-    z-index: 10;
+    z-index: 2;
+    letter-spacing: 0.15em;
+    text-shadow: 0 0 60px rgba(0, 122, 32, 0.08);
 }
 
 /* Cards Decorativas de Fondo */
@@ -150,21 +153,43 @@ body {
 /* Data Cards */
 .data-card {
     position: absolute;
-    background: rgba(255, 255, 255, 0.06);
-    backdrop-filter: saturate(180%) blur(40px);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: saturate(180%) blur(16px);
+    -webkit-backdrop-filter: saturate(180%) blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 20px;
     padding: 24px 28px;
     z-index: 10;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-    transition: all 0.3s;
-    animation: floatCard 4s ease-in-out infinite;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: floatCard 5s ease-in-out infinite;
+    min-width: 170px;
 }
 
 .data-card:hover {
-    transform: translateY(-8px);
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(53, 184, 53, 0.4);
+    transform: translateY(-8px) scale(1.03);
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(53, 184, 53, 0.5);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+}
+
+/* Card positions - flow around the corn plant */
+.card-humidity {
+    top: 22%;
+    left: 5%;
+    animation-delay: 0s;
+}
+
+.card-growth {
+    top: 16%;
+    right: 5%;
+    animation-delay: 1.2s;
+}
+
+.card-hydration {
+    bottom: 28%;
+    left: 6%;
+    animation-delay: 0.6s;
 }
 
 .card-icon {
@@ -224,30 +249,31 @@ body {
 /* CTA Hero - Circular */
 .cta-hero {
     position: absolute;
-    bottom: 8%;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 22%;
+    right: 6%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    width: 180px;
-    height: 180px;
+    width: 160px;
+    height: 160px;
     background: var(--verde-claro);
     border-radius: 50%;
     color: #000;
     text-decoration: none;
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 700;
-    box-shadow: 0 30px 80px rgba(53, 184, 53, 0.6);
-    transition: all 0.4s;
-    z-index: 100;
+    box-shadow: 0 24px 64px rgba(53, 184, 53, 0.5);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 20;
+    animation: floatCard 6s ease-in-out infinite;
+    animation-delay: 2s;
 }
 
 .cta-hero:hover {
-    transform: translateX(-50%) scale(1.05);
-    box-shadow: 0 40px 100px rgba(53, 184, 53, 0.8);
+    transform: scale(1.08);
+    box-shadow: 0 32px 80px rgba(53, 184, 53, 0.7);
 }
 
 .cta-hero .arrow {
@@ -507,28 +533,54 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 1200px) {
+    .card-humidity { left: 3%; }
+    .card-growth { right: 3%; }
+    .card-hydration { left: 3%; }
+    .cta-hero { right: 4%; }
+}
+
 @media (max-width: 900px) {
+    .hero {
+        min-height: 100vh;
+        padding: 100px 20px 40px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+
     .data-card {
-        position: static !important;
-        transform: none !important;
-        margin: 20px auto;
-        max-width: 280px;
+        position: relative !important;
+        top: auto !important;
+        left: auto !important;
+        right: auto !important;
+        bottom: auto !important;
+        margin: 8px auto;
+        max-width: 260px;
+        width: 80%;
+        animation: none !important;
     }
 
     .floating-bg-card {
         display: none;
     }
-    
-    .hero-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 20px;
-    }
-    
+
     .hero-bg-text {
-        font-size: clamp(60px, 12vw, 140px);
-        top: 18%;
+        font-size: clamp(50px, 12vw, 120px);
+        top: 70px;
+    }
+
+    .cta-hero {
+        position: relative !important;
+        right: auto !important;
+        bottom: auto !important;
+        margin: 16px auto;
+        width: 130px;
+        height: 130px;
+        font-size: 16px;
+        animation: none !important;
     }
 }
 
@@ -537,31 +589,23 @@ body {
         gap: 12px;
         font-size: 13px;
     }
-    
+
     .nav-menu a:not(.btn-primary-nav) {
         display: none;
     }
 
-    .hero {
-        min-height: auto;
-        padding: 80px 0 40px;
-        background-position: center top;
-    }
-    
     .hero-bg-text {
-        font-size: clamp(50px, 10vw, 100px);
-        top: 12%;
+        font-size: clamp(40px, 10vw, 90px);
     }
-    
+
     .data-card {
         padding: 18px 22px;
-        margin: 15px auto;
     }
-    
+
     .data-label {
         font-size: 12px;
     }
-    
+
     .data-value {
         font-size: 32px;
     }
@@ -575,12 +619,8 @@ body {
     }
 
     .cta-hero {
-        position: static !important;
-        transform: none !important;
-        margin: 30px auto;
-        display: inline-flex;
-        width: 140px;
-        height: 140px;
+        width: 120px;
+        height: 120px;
         font-size: 14px;
     }
 }
