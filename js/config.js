@@ -64,6 +64,7 @@
             BILLING_INVOICE: '/billing/api/invoice/current/',
             BILLING_PLANS: '/billing/api/plans/',
             BILLING_CREATE_CHECKOUT: '/billing/api/create-checkout/',
+            BILLING_CONFIRM_PAYMENT: '/billing/api/confirm-payment/',
             
             // Inventario
             INVENTORY: '/api/inventario/',

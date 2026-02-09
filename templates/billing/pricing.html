@@ -9,36 +9,55 @@
     <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
     <script src="../../js/config.js"></script>
     <style>
-        .billing-toggle { display:flex; align-items:center; justify-content:center; gap:16px; margin:-32px 0 48px; }
-        .billing-toggle span { font-size:15px; font-weight:500; color:var(--gris-600); transition:var(--transition-smooth); cursor:pointer; }
-        .billing-toggle span.active { color:var(--texto-claro); font-weight:600; }
-        .toggle-switch { position:relative; width:56px; height:28px; background:var(--gris-800); border-radius:14px; cursor:pointer; transition:var(--transition-smooth); border:1px solid rgba(255,255,255,0.08); }
-        .toggle-switch.active { background:var(--verde-principal); border-color:var(--verde-claro); }
-        .toggle-switch::after { content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; background:#fff; border-radius:50%; transition:var(--transition-smooth); box-shadow:0 2px 4px rgba(0,0,0,0.3); }
-        .toggle-switch.active::after { left:31px; }
-        .save-badge { background:var(--naranja); color:#000; padding:4px 12px; border-radius:980px; font-size:12px; font-weight:700; }
-        .price-savings { display:block; font-size:13px; color:var(--verde-claro); margin-top:8px; font-weight:500; }
-        .limit-tag { margin-left:auto; background:rgba(255,255,255,0.06); padding:2px 10px; border-radius:980px; font-size:12px; font-weight:600; color:var(--gris-400); }
-        .btn-plan { cursor:pointer; }
-        .btn-plan:disabled,.btn-plan.disabled { background:rgba(255,255,255,0.03)!important; color:var(--gris-600)!important; border-color:rgba(255,255,255,0.04)!important; cursor:not-allowed; transform:none!important; }
-        .comparison-section { margin-top:100px; padding-top:60px; border-top:1px solid rgba(255,255,255,0.06); }
-        .comparison-section h3 { text-align:center; font-size:28px; font-weight:700; margin-bottom:40px; letter-spacing:-0.02em; }
-        .comparison-table { width:100%; border-collapse:collapse; }
-        .comparison-table th,.comparison-table td { padding:16px 20px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.04); font-size:14px; }
-        .comparison-table th { background:var(--gris-950); font-weight:600; font-size:15px; }
-        .comparison-table td:first-child { text-align:left; font-weight:500; color:var(--gris-200); }
-        .comparison-table td { color:var(--gris-400); }
-        .table-check { color:var(--verde-claro); font-size:18px; }
-        .table-cross { color:rgba(255,255,255,0.15); font-size:18px; }
-        .faq-section { margin-top:80px; }
-        .faq-section h3 { text-align:center; font-size:28px; font-weight:700; margin-bottom:40px; }
-        .faq-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
-        .faq-card { background:var(--gris-950); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:24px; transition:var(--transition-smooth); }
-        .faq-card:hover { border-color:rgba(255,255,255,0.12); }
-        .faq-card h5 { font-size:15px; font-weight:600; margin-bottom:8px; }
-        .faq-card p { font-size:14px; color:var(--gris-400); line-height:1.6; margin:0; }
-        @keyframes spin { to { transform:rotate(360deg); } }
-        @media(max-width:768px) { .faq-grid{grid-template-columns:1fr;} .comparison-section{overflow-x:auto;} }
+        .pricing-hero{text-align:center;padding:140px 0 40px;}
+        .pricing-hero h1{font-size:clamp(32px,5vw,56px);font-weight:800;letter-spacing:-0.03em;margin-bottom:12px;}
+        .pricing-hero p{font-size:17px;color:var(--gris-400);max-width:520px;margin:0 auto;}
+        .toggle-container{display:flex;align-items:center;justify-content:center;gap:14px;margin:36px 0 48px;}
+        .toggle-label{font-size:14px;font-weight:600;color:var(--gris-600);cursor:pointer;transition:var(--transition-smooth);}
+        .toggle-label.active{color:var(--texto-claro);}
+        .toggle-switch{position:relative;width:52px;height:28px;background:var(--gris-800);border-radius:980px;cursor:pointer;transition:var(--transition-smooth);border:1px solid rgba(255,255,255,0.08);}
+        .toggle-switch::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;background:var(--verde-claro);border-radius:50%;transition:var(--transition-smooth);box-shadow:0 2px 8px rgba(52,199,89,0.3);}
+        .toggle-switch.active{background:rgba(52,199,89,0.15);border-color:rgba(52,199,89,0.3);}
+        .toggle-switch.active::after{transform:translateX(24px);}
+        .save-badge{font-size:12px;font-weight:700;color:var(--verde-claro);background:rgba(52,199,89,0.1);padding:4px 12px;border-radius:980px;border:1px solid rgba(52,199,89,0.2);}
+        .pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:80px;}
+        .pricing-card{background:var(--gris-950);border:1px solid rgba(255,255,255,0.06);border-radius:var(--radius-xl);padding:40px 32px;position:relative;transition:var(--transition-smooth);}
+        .pricing-card:hover{border-color:rgba(255,255,255,0.12);transform:translateY(-4px);}
+        .pricing-card.featured{border-color:rgba(52,199,89,0.3);background:linear-gradient(135deg,rgba(52,199,89,0.05),transparent);}
+        .badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:var(--verde-claro);color:#000;font-size:11px;font-weight:800;padding:4px 18px;border-radius:980px;letter-spacing:0.05em;}
+        .pricing-card h3{font-size:20px;font-weight:700;margin-bottom:16px;}
+        .price{display:flex;align-items:baseline;gap:2px;margin-bottom:8px;}
+        .currency{font-size:20px;font-weight:600;color:var(--gris-200);}
+        .amount{font-size:48px;font-weight:800;letter-spacing:-0.03em;}
+        .period{font-size:14px;color:var(--gris-400);margin-left:4px;}
+        .price-savings{display:inline-block;font-size:12px;font-weight:600;color:var(--verde-claro);margin-bottom:20px;}
+        .features-list{list-style:none;padding:0;margin:24px 0 28px;}
+        .features-list li{display:flex;align-items:center;gap:10px;padding:8px 0;font-size:14px;color:var(--gris-200);}
+        .check{color:var(--verde-claro);font-weight:700;font-size:16px;}
+        .cross{color:var(--gris-700);font-size:16px;}
+        .limit-tag{font-size:11px;font-weight:600;background:rgba(255,255,255,0.04);padding:2px 8px;border-radius:6px;color:var(--gris-400);}
+        .btn-plan{display:block;width:100%;padding:14px;background:rgba(52,199,89,0.1);color:var(--verde-claro);border:1px solid rgba(52,199,89,0.2);border-radius:980px;font-size:15px;font-weight:700;font-family:'Inter',sans-serif;cursor:pointer;transition:var(--transition-smooth);}
+        .btn-plan:hover{background:var(--verde-claro);color:#000;box-shadow:0 8px 24px rgba(52,199,89,0.3);}
+        .comparison-section{margin-bottom:80px;}
+        .comparison-section h2{text-align:center;font-size:clamp(24px,3vw,36px);font-weight:800;margin-bottom:40px;}
+        .comparison-table-wrapper{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+        .comparison-table{width:100%;border-collapse:collapse;min-width:700px;}
+        .comparison-table th,.comparison-table td{padding:16px 20px;text-align:center;border-bottom:1px solid rgba(255,255,255,0.04);font-size:14px;}
+        .comparison-table th{font-weight:700;background:var(--gris-950);position:sticky;top:0;}
+        .comparison-table th:first-child,.comparison-table td:first-child{text-align:left;font-weight:500;color:var(--gris-300);}
+        .comparison-table td .check-icon{color:var(--verde-claro);font-size:18px;}
+        .comparison-table td .cross-icon{color:var(--gris-700);font-size:14px;}
+        .comparison-table tr:hover td{background:rgba(255,255,255,0.02);}
+        .faq-section{max-width:720px;margin:0 auto 80px;text-align:center;}
+        .faq-section h2{font-size:clamp(24px,3vw,36px);font-weight:800;margin-bottom:40px;}
+        .faq-item{background:var(--gris-950);border:1px solid rgba(255,255,255,0.06);border-radius:16px;margin-bottom:12px;text-align:left;overflow:hidden;}
+        .faq-q{padding:20px 24px;font-weight:600;font-size:15px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:var(--transition-smooth);}
+        .faq-q:hover{color:var(--verde-claro);}
+        .faq-a{max-height:0;overflow:hidden;transition:max-height 0.3s ease;padding:0 24px;font-size:14px;color:var(--gris-400);line-height:1.7;}
+        .faq-item.open .faq-a{max-height:200px;padding-bottom:20px;}
+        .faq-item.open .faq-q .arrow{transform:rotate(180deg);}
+        .arrow{transition:transform 0.3s ease;font-size:18px;color:var(--gris-600);}
+        @media(max-width:860px){.pricing-grid{grid-template-columns:1fr;max-width:420px;margin-left:auto;margin-right:auto;}}
     </style>
 </head>
 <body>
@@ -52,63 +71,58 @@
                 </div>
                 <div class="nav-menu">
                     <a href="../../index.html#features">Características</a>
-                    <a href="pricing.html" style="color:#fff;font-weight:600;">Planes</a>
+                    <a href="pricing.html" class="active">Planes</a>
                     <a href="../authentication/login.html" class="btn-primary-nav">Iniciar Sesión</a>
                 </div>
             </div>
         </div>
     </nav>
 
-    <section class="pricing" style="padding-top:140px;">
-        <div class="container">
-            <h2 class="section-title">Planes para cada necesidad</h2>
-            <p class="section-subtitle">Selecciona el plan perfecto para tu operación agrícola</p>
-
-            <div class="billing-toggle">
-                <span class="toggle-monthly active" onclick="setBilling(false)">Mensual</span>
-                <div class="toggle-switch" id="billingToggle"></div>
-                <span class="toggle-yearly" onclick="setBilling(true)">Anual</span>
-                <span class="save-badge">Ahorra 20%</span>
-            </div>
-
-            <div class="pricing-grid" id="pricingCards">
-                <div style="grid-column:1/-1;text-align:center;padding:60px 0;">
-                    <div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--verde-claro);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;"></div>
-                    <p style="color:var(--gris-400);">Cargando planes...</p>
-                </div>
-            </div>
-
-            <div class="comparison-section">
-                <h3>Comparación de Características</h3>
-                <div style="overflow-x:auto;">
-                    <table class="comparison-table">
-                        <thead><tr><th style="text-align:left;">Característica</th><th>Explorador</th><th>Agricultor</th><th>Empresarial</th></tr></thead>
-                        <tbody>
-                            <tr><td><i class="ti ti-map-pin" style="color:var(--verde-claro);margin-right:8px;"></i> Hectáreas</td><td>50 ha</td><td>300 ha</td><td>1,000 ha</td></tr>
-                            <tr><td><i class="ti ti-satellite" style="color:var(--verde-claro);margin-right:8px;"></i> Análisis/mes</td><td>10</td><td>100</td><td>500</td></tr>
-                            <tr><td><i class="ti ti-users" style="color:var(--verde-claro);margin-right:8px;"></i> Usuarios</td><td>1</td><td>3</td><td>10</td></tr>
-                            <tr><td><i class="ti ti-layout-grid" style="color:var(--verde-claro);margin-right:8px;"></i> Parcelas</td><td>3</td><td>10</td><td>50</td></tr>
-                            <tr><td><i class="ti ti-chart-line" style="color:var(--verde-claro);margin-right:8px;"></i> Análisis NDVI</td><td><span class="table-check">✓</span></td><td><span class="table-check">✓</span></td><td><span class="table-check">✓</span></td></tr>
-                            <tr><td><i class="ti ti-droplet" style="color:var(--verde-claro);margin-right:8px;"></i> Estrés Hídrico</td><td><span class="table-cross">✗</span></td><td><span class="table-check">✓</span></td><td><span class="table-check">✓</span></td></tr>
-                            <tr><td><i class="ti ti-cloud-rain" style="color:var(--verde-claro);margin-right:8px;"></i> Pronóstico Climático</td><td><span class="table-cross">✗</span></td><td><span class="table-check">✓</span></td><td><span class="table-check">✓</span></td></tr>
-                            <tr><td><i class="ti ti-code" style="color:var(--verde-claro);margin-right:8px;"></i> Acceso API</td><td><span class="table-cross">✗</span></td><td><span class="table-cross">✗</span></td><td><span class="table-check">✓</span></td></tr>
-                            <tr><td><i class="ti ti-headset" style="color:var(--verde-claro);margin-right:8px;"></i> Soporte Prioritario</td><td><span class="table-cross">✗</span></td><td><span class="table-check">✓</span></td><td><span class="table-check">✓</span></td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="faq-section">
-                <h3>Preguntas Frecuentes</h3>
-                <div class="faq-grid">
-                    <div class="faq-card"><h5><i class="ti ti-credit-card" style="color:var(--verde-claro);margin-right:6px;"></i> ¿Qué métodos de pago aceptan?</h5><p>Aceptamos tarjetas de crédito/débito, PSE y otros métodos locales a través de MercadoPago para Colombia.</p></div>
-                    <div class="faq-card"><h5><i class="ti ti-refresh" style="color:var(--verde-claro);margin-right:6px;"></i> ¿Puedo cambiar de plan?</h5><p>Sí, puedes mejorar tu plan en cualquier momento. El cambio se aplica inmediatamente.</p></div>
-                    <div class="faq-card"><h5><i class="ti ti-arrow-back-up" style="color:var(--verde-claro);margin-right:6px;"></i> ¿Puedo cancelar en cualquier momento?</h5><p>Sí, puedes cancelar tu suscripción cuando quieras. No hay contratos ni compromisos.</p></div>
-                    <div class="faq-card"><h5><i class="ti ti-gift" style="color:var(--verde-claro);margin-right:6px;"></i> ¿Hay período de prueba?</h5><p>Todos los planes pagos incluyen 14 días de prueba gratis. Cancela antes si no estás satisfecho.</p></div>
-                </div>
-            </div>
+    <div class="container">
+        <div class="pricing-hero">
+            <h1>Planes que se adaptan a ti</h1>
+            <p>Desde pequeños productores hasta grandes empresas agrícolas. Sin compromisos, cancela cuando quieras.</p>
         </div>
-    </section>
+
+        <div class="toggle-container">
+            <span class="toggle-label toggle-monthly active">Mensual</span>
+            <div class="toggle-switch" id="billingToggle"></div>
+            <span class="toggle-label toggle-yearly">Anual</span>
+            <span class="save-badge">Ahorra 20%</span>
+        </div>
+
+        <div class="pricing-grid" id="pricingCards"></div>
+
+        <!-- Comparison Table -->
+        <section class="comparison-section">
+            <h2>Comparación detallada</h2>
+            <div class="comparison-table-wrapper">
+                <table class="comparison-table">
+                    <thead><tr><th>Característica</th><th>Explorador</th><th>Agricultor</th><th>Empresarial</th></tr></thead>
+                    <tbody>
+                        <tr><td>Hectáreas</td><td>50</td><td>300</td><td>1,000</td></tr>
+                        <tr><td>Análisis satelitales/mes</td><td>10</td><td>100</td><td>500</td></tr>
+                        <tr><td>Usuarios</td><td>1</td><td>3</td><td>10</td></tr>
+                        <tr><td>Parcelas</td><td>3</td><td>10</td><td>50</td></tr>
+                        <tr><td>Análisis NDVI</td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+                        <tr><td>Análisis avanzado</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
+                        <tr><td>Pronóstico climático</td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+                        <tr><td>Acceso API</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
+                        <tr><td>Soporte</td><td>Comunidad</td><td>Email</td><td>Prioritario 24/7</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- FAQ -->
+        <section class="faq-section">
+            <h2>Preguntas frecuentes</h2>
+            <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Puedo cambiar de plan después? <span class="arrow">▼</span></div><div class="faq-a">Sí, puedes upgrade o downgrade en cualquier momento. Los cambios se aplican de forma inmediata y se prorratea el monto.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Qué métodos de pago aceptan? <span class="arrow">▼</span></div><div class="faq-a">Aceptamos tarjetas de crédito, débito, PSE, Nequi, Daviplata y más a través de MercadoPago.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Los análisis satelitales son en tiempo real? <span class="arrow">▼</span></div><div class="faq-a">Utilizamos imágenes de los satélites Sentinel-2 y Landsat con una frecuencia de 3-5 días, procesadas mediante la API de EOSDA.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Puedo cancelar en cualquier momento? <span class="arrow">▼</span></div><div class="faq-a">Sí, puedes cancelar tu suscripción en cualquier momento sin penalizaciones. Tu acceso continuará hasta el final del periodo facturado.</div></div>
+        </section>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -156,6 +170,37 @@
         var isYearly = false;
         var plans = [];
 
+        // Planes estáticos como fallback cuando el API no responde
+        var FALLBACK_PLANS = [
+            {
+                tier: 'free', name: 'Explorador', description: 'Plan gratuito',
+                price_cop: '0.00', price_usd: '0.00', frequency: 1,
+                limits: { users: 1, parcels: 3, hectares: 50, eosda_requests: 10 },
+                features_included: ['basic_analytics'],
+                features_excluded: ['advanced_analytics', 'api_access'],
+                is_custom: false, trial_days: 14,
+                yearly_discount: { yearly_price_cop: 0, savings_cop: 0, yearly_price_usd: 0, savings_usd: 0, discount_percent: 20 }
+            },
+            {
+                tier: 'basic', name: 'Agricultor', description: 'Plan profesional',
+                price_cop: '79000.00', price_usd: '20.00', frequency: 1,
+                limits: { users: 3, parcels: 10, hectares: 300, eosda_requests: 100 },
+                features_included: ['basic_analytics', 'weather_forecast'],
+                features_excluded: ['api_access'],
+                is_custom: false, trial_days: 14,
+                yearly_discount: { yearly_price_cop: 790000, savings_cop: 158000, yearly_price_usd: 200, savings_usd: 40, discount_percent: 20 }
+            },
+            {
+                tier: 'pro', name: 'Empresarial', description: 'Plan empresarial',
+                price_cop: '179000.00', price_usd: '45.00', frequency: 1,
+                limits: { users: 10, parcels: 50, hectares: 1000, eosda_requests: 500 },
+                features_included: ['basic_analytics', 'advanced_analytics', 'weather_forecast', 'api_access'],
+                features_excluded: [],
+                is_custom: false, trial_days: 14,
+                yearly_discount: { yearly_price_cop: 1790000, savings_cop: 358000, yearly_price_usd: 450, savings_usd: 90, discount_percent: 20 }
+            }
+        ];
+
         toggle.addEventListener('click', function() { setBilling(!isYearly); });
 
         window.setBilling = function(yearly) {
@@ -168,10 +213,22 @@
 
         function fetchPlans() {
             fetch(API + '/billing/api/plans/')
-                .then(function(r) { return r.json(); })
-                .then(function(data) { plans = data; render(); })
+                .then(function(r) {
+                    if (!r.ok) throw new Error('HTTP ' + r.status);
+                    return r.json();
+                })
+                .then(function(data) {
+                    if (data && data.length > 0) {
+                        plans = data;
+                    } else {
+                        plans = FALLBACK_PLANS;
+                    }
+                    render();
+                })
                 .catch(function() {
-                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 0;"><p style="color:var(--gris-400);">Error cargando planes. Recarga la página.</p></div>';
+                    console.warn('API no disponible, usando planes estáticos');
+                    plans = FALLBACK_PLANS;
+                    render();
                 });
         }
 
@@ -206,7 +263,7 @@
                 });
 
                 var btn = (p.tier === 'free')
-                    ? '<button class="btn-plan disabled" disabled>Plan Actual</button>'
+                    ? '<button class="btn-plan" onclick="selectPlan(\'' + p.tier + '\')">Probar Gratis</button>'
                     : '<button class="btn-plan" onclick="selectPlan(\'' + p.tier + '\')">Comenzar Ahora</button>';
 
                 return '<div class="pricing-card ' + (featured ? 'featured' : '') + '">' +
@@ -214,7 +271,7 @@
                     '<h3>' + p.name + '</h3>' +
                     '<div class="price">' +
                         (p.tier === 'free' ? '<span class="amount">Gratis</span>' :
-                        '<span class="currency">$</span><span class="amount">' + fmt(price) + '</span><span class="period">' + period + '</span>') +
+                            '<span class="currency">$</span><span class="amount">' + fmt(price) + '</span><span class="period">' + period + '</span>') +
                     '</div>' + savings +
                     '<ul class="features-list">' + items.join('') + '</ul>' +
                     btn + '</div>';

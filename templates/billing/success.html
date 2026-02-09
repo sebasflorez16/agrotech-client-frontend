@@ -35,6 +35,10 @@
         .btn-dashboard:hover { background:var(--verde-accent); box-shadow:0 8px 24px rgba(52,199,89,0.3); transform:scale(1.02); color:#000; }
         .btn-secondary-link { display:inline-flex; align-items:center; gap:8px; margin-top:16px; font-size:14px; font-weight:500; color:var(--gris-400); text-decoration:none; transition:var(--transition-smooth); }
         .btn-secondary-link:hover { color:var(--verde-claro); }
+        .confirm-status { margin-top:12px; font-size:13px; color:var(--gris-600); display:none; }
+        .confirm-status.show { display:block; }
+        .confirm-status.success { color:var(--verde-claro); }
+        .confirm-status.error { color:#FF453A; }
         @media(max-width:640px) { .next-steps{grid-template-columns:1fr;} .success-container{padding:100px 0 40px;} }
     </style>
 </head>
@@ -51,7 +55,7 @@
                 </div>
                 <div class="nav-menu">
                     <a href="../../index.html#features">Características</a>
-                    <a href="pricing.html" >Planes</a>
+                    <a href="pricing.html">Planes</a>
                     <a href="../authentication/login.html" class="btn-primary-nav">Iniciar Sesión</a>
                 </div>
             </div>
@@ -61,8 +65,8 @@
     <div class="container">
         <div class="success-container">
             <div class="success-icon"><i class="ti ti-circle-check"></i></div>
-            <h1>¡Pago realizado con éxito!</h1>
-            <p class="subtitle">Bienvenido a AgroTech Digital Premium. Tu suscripción está activa.</p>
+            <h1 id="successTitle">¡Pago realizado con éxito!</h1>
+            <p class="subtitle" id="successSubtitle">Bienvenido a AgroTech Digital Premium. Tu suscripción está activa.</p>
 
             <div class="details-card">
                 <h3><i class="ti ti-receipt"></i> Detalles de tu suscripción</h3>
@@ -70,6 +74,7 @@
                 <div class="detail-row"><span class="label">Ciclo</span><span class="value" id="detailCycle">—</span></div>
                 <div class="detail-row"><span class="label">ID de suscripción</span><span class="value" id="detailSubId">—</span></div>
                 <div class="detail-row"><span class="label">Estado</span><span class="status-badge" id="detailStatus">Activo</span></div>
+                <div class="confirm-status" id="confirmStatus"></div>
             </div>
 
             <h3 style="font-size:20px;font-weight:700;margin-bottom:20px;">Próximos pasos</h3>
@@ -123,15 +128,72 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        var API = window.AGROTECH_CONFIG.API_BASE;
         var params = new URLSearchParams(window.location.search);
         var planMap = {'basic':'Agricultor','pro':'Empresarial','free':'Explorador'};
         var tier = params.get('plan') || 'basic';
         var cycle = params.get('cycle') || 'monthly';
-        document.getElementById('detailPlan').textContent = planMap[tier] || tier;
-        document.getElementById('detailCycle').textContent = cycle === 'yearly' ? 'Anual' : 'Mensual';
-        document.getElementById('detailSubId').textContent = params.get('preapproval_id') || params.get('subscription_id') || '—';
+        var preapprovalId = params.get('preapproval_id') || params.get('subscription_id') || '';
+        var tenantParam = params.get('tenant') || '';
+        var isFree = tier === 'free';
 
-        // Confetti
+        // Ajustar textos para plan gratuito
+        if (isFree) {
+            document.getElementById('successTitle').textContent = '¡Tu cuenta ha sido creada!';
+            document.getElementById('successSubtitle').textContent = 'Bienvenido a AgroTech Digital. Tu trial gratuito de 14 días está activo.';
+        }
+
+        document.getElementById('detailPlan').textContent = planMap[tier] || tier;
+        document.getElementById('detailCycle').textContent = isFree ? 'Trial 14 días' : (cycle === 'yearly' ? 'Anual' : 'Mensual');
+        document.getElementById('detailSubId').textContent = preapprovalId || tenantParam || '—';
+
+        var confirmStatusEl = document.getElementById('confirmStatus');
+
+        // Para planes pagos que vienen de MercadoPago: confirmar pago y crear tenant
+        if (!isFree && preapprovalId) {
+            confirmStatusEl.textContent = 'Verificando pago y configurando tu espacio de trabajo...';
+            confirmStatusEl.className = 'confirm-status show';
+
+            fetch(API + '/billing/api/confirm-payment/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    preapproval_id: preapprovalId,
+                    plan_tier: tier,
+                    billing_cycle: cycle,
+                    payer_email: params.get('payer_email') || ''
+                })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.success) {
+                    console.log('Tenant creado/confirmado:', data);
+                    confirmStatusEl.textContent = '✓ Espacio de trabajo configurado correctamente';
+                    confirmStatusEl.className = 'confirm-status show success';
+                    if (data.schema_name) {
+                        document.getElementById('detailSubId').textContent = data.schema_name;
+                    }
+                    var badge = document.getElementById('detailStatus');
+                    if (badge) badge.innerHTML = '<span style="color:var(--verde-claro)">✓</span> Activo y verificado';
+                } else {
+                    confirmStatusEl.textContent = 'Tu pago fue registrado. El espacio se configurará automáticamente.';
+                    confirmStatusEl.className = 'confirm-status show';
+                }
+            })
+            .catch(function(err) {
+                console.warn('Error confirmando pago:', err);
+                confirmStatusEl.textContent = 'Tu pago fue registrado. El espacio se configurará en unos minutos.';
+                confirmStatusEl.className = 'confirm-status show';
+            });
+        }
+
+        // Para plan gratuito: el tenant ya fue creado en el checkout
+        if (isFree && tenantParam) {
+            confirmStatusEl.textContent = '✓ Tu espacio de trabajo "' + tenantParam + '" está listo';
+            confirmStatusEl.className = 'confirm-status show success';
+        }
+
+        // Confetti animation
         var canvas = document.getElementById('confettiCanvas');
         var ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;

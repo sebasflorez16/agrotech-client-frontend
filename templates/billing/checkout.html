@@ -56,13 +56,16 @@
         .loading-spinner { width:48px; height:48px; border:3px solid rgba(255,255,255,0.1); border-top-color:var(--verde-claro); border-radius:50%; animation:spin 0.8s linear infinite; }
         .loading-text { font-size:16px; font-weight:500; }
         @keyframes spin { to{transform:rotate(360deg);} }
+        .free-plan-notice { background:rgba(52,199,89,0.08); border:1px solid rgba(52,199,89,0.2); border-radius:12px; padding:16px 20px; margin-bottom:20px; display:none; }
+        .free-plan-notice p { font-size:14px; color:var(--gris-200); margin:0; }
+        .free-plan-notice strong { color:var(--verde-claro); }
         @media(max-width:860px) { .checkout-layout{grid-template-columns:1fr;} .order-summary{position:static;order:-1;} }
     </style>
 </head>
 <body>
     <div class="loading-overlay" id="loadingOverlay">
         <div class="loading-spinner"></div>
-        <div class="loading-text">Redirigiendo a MercadoPago...</div>
+        <div class="loading-text">Procesando...</div>
     </div>
 
     <!-- Navbar -->
@@ -75,7 +78,7 @@
                 </div>
                 <div class="nav-menu">
                     <a href="../../index.html#features">Características</a>
-                    <a href="pricing.html" >Planes</a>
+                    <a href="pricing.html">Planes</a>
                     <a href="../authentication/login.html" class="btn-primary-nav">Iniciar Sesión</a>
                 </div>
             </div>
@@ -96,15 +99,24 @@
                     <div class="step"><span class="step-num">3</span> Pago</div>
                 </div>
 
+                <div class="free-plan-notice" id="freePlanNotice">
+                    <p><strong>🎉 Plan Gratuito seleccionado.</strong> No necesitas método de pago. Solo ingresa tus datos y te crearemos tu espacio de trabajo con un trial de 14 días.</p>
+                </div>
+
                 <div class="form-card">
                     <h3><i class="ti ti-mail"></i> Datos de contacto</h3>
                     <div class="form-group">
                         <label for="payerEmail">Correo Electrónico</label>
                         <input type="email" class="form-input" id="payerEmail" placeholder="correo@ejemplo.com" required autocomplete="email">
                     </div>
+                    <div class="form-group">
+                        <label for="tenantName">Nombre de tu Finca o Empresa</label>
+                        <input type="text" class="form-input" id="tenantName" placeholder="Ej: Finca El Roble" required autocomplete="organization">
+                        <small style="color:var(--gris-600);font-size:12px;margin-top:4px;display:block;">Este será el nombre de tu espacio de trabajo en AgroTech Digital.</small>
+                    </div>
                 </div>
 
-                <div class="form-card">
+                <div class="form-card" id="paymentCard">
                     <h3><i class="ti ti-shield-lock"></i> Método de Pago</h3>
                     <div class="payment-method">
                         <img src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/badge.svg" alt="MercadoPago" class="payment-logo" onerror="this.style.display='none'">
@@ -122,7 +134,7 @@
 
                 <button class="btn-checkout" id="btnCheckout" disabled>
                     <i class="ti ti-lock"></i>
-                    <span>Proceder al pago seguro</span>
+                    <span id="btnCheckoutText">Proceder al pago seguro</span>
                 </button>
             </div>
 
@@ -187,44 +199,104 @@
         var billingCycle = params.get('cycle') || 'monthly';
 
         var emailInput = document.getElementById('payerEmail');
+        var tenantInput = document.getElementById('tenantName');
         var termsCheck = document.getElementById('termsCheck');
         var btnCheckout = document.getElementById('btnCheckout');
+        var btnText = document.getElementById('btnCheckoutText');
+        var paymentCard = document.getElementById('paymentCard');
+        var freeNotice = document.getElementById('freePlanNotice');
+        var isFree = planTier === 'free';
+
+        // Ajustar UI para plan gratuito
+        if (isFree) {
+            freeNotice.style.display = 'block';
+            paymentCard.style.display = 'none';
+            btnText.textContent = 'Activar Trial Gratuito';
+            termsCheck.checked = true; // No necesita aceptar para gratis
+        }
 
         function checkValid() {
             var emailOk = emailInput.value.indexOf('@') > -1 && emailInput.value.indexOf('.') > -1;
-            btnCheckout.disabled = !(emailOk && termsCheck.checked);
+            var tenantOk = tenantInput.value.trim().length >= 2;
+            if (isFree) {
+                btnCheckout.disabled = !(emailOk && tenantOk);
+            } else {
+                btnCheckout.disabled = !(emailOk && tenantOk && termsCheck.checked);
+            }
         }
         emailInput.addEventListener('input', checkValid);
+        tenantInput.addEventListener('input', checkValid);
         termsCheck.addEventListener('change', checkValid);
 
         function fmtCOP(n) { return '$' + new Intl.NumberFormat('es-CO').format(n); }
 
-        // Load plan info
+        // Planes estáticos como fallback
+        var FALLBACK_PLANS = [
+            {tier:'free',name:'Explorador',price_cop:'0.00',yearly_discount:{yearly_price_cop:0}},
+            {tier:'basic',name:'Agricultor',price_cop:'79000.00',yearly_discount:{yearly_price_cop:790000}},
+            {tier:'pro',name:'Empresarial',price_cop:'179000.00',yearly_discount:{yearly_price_cop:1790000}}
+        ];
+
+        function loadPlanInfo(plansData) {
+            var plan = plansData.find(function(p) { return p.tier === planTier; });
+            if (!plan) return;
+            var isYearly = billingCycle === 'yearly';
+            var price = isYearly ? (plan.yearly_discount ? plan.yearly_discount.yearly_price_cop : 0) : parseFloat(plan.price_cop);
+            document.getElementById('summaryPlanName').textContent = plan.name;
+            document.getElementById('summaryCycle').textContent = isFree ? 'Trial gratuito (14 días)' : (isYearly ? 'Facturación anual' : 'Facturación mensual');
+            document.getElementById('summaryPlanPrice').textContent = isFree ? 'Gratis' : fmtCOP(price);
+            document.getElementById('summaryTotal').textContent = isFree ? 'Gratis' : fmtCOP(price);
+        }
+
+        // Intentar cargar del API, fallback a estáticos
         fetch(API + '/billing/api/plans/')
-            .then(function(r) { return r.json(); })
-            .then(function(plans) {
-                var plan = plans.find(function(p) { return p.tier === planTier; });
-                if (!plan) return;
-                var isYearly = billingCycle === 'yearly';
-                var price = isYearly ? plan.yearly_discount.yearly_price_cop : parseFloat(plan.price_cop);
-                document.getElementById('summaryPlanName').textContent = plan.name;
-                document.getElementById('summaryCycle').textContent = isYearly ? 'Facturación anual' : 'Facturación mensual';
-                document.getElementById('summaryPlanPrice').textContent = fmtCOP(price);
-                document.getElementById('summaryTotal').textContent = fmtCOP(price);
-            });
+            .then(function(r) { if (!r.ok) throw new Error(); return r.json(); })
+            .then(function(plans) { loadPlanInfo(plans); })
+            .catch(function() { loadPlanInfo(FALLBACK_PLANS); });
 
         btnCheckout.addEventListener('click', function() {
             btnCheckout.disabled = true;
-            document.getElementById('loadingOverlay').classList.add('show');
+            var overlay = document.getElementById('loadingOverlay');
+            var loadingText = overlay.querySelector('.loading-text');
+            overlay.classList.add('show');
 
+            var payload = {
+                plan_tier: planTier,
+                billing_cycle: billingCycle,
+                payer_email: emailInput.value.trim(),
+                tenant_name: tenantInput.value.trim()
+            };
+
+            // Plan gratuito: crear tenant directamente sin MercadoPago
+            if (isFree) {
+                loadingText.textContent = 'Creando tu espacio de trabajo...';
+                fetch(API + '/billing/api/create-checkout/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success && data.tenant_created) {
+                        window.location.href = 'success.html?plan=free&cycle=monthly&tenant=' + encodeURIComponent(data.schema_name || 'trial');
+                    } else {
+                        throw new Error(data.error || 'Error creando trial gratuito');
+                    }
+                })
+                .catch(function(e) {
+                    overlay.classList.remove('show');
+                    btnCheckout.disabled = false;
+                    alert('Error: ' + e.message);
+                });
+                return;
+            }
+
+            // Plan pago: crear checkout en MercadoPago
+            loadingText.textContent = 'Redirigiendo a MercadoPago...';
             fetch(API + '/billing/api/create-checkout/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    plan_tier: planTier,
-                    billing_cycle: billingCycle,
-                    payer_email: emailInput.value.trim()
-                })
+                body: JSON.stringify(payload)
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
@@ -235,7 +307,7 @@
                 }
             })
             .catch(function(e) {
-                document.getElementById('loadingOverlay').classList.remove('show');
+                overlay.classList.remove('show');
                 btnCheckout.disabled = false;
                 alert('Error: ' + e.message);
             });
