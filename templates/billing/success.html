@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Pago Exitoso! - AgroTech Digital</title>
+    <link rel="shortcut icon" href="../../images/agrotech solo blanco.png">
+    <link rel="stylesheet" href="../../style.css">
+    <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
+    <script src="../../js/config.js"></script>
+    <style>
+        .success-container { text-align:center; padding:140px 0 60px; max-width:680px; margin:0 auto; }
+        #confettiCanvas { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999; }
+        .success-icon { width:96px; height:96px; border-radius:50%; background:linear-gradient(135deg,rgba(52,199,89,0.2),rgba(52,199,89,0.05)); border:2px solid rgba(52,199,89,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 32px; animation:scaleIn 0.5s cubic-bezier(0.34,1.56,0.64,1); }
+        .success-icon i { font-size:44px; color:var(--verde-claro); }
+        @keyframes scaleIn { 0%{transform:scale(0);opacity:0;} 100%{transform:scale(1);opacity:1;} }
+        .success-container h1 { font-size:clamp(28px,5vw,44px); font-weight:800; letter-spacing:-0.03em; margin-bottom:12px; }
+        .success-container .subtitle { font-size:17px; color:var(--gris-400); margin-bottom:48px; }
+        .details-card { background:var(--gris-950); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius-xl); padding:36px; text-align:left; margin-bottom:32px; }
+        .details-card h3 { font-size:16px; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+        .details-card h3 i { color:var(--verde-claro); }
+        .detail-row { display:flex; justify-content:space-between; align-items:center; padding:14px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:14px; }
+        .detail-row:last-child { border-bottom:none; }
+        .detail-row .label { color:var(--gris-400); }
+        .detail-row .value { font-weight:600; }
+        .status-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(52,199,89,0.15); color:var(--verde-claro); padding:4px 14px; border-radius:980px; font-size:13px; font-weight:600; }
+        .status-badge::before { content:''; width:6px; height:6px; background:var(--verde-claro); border-radius:50%; }
+        .next-steps { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:40px; }
+        .step-card { background:var(--gris-950); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:24px 20px; text-align:center; transition:var(--transition-smooth); }
+        .step-card:hover { border-color:rgba(255,255,255,0.12); transform:translateY(-2px); }
+        .step-card .snum { width:36px; height:36px; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; background:rgba(52,199,89,0.12); border-radius:10px; color:var(--verde-claro); font-size:14px; font-weight:800; }
+        .step-card h4 { font-size:14px; font-weight:600; margin-bottom:6px; }
+        .step-card p { font-size:13px; color:var(--gris-400); margin:0; line-height:1.5; }
+        .btn-dashboard { display:inline-flex; align-items:center; gap:10px; padding:16px 40px; background:var(--verde-claro); color:#000; border:none; border-radius:980px; font-size:16px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; transition:var(--transition-smooth); text-decoration:none; }
+        .btn-dashboard:hover { background:var(--verde-accent); box-shadow:0 8px 24px rgba(52,199,89,0.3); transform:scale(1.02); color:#000; }
+        .btn-secondary-link { display:inline-flex; align-items:center; gap:8px; margin-top:16px; font-size:14px; font-weight:500; color:var(--gris-400); text-decoration:none; transition:var(--transition-smooth); }
+        .btn-secondary-link:hover { color:var(--verde-claro); }
+        @media(max-width:640px) { .next-steps{grid-template-columns:1fr;} .success-container{padding:100px 0 40px;} }
+    </style>
+</head>
+<body>
+    <canvas id="confettiCanvas"></canvas>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <img src="../../images/agrotech solo blanco.png" alt="AgroTech Digital">
+                    <span>AgroTech Digital</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="../../index.html#features">Características</a>
+                    <a href="pricing.html" >Planes</a>
+                    <a href="../authentication/login.html" class="btn-primary-nav">Iniciar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="success-container">
+            <div class="success-icon"><i class="ti ti-circle-check"></i></div>
+            <h1>¡Pago realizado con éxito!</h1>
+            <p class="subtitle">Bienvenido a AgroTech Digital Premium. Tu suscripción está activa.</p>
+
+            <div class="details-card">
+                <h3><i class="ti ti-receipt"></i> Detalles de tu suscripción</h3>
+                <div class="detail-row"><span class="label">Plan</span><span class="value" id="detailPlan">—</span></div>
+                <div class="detail-row"><span class="label">Ciclo</span><span class="value" id="detailCycle">—</span></div>
+                <div class="detail-row"><span class="label">ID de suscripción</span><span class="value" id="detailSubId">—</span></div>
+                <div class="detail-row"><span class="label">Estado</span><span class="status-badge" id="detailStatus">Activo</span></div>
+            </div>
+
+            <h3 style="font-size:20px;font-weight:700;margin-bottom:20px;">Próximos pasos</h3>
+            <div class="next-steps">
+                <div class="step-card"><div class="snum">1</div><h4>Configura tu finca</h4><p>Agrega tus parcelas y define tus cultivos.</p></div>
+                <div class="step-card"><div class="snum">2</div><h4>Análisis Satelital</h4><p>Ejecuta tu primer análisis NDVI en segundos.</p></div>
+                <div class="step-card"><div class="snum">3</div><h4>Optimiza</h4><p>Revisa los informes y mejora tu rendimiento.</p></div>
+            </div>
+
+            <a href="../dashboard.html" class="btn-dashboard"><i class="ti ti-layout-dashboard"></i> Ir al Dashboard</a>
+            <br>
+            <a href="pricing.html" class="btn-secondary-link"><i class="ti ti-arrow-left"></i> Volver a planes</a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="logo">
+                        <img src="../../images/agrotech solo blanco.png" alt="AgroTech Digital">
+                        <span>AgroTech Digital</span>
+                    </div>
+                    <p>Agricultura de precisión con análisis satelital avanzado para maximizar tu producción.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Producto</h4>
+                    <a href="../../index.html#features">Características</a>
+                    <a href="pricing.html">Planes</a>
+                    <a href="../authentication/login.html">Iniciar Sesión</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Empresa</h4>
+                    <a href="#">Sobre Nosotros</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Contacto</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Contacto</h4>
+                    <p>info@agrotechdigital.com</p>
+                    <p>+57 300 123 4567</p>
+                    <p>Bogotá, Colombia</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 AgroTech Digital. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var params = new URLSearchParams(window.location.search);
+        var planMap = {'basic':'Agricultor','pro':'Empresarial','free':'Explorador'};
+        var tier = params.get('plan') || 'basic';
+        var cycle = params.get('cycle') || 'monthly';
+        document.getElementById('detailPlan').textContent = planMap[tier] || tier;
+        document.getElementById('detailCycle').textContent = cycle === 'yearly' ? 'Anual' : 'Mensual';
+        document.getElementById('detailSubId').textContent = params.get('preapproval_id') || params.get('subscription_id') || '—';
+
+        // Confetti
+        var canvas = document.getElementById('confettiCanvas');
+        var ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        var colors = ['#34C759','#30D158','#007A20','#FF9F0A','#f5f5f7','#86868b'];
+        var particles = [];
+        for (var i = 0; i < 150; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                w: Math.random() * 10 + 4,
+                h: Math.random() * 6 + 3,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                speed: Math.random() * 3 + 2,
+                angle: Math.random() * Math.PI * 2,
+                spin: (Math.random() - 0.5) * 0.1,
+                drift: (Math.random() - 0.5) * 1
+            });
+        }
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            var alive = false;
+            particles.forEach(function(p) {
+                if (p.y < canvas.height + 20) alive = true;
+                p.y += p.speed; p.x += p.drift; p.angle += p.spin;
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.angle);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = Math.max(0, 1 - p.y / canvas.height);
+                ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                ctx.restore();
+            });
+            if (alive) requestAnimationFrame(animate);
+            else canvas.remove();
+        }
+        animate();
+        window.addEventListener('resize', function() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+    });
+    </script>
+</body>
+</html>

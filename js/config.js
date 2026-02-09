@@ -42,8 +42,10 @@
         
         // Endpoints principales
         ENDPOINTS: {
-            LOGIN: '/api/authentication/login/',
-            LOGOUT: '/api/authentication/logout/',
+            LOGIN: '/api/auth/login/',
+            LOGOUT: '/api/auth/logout/',
+            REGISTER: '/api/auth/register/',
+            ME: '/api/auth/me/',
             TOKEN_REFRESH: '/api/token/refresh/',
             
             // Parcelas
@@ -60,6 +62,8 @@
             BILLING_DASHBOARD: '/billing/api/usage/dashboard/',
             BILLING_HISTORY: '/billing/api/usage/history/',
             BILLING_INVOICE: '/billing/api/invoice/current/',
+            BILLING_PLANS: '/billing/api/plans/',
+            BILLING_CREATE_CHECKOUT: '/billing/api/create-checkout/',
             
             // Inventario
             INVENTORY: '/api/inventario/',

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago Cancelado - AgroTech Digital</title>
+    <link rel="shortcut icon" href="../../images/agrotech solo blanco.png">
+    <link rel="stylesheet" href="../../style.css">
+    <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
+    <script src="../../js/config.js"></script>
+    <style>
+        .cancel-container { text-align:center; padding:140px 0 60px; max-width:640px; margin:0 auto; }
+        .cancel-icon { width:96px; height:96px; border-radius:50%; background:linear-gradient(135deg,rgba(255,159,10,0.2),rgba(255,159,10,0.05)); border:2px solid rgba(255,159,10,0.3); display:flex; align-items:center; justify-content:center; margin:0 auto 32px; animation:bounceIn 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+        .cancel-icon i { font-size:44px; color:var(--naranja); }
+        @keyframes bounceIn { 0%{transform:scale(0) rotate(-10deg);opacity:0;} 60%{transform:scale(1.1) rotate(2deg);} 100%{transform:scale(1) rotate(0);opacity:1;} }
+        .cancel-container h1 { font-size:clamp(28px,5vw,40px); font-weight:800; letter-spacing:-0.03em; margin-bottom:12px; }
+        .cancel-container .subtitle { font-size:17px; color:var(--gris-400); margin-bottom:48px; line-height:1.6; }
+        .help-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:40px; }
+        .help-card { background:var(--gris-950); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:28px 20px; text-align:center; transition:var(--transition-smooth); text-decoration:none; cursor:pointer; display:block; }
+        .help-card:hover { border-color:rgba(255,255,255,0.12); transform:translateY(-3px); box-shadow:0 16px 48px rgba(0,0,0,0.3); }
+        .help-card-icon { width:48px; height:48px; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; background:rgba(255,255,255,0.04); border-radius:14px; font-size:22px; transition:var(--transition-smooth); }
+        .help-card:nth-child(1) .help-card-icon { color:var(--verde-claro); }
+        .help-card:nth-child(2) .help-card-icon { color:#25D366; }
+        .help-card:nth-child(3) .help-card-icon { color:var(--naranja); }
+        .help-card h4 { font-size:15px; font-weight:600; margin-bottom:6px; color:var(--texto-claro); }
+        .help-card p { font-size:13px; color:var(--gris-400); margin:0; line-height:1.5; }
+        .cta-group { display:flex; flex-direction:column; align-items:center; gap:16px; margin-bottom:48px; }
+        .btn-retry { display:inline-flex; align-items:center; gap:10px; padding:16px 40px; background:var(--verde-claro); color:#000; border:none; border-radius:980px; font-size:16px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; transition:var(--transition-smooth); text-decoration:none; }
+        .btn-retry:hover { background:var(--verde-accent); box-shadow:0 8px 24px rgba(52,199,89,0.3); transform:scale(1.02); color:#000; }
+        .btn-outline { display:inline-flex; align-items:center; gap:8px; padding:14px 32px; background:transparent; color:var(--texto-claro); border:1px solid rgba(255,255,255,0.12); border-radius:980px; font-size:15px; font-weight:600; font-family:'Inter',sans-serif; cursor:pointer; transition:var(--transition-smooth); text-decoration:none; }
+        .btn-outline:hover { background:rgba(255,255,255,0.04); border-color:rgba(255,255,255,0.2); color:var(--texto-claro); }
+        .trial-banner { background:linear-gradient(165deg,rgba(52,199,89,0.08) 0%,var(--gris-950) 60%); border:1px solid rgba(52,199,89,0.15); border-radius:var(--radius-xl); padding:36px; display:flex; align-items:center; gap:24px; }
+        .trial-icon { width:56px; height:56px; min-width:56px; display:flex; align-items:center; justify-content:center; background:rgba(52,199,89,0.12); border-radius:16px; font-size:26px; color:var(--verde-claro); }
+        .trial-content { flex:1; text-align:left; }
+        .trial-content h4 { font-size:17px; font-weight:700; margin-bottom:4px; }
+        .trial-content p { font-size:14px; color:var(--gris-400); margin:0; }
+        .btn-trial { display:inline-flex; align-items:center; gap:6px; padding:12px 24px; background:rgba(52,199,89,0.15); color:var(--verde-claro); border:1px solid rgba(52,199,89,0.2); border-radius:980px; font-size:14px; font-weight:600; font-family:'Inter',sans-serif; cursor:pointer; transition:var(--transition-smooth); text-decoration:none; white-space:nowrap; }
+        .btn-trial:hover { background:var(--verde-claro); color:#000; }
+        @media(max-width:640px) { .help-grid{grid-template-columns:1fr;} .cancel-container{padding:100px 0 40px;} .trial-banner{flex-direction:column;text-align:center;} .trial-content{text-align:center;} }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <img src="../../images/agrotech solo blanco.png" alt="AgroTech Digital">
+                    <span>AgroTech Digital</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="../../index.html#features">Características</a>
+                    <a href="pricing.html" >Planes</a>
+                    <a href="../authentication/login.html" class="btn-primary-nav">Iniciar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="cancel-container">
+            <div class="cancel-icon"><i class="ti ti-x"></i></div>
+            <h1>Pago no completado</h1>
+            <p class="subtitle">Tu proceso de pago fue cancelado. No se realizó ningún cargo.<br>Puedes intentarlo de nuevo o explorar otras opciones.</p>
+
+            <div class="help-grid">
+                <div class="help-card" onclick="window.location.href='pricing.html'">
+                    <div class="help-card-icon"><i class="ti ti-arrows-exchange"></i></div>
+                    <h4>Cambiar de plan</h4>
+                    <p>Explora otros planes que se ajusten a tu presupuesto.</p>
+                </div>
+                <a href="https://wa.me/573001234567?text=Hola%2C%20necesito%20ayuda%20con%20mi%20suscripción" class="help-card" target="_blank">
+                    <div class="help-card-icon"><i class="ti ti-brand-whatsapp"></i></div>
+                    <h4>WhatsApp</h4>
+                    <p>Habla con nuestro equipo de soporte en tiempo real.</p>
+                </a>
+                <a href="mailto:soporte@agrotechdigital.co" class="help-card">
+                    <div class="help-card-icon"><i class="ti ti-mail"></i></div>
+                    <h4>Email</h4>
+                    <p>Escríbenos y te respondemos en menos de 24 horas.</p>
+                </a>
+            </div>
+
+            <div class="cta-group">
+                <a href="pricing.html" class="btn-retry"><i class="ti ti-refresh"></i> Intentar de nuevo</a>
+                <a href="../../index.html" class="btn-outline"><i class="ti ti-home"></i> Volver al inicio</a>
+            </div>
+
+            <div class="trial-banner">
+                <div class="trial-icon"><i class="ti ti-gift"></i></div>
+                <div class="trial-content">
+                    <h4>¿Aún no estás seguro?</h4>
+                    <p>Comienza con nuestro plan gratuito y descubre todas las funcionalidades sin compromiso.</p>
+                </div>
+                <a href="../authentication/login.html" class="btn-trial">Probar gratis <i class="ti ti-arrow-right"></i></a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="logo">
+                        <img src="../../images/agrotech solo blanco.png" alt="AgroTech Digital">
+                        <span>AgroTech Digital</span>
+                    </div>
+                    <p>Agricultura de precisión con análisis satelital avanzado para maximizar tu producción.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Producto</h4>
+                    <a href="../../index.html#features">Características</a>
+                    <a href="pricing.html">Planes</a>
+                    <a href="../authentication/login.html">Iniciar Sesión</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Empresa</h4>
+                    <a href="#">Sobre Nosotros</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Contacto</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Contacto</h4>
+                    <p>info@agrotechdigital.com</p>
+                    <p>+57 300 123 4567</p>
+                    <p>Bogotá, Colombia</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 AgroTech Digital. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

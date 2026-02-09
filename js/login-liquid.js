@@ -71,7 +71,7 @@ loginForm.addEventListener('submit', async (e) => {
     
     try {
         // Hacer login
-        const response = await fetch(`${API_BASE_URL}/api/authentication/login/`, {
+        const response = await fetch(`${API_BASE_URL}/api/auth/login/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -98,13 +98,20 @@ loginForm.addEventListener('submit', async (e) => {
         }
         
         // Login exitoso
-        if (data.access || data.token) {
-            const token = data.access || data.token;
-            
-            // Guardar token
+        // New API format: { success, tokens: { access, refresh }, user }
+        const token = data.tokens?.access || data.access || data.token;
+        if (token) {
+            // Guardar tokens
             localStorage.setItem('accessToken', token);
-            if (data.refresh) {
-                localStorage.setItem('refreshToken', data.refresh);
+            const refresh = data.tokens?.refresh || data.refresh;
+            if (refresh) {
+                localStorage.setItem('refreshToken', refresh);
+            }
+            
+            // Guardar info del usuario
+            if (data.user) {
+                localStorage.setItem('userName', data.user.name || '');
+                localStorage.setItem('userEmail', data.user.email || '');
             }
             
             console.log('✅ Login exitoso');

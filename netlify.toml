@@ -30,6 +30,26 @@
   to = "/templates/authentication/login.html"
   status = 200
 
+# 3b. Register
+[[redirects]]
+  from = "/register"
+  to = "/templates/authentication/register.html"
+  status = 200
+
+# 4a. Billing webhooks -> Railway
+[[redirects]]
+  from = "/billing/*"
+  to = "https://agrotech-digital-production.up.railway.app/billing/:splat"
+  status = 200
+  force = true
+
+# 4a. Billing webhooks -> Railway
+[[redirects]]
+  from = "/billing/*"
+  to = "https://agrotech-digital-production.up.railway.app/billing/:splat"
+  status = 200
+  force = true
+
 # 4. Redirigir TODAS las peticiones de API a Railway (Backend REST)
 # IMPORTANTE: 
 # - force=true: Redirige ANTES de buscar archivos locales

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planes y Precios - AgroTech Digital</title>
+    <link rel="shortcut icon" href="../../images/agrotech solo blanco.png">
+    <link rel="stylesheet" href="../../style.css">
+    <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
+    <script src="../../js/config.js"></script>
+    <style>
+        .billing-toggle { display:flex; align-items:center; justify-content:center; gap:16px; margin:-32px 0 48px; }
+        .billing-toggle span { font-size:15px; font-weight:500; color:var(--gris-600); transition:var(--transition-smooth); cursor:pointer; }
+        .billing-toggle span.active { color:var(--texto-claro); font-weight:600; }
+        .toggle-switch { position:relative; width:56px; height:28px; background:var(--gris-800); border-radius:14px; cursor:pointer; transition:var(--transition-smooth); border:1px solid rgba(255,255,255,0.08); }
+        .toggle-switch.active { background:var(--verde-principal); border-color:var(--verde-claro); }
+        .toggle-switch::after { content:''; position:absolute; top:3px; left:3px; width:20px; height:20px; background:#fff; border-radius:50%; transition:var(--transition-smooth); box-shadow:0 2px 4px rgba(0,0,0,0.3); }
+        .toggle-switch.active::after { left:31px; }
+        .save-badge { background:var(--naranja); color:#000; padding:4px 12px; border-radius:980px; font-size:12px; font-weight:700; }
+        .price-savings { display:block; font-size:13px; color:var(--verde-claro); margin-top:8px; font-weight:500; }
+        .limit-tag { margin-left:auto; background:rgba(255,255,255,0.06); padding:2px 10px; border-radius:980px; font-size:12px; font-weight:600; color:var(--gris-400); }
+        .btn-plan { cursor:pointer; }
+        .btn-plan:disabled,.btn-plan.disabled { background:rgba(255,255,255,0.03)!important; color:var(--gris-600)!important; border-color:rgba(255,255,255,0.04)!important; cursor:not-allowed; transform:none!important; }
+        .comparison-section { margin-top:100px; padding-top:60px; border-top:1px solid rgba(255,255,255,0.06); }
+        .comparison-section h3 { text-align:center; font-size:28px; font-weight:700; margin-bottom:40px; letter-spacing:-0.02em; }
+        .comparison-table { width:100%; border-collapse:collapse; }
+        .comparison-table th,.comparison-table td { padding:16px 20px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.04); font-size:14px; }
+        .comparison-table th { background:var(--gris-950); font-weight:600; font-size:15px; }
+        .comparison-table td:first-child { text-align:left; font-weight:500; color:var(--gris-200); }
+        .comparison-table td { color:var(--gris-400); }
+        .table-check { color:var(--verde-claro); font-size:18px; }
+        .table-cross { color:rgba(255,255,255,0.15); font-size:18px; }
+        .faq-section { margin-top:80px; }
+        .faq-section h3 { text-align:center; font-size:28px; font-weight:700; margin-bottom:40px; }
+        .faq-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }
+        .faq-card { background:var(--gris-950); border:1px solid rgba(255,255,255,0.06); border-radius:16px; padding:24px; transition:var(--transition-smooth); }
+        .faq-card:hover { border-color:rgba(255,255,255,0.12); }
+        .faq-card h5 { font-size:15px; font-weight:600; margin-bottom:8px; }
+        .faq-card p { font-size:14px; color:var(--gris-400); line-height:1.6; margin:0; }
+        @keyframes spin { to { transform:rotate(360deg); } }
+        @media(max-width:768px) { .faq-grid{grid-template-columns:1fr;} .comparison-section{overflow-x:auto;} }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <img src="../../images/agrotech solo blanco.png" alt="AgroTech Digital">
+                    <span>AgroTech Digital</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="../../index.html#features">Características</a>
+                    <a href="pricing.html" style="color:#fff;font-weight:600;">Planes</a>
+                    <a href="../authentication/login.html" class="btn-primary-nav">Iniciar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <section class="pricing" style="padding-top:140px;">
+        <div class="container">
+            <h2 class="section-title">Planes para cada necesidad</h2>
+            <p class="section-subtitle">Selecciona el plan perfecto para tu operación agrícola</p>
+
+            <div class="billing-toggle">
+                <span class="toggle-monthly active" onclick="setBilling(false)">Mensual</span>
+                <div class="toggle-switch" id="billingToggle"></div>
+                <span class="toggle-yearly" onclick="setBilling(true)">Anual</span>
+                <span class="save-badge">Ahorra 20%</span>
+            </div>
+
+            <div class="pricing-grid" id="pricingCards">
+                <div style="grid-column:1/-1;text-align:center;padding:60px 0;">
+                    <div style="width:40px;height:40px;border:3px solid rgba(255,255,255,0.1);border-top-color:var(--verde-claro);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;"></div>
+                    <p style="color:var(--gris-400);">Cargando planes...</p>
+                </div>
+            </div>
+
+            <div class="comparison-section">
+                <h3>Comparación de Características</h3>
+                <div style="overflow-x:auto;">
+                    <table class="comparison-table">
+                        <thead><tr><th style="text-align:left;">Característica</th><th>Explorador</th><th>Agricultor</th><th>Empresarial</th></tr></thead>
+                        <tbody>
+                            <tr><td><i class="ti ti-map-pin" style="color:var(--verde-claro);margin-right:8px;"></i> Hectáreas</td><td>50 ha</td><td>300 ha</td><td>1,000 ha</td></tr>
+                            <tr><td><i class="ti ti-satellite" style="color:var(--verde-claro);margin-right:8px;"></i> Análisis/mes</td><td>10</td><td>100</td><td>500</td></tr>
+                            <tr><td><i class="ti ti-users" style="color:var(--verde-claro);margin-right:8px;"></i> Usuarios</td><td>1</td><td>3</td><td>10</td></tr>
+                            <tr><td><i class="ti ti-layout-grid" style="color:var(--verde-claro);margin-right:8px;"></i> Parcelas</td><td>3</td><td>10</td><td>50</td></tr>
+                            <tr><td><i class="ti ti-chart-line" style="color:var(--verde-claro);margin-right:8px;"></i> Análisis NDVI</td><td><span class="table-check">✓</span></td><td><span class="table-check">✓</span></td><td><span class="table-check">✓</span></td></tr>
+                            <tr><td><i class="ti ti-droplet" style="color:var(--verde-claro);margin-right:8px;"></i> Estrés Hídrico</td><td><span class="table-cross">✗</span></td><td><span class="table-check">✓</span></td><td><span class="table-check">✓</span></td></tr>
+                            <tr><td><i class="ti ti-cloud-rain" style="color:var(--verde-claro);margin-right:8px;"></i> Pronóstico Climático</td><td><span class="table-cross">✗</span></td><td><span class="table-check">✓</span></td><td><span class="table-check">✓</span></td></tr>
+                            <tr><td><i class="ti ti-code" style="color:var(--verde-claro);margin-right:8px;"></i> Acceso API</td><td><span class="table-cross">✗</span></td><td><span class="table-cross">✗</span></td><td><span class="table-check">✓</span></td></tr>
+                            <tr><td><i class="ti ti-headset" style="color:var(--verde-claro);margin-right:8px;"></i> Soporte Prioritario</td><td><span class="table-cross">✗</span></td><td><span class="table-check">✓</span></td><td><span class="table-check">✓</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="faq-section">
+                <h3>Preguntas Frecuentes</h3>
+                <div class="faq-grid">
+                    <div class="faq-card"><h5><i class="ti ti-credit-card" style="color:var(--verde-claro);margin-right:6px;"></i> ¿Qué métodos de pago aceptan?</h5><p>Aceptamos tarjetas de crédito/débito, PSE y otros métodos locales a través de MercadoPago para Colombia.</p></div>
+                    <div class="faq-card"><h5><i class="ti ti-refresh" style="color:var(--verde-claro);margin-right:6px;"></i> ¿Puedo cambiar de plan?</h5><p>Sí, puedes mejorar tu plan en cualquier momento. El cambio se aplica inmediatamente.</p></div>
+                    <div class="faq-card"><h5><i class="ti ti-arrow-back-up" style="color:var(--verde-claro);margin-right:6px;"></i> ¿Puedo cancelar en cualquier momento?</h5><p>Sí, puedes cancelar tu suscripción cuando quieras. No hay contratos ni compromisos.</p></div>
+                    <div class="faq-card"><h5><i class="ti ti-gift" style="color:var(--verde-claro);margin-right:6px;"></i> ¿Hay período de prueba?</h5><p>Todos los planes pagos incluyen 14 días de prueba gratis. Cancela antes si no estás satisfecho.</p></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="logo">
+                        <img src="../../images/agrotech solo blanco.png" alt="AgroTech Digital">
+                        <span>AgroTech Digital</span>
+                    </div>
+                    <p>Agricultura de precisión con análisis satelital avanzado para maximizar tu producción.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Producto</h4>
+                    <a href="../../index.html#features">Características</a>
+                    <a href="pricing.html">Planes</a>
+                    <a href="../authentication/login.html">Iniciar Sesión</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Empresa</h4>
+                    <a href="#">Sobre Nosotros</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Contacto</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Contacto</h4>
+                    <p>info@agrotechdigital.com</p>
+                    <p>+57 300 123 4567</p>
+                    <p>Bogotá, Colombia</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 AgroTech Digital. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var API = window.AGROTECH_CONFIG.API_BASE;
+        var toggle = document.getElementById('billingToggle');
+        var monthlyLabel = document.querySelector('.toggle-monthly');
+        var yearlyLabel = document.querySelector('.toggle-yearly');
+        var grid = document.getElementById('pricingCards');
+        var isYearly = false;
+        var plans = [];
+
+        toggle.addEventListener('click', function() { setBilling(!isYearly); });
+
+        window.setBilling = function(yearly) {
+            isYearly = yearly;
+            toggle.classList.toggle('active', isYearly);
+            monthlyLabel.classList.toggle('active', !isYearly);
+            yearlyLabel.classList.toggle('active', isYearly);
+            render();
+        };
+
+        function fetchPlans() {
+            fetch(API + '/billing/api/plans/')
+                .then(function(r) { return r.json(); })
+                .then(function(data) { plans = data; render(); })
+                .catch(function() {
+                    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 0;"><p style="color:var(--gris-400);">Error cargando planes. Recarga la página.</p></div>';
+                });
+        }
+
+        function fmt(n) { return new Intl.NumberFormat('es-CO').format(n); }
+
+        var featureMap = {
+            'basic_analytics': 'Análisis básico (NDVI)',
+            'advanced_analytics': 'Análisis avanzado',
+            'weather_forecast': 'Pronóstico climático',
+            'api_access': 'Acceso a API'
+        };
+
+        function render() {
+            grid.innerHTML = plans.map(function(p) {
+                var featured = p.tier === 'basic';
+                var price = isYearly ? p.yearly_discount.yearly_price_cop : parseFloat(p.price_cop);
+                var period = isYearly ? '/año' : '/mes';
+                var savings = (isYearly && p.yearly_discount.savings_cop > 0)
+                    ? '<span class="price-savings">Ahorras $' + fmt(p.yearly_discount.savings_cop) + '</span>' : '';
+
+                var items = [
+                    '<li><span class="check">✓</span> Hasta ' + p.limits.hectares + ' hectáreas <span class="limit-tag">' + p.limits.hectares + ' ha</span></li>',
+                    '<li><span class="check">✓</span> ' + p.limits.eosda_requests + ' análisis/mes <span class="limit-tag">' + p.limits.eosda_requests + '</span></li>',
+                    '<li><span class="check">✓</span> ' + p.limits.users + ' usuario' + (p.limits.users > 1 ? 's' : '') + '</li>',
+                    '<li><span class="check">✓</span> ' + p.limits.parcels + ' parcela' + (p.limits.parcels > 1 ? 's' : '') + '</li>'
+                ];
+                p.features_included.forEach(function(f) {
+                    items.push('<li><span class="check">✓</span> ' + (featureMap[f] || f) + '</li>');
+                });
+                p.features_excluded.forEach(function(f) {
+                    items.push('<li><span class="cross">✗</span> <span style="color:var(--gris-600)">' + (featureMap[f] || f) + '</span></li>');
+                });
+
+                var btn = (p.tier === 'free')
+                    ? '<button class="btn-plan disabled" disabled>Plan Actual</button>'
+                    : '<button class="btn-plan" onclick="selectPlan(\'' + p.tier + '\')">Comenzar Ahora</button>';
+
+                return '<div class="pricing-card ' + (featured ? 'featured' : '') + '">' +
+                    (featured ? '<div class="badge">POPULAR</div>' : '') +
+                    '<h3>' + p.name + '</h3>' +
+                    '<div class="price">' +
+                        (p.tier === 'free' ? '<span class="amount">Gratis</span>' :
+                        '<span class="currency">$</span><span class="amount">' + fmt(price) + '</span><span class="period">' + period + '</span>') +
+                    '</div>' + savings +
+                    '<ul class="features-list">' + items.join('') + '</ul>' +
+                    btn + '</div>';
+            }).join('');
+        }
+
+        window.selectPlan = function(tier) {
+            var cycle = isYearly ? 'yearly' : 'monthly';
+            window.location.href = 'checkout.html?plan=' + tier + '&cycle=' + cycle;
+        };
+
+        fetchPlans();
+    });
+    </script>
+</body>
+</html>

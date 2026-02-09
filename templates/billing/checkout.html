@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - AgroTech Digital</title>
+    <link rel="shortcut icon" href="../../images/agrotech solo blanco.png">
+    <link rel="stylesheet" href="../../style.css">
+    <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
+    <script src="../../js/config.js"></script>
+    <style>
+        .checkout-layout { display:grid; grid-template-columns:1fr 400px; gap:32px; padding:120px 0 60px; align-items:start; }
+        .checkout-main h1 { font-size:clamp(28px,4vw,40px); font-weight:800; letter-spacing:-0.03em; margin-bottom:8px; }
+        .checkout-main .subtitle { color:var(--gris-400); font-size:16px; margin-bottom:40px; }
+        .checkout-steps { display:flex; gap:8px; margin-bottom:40px; }
+        .step { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:var(--gris-600); }
+        .step.active { color:var(--verde-claro); }
+        .step.completed { color:var(--gris-200); }
+        .step-num { width:28px; height:28px; display:flex; align-items:center; justify-content:center; border-radius:50%; background:var(--gris-800); font-size:12px; font-weight:700; border:1px solid rgba(255,255,255,0.06); }
+        .step.active .step-num { background:var(--verde-claro); color:#000; border-color:var(--verde-claro); }
+        .step-divider { width:32px; height:1px; background:rgba(255,255,255,0.08); align-self:center; }
+        .form-card { background:var(--gris-950); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius-lg); padding:32px; margin-bottom:20px; }
+        .form-card h3 { font-size:18px; font-weight:700; margin-bottom:20px; display:flex; align-items:center; gap:10px; }
+        .form-card h3 i { color:var(--verde-claro); font-size:20px; }
+        .form-group { margin-bottom:20px; }
+        .form-group label { display:block; font-size:13px; font-weight:600; color:var(--gris-200); margin-bottom:8px; letter-spacing:0.02em; }
+        .form-input { width:100%; padding:14px 16px; background:var(--gris-900); border:1px solid rgba(255,255,255,0.08); border-radius:12px; color:var(--texto-claro); font-size:15px; font-family:'Inter',sans-serif; transition:var(--transition-smooth); outline:none; box-sizing:border-box; }
+        .form-input:focus { border-color:var(--verde-claro); box-shadow:0 0 0 3px rgba(52,199,89,0.15); }
+        .form-input::placeholder { color:var(--gris-600); }
+        .payment-method { display:flex; align-items:center; gap:16px; padding:18px 20px; background:var(--gris-900); border:1px solid rgba(52,199,89,0.2); border-radius:12px; }
+        .payment-logo { height:32px; object-fit:contain; }
+        .payment-info h4 { font-size:14px; font-weight:600; margin:0 0 2px; }
+        .payment-info p { font-size:12px; color:var(--gris-400); margin:0; }
+        .payment-check { margin-left:auto; color:var(--verde-claro); font-size:18px; }
+        .terms-label { display:flex; align-items:flex-start; gap:10px; cursor:pointer; font-size:13px; color:var(--gris-400); line-height:1.5; margin-top:20px; }
+        .terms-label input[type="checkbox"] { appearance:none; -webkit-appearance:none; width:20px; height:20px; min-width:20px; background:var(--gris-900); border:1px solid rgba(255,255,255,0.12); border-radius:6px; cursor:pointer; position:relative; transition:var(--transition-smooth); margin-top:1px; }
+        .terms-label input[type="checkbox"]:checked { background:var(--verde-claro); border-color:var(--verde-claro); }
+        .terms-label input[type="checkbox"]:checked::after { content:'✓'; position:absolute; color:#000; font-size:14px; font-weight:700; top:50%; left:50%; transform:translate(-50%,-50%); }
+        .terms-label a { color:var(--verde-claro); }
+        .btn-checkout { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:16px; background:var(--verde-claro); color:#000; border:none; border-radius:980px; font-size:16px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; transition:var(--transition-smooth); margin-top:24px; }
+        .btn-checkout:hover { background:var(--verde-accent); box-shadow:0 8px 24px rgba(52,199,89,0.3); transform:scale(1.01); }
+        .btn-checkout:disabled { background:var(--gris-800); color:var(--gris-600); cursor:not-allowed; transform:none; box-shadow:none; }
+        .order-summary { background:var(--gris-950); border:1px solid rgba(255,255,255,0.06); border-radius:var(--radius-xl); padding:36px; position:sticky; top:100px; }
+        .order-summary h3 { font-size:16px; font-weight:700; margin-bottom:24px; }
+        .order-plan { display:flex; align-items:center; gap:14px; padding-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.06); margin-bottom:20px; }
+        .plan-icon { width:48px; height:48px; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,rgba(52,199,89,0.15),rgba(52,199,89,0.05)); border-radius:14px; font-size:22px; color:var(--verde-claro); }
+        .plan-label h4 { font-size:16px; font-weight:700; margin:0 0 2px; }
+        .plan-label span { font-size:13px; color:var(--gris-400); }
+        .order-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; font-size:14px; color:var(--gris-400); }
+        .order-row.total { padding-top:16px; margin-top:12px; border-top:1px solid rgba(255,255,255,0.06); font-size:18px; font-weight:800; color:var(--texto-claro); }
+        .order-total-price { color:var(--verde-claro); }
+        .secure-badge { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:24px; font-size:12px; color:var(--gris-600); }
+        .secure-badge i { color:var(--verde-claro); }
+        .loading-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); backdrop-filter:blur(8px); z-index:9999; align-items:center; justify-content:center; flex-direction:column; gap:20px; }
+        .loading-overlay.show { display:flex; }
+        .loading-spinner { width:48px; height:48px; border:3px solid rgba(255,255,255,0.1); border-top-color:var(--verde-claro); border-radius:50%; animation:spin 0.8s linear infinite; }
+        .loading-text { font-size:16px; font-weight:500; }
+        @keyframes spin { to{transform:rotate(360deg);} }
+        @media(max-width:860px) { .checkout-layout{grid-template-columns:1fr;} .order-summary{position:static;order:-1;} }
+    </style>
+</head>
+<body>
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Redirigiendo a MercadoPago...</div>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-content">
+                <div class="logo">
+                    <img src="../../images/agrotech solo blanco.png" alt="AgroTech Digital">
+                    <span>AgroTech Digital</span>
+                </div>
+                <div class="nav-menu">
+                    <a href="../../index.html#features">Características</a>
+                    <a href="pricing.html" >Planes</a>
+                    <a href="../authentication/login.html" class="btn-primary-nav">Iniciar Sesión</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="checkout-layout">
+            <div class="checkout-main">
+                <h1>Finalizar compra</h1>
+                <p class="subtitle">Estás a un paso de potenciar tu agricultura.</p>
+
+                <div class="checkout-steps">
+                    <div class="step completed"><span class="step-num">✓</span> Plan</div>
+                    <div class="step-divider"></div>
+                    <div class="step active"><span class="step-num">2</span> Datos</div>
+                    <div class="step-divider"></div>
+                    <div class="step"><span class="step-num">3</span> Pago</div>
+                </div>
+
+                <div class="form-card">
+                    <h3><i class="ti ti-mail"></i> Datos de contacto</h3>
+                    <div class="form-group">
+                        <label for="payerEmail">Correo Electrónico</label>
+                        <input type="email" class="form-input" id="payerEmail" placeholder="correo@ejemplo.com" required autocomplete="email">
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <h3><i class="ti ti-shield-lock"></i> Método de Pago</h3>
+                    <div class="payment-method">
+                        <img src="https://http2.mlstatic.com/frontend-assets/mp-web-navigation/badge.svg" alt="MercadoPago" class="payment-logo" onerror="this.style.display='none'">
+                        <div class="payment-info">
+                            <h4>MercadoPago</h4>
+                            <p>Tarjeta de crédito, débito, PSE y más</p>
+                        </div>
+                        <span class="payment-check">✓</span>
+                    </div>
+                    <label class="terms-label">
+                        <input type="checkbox" id="termsCheck">
+                        <span>Acepto los <a href="#">Términos y Condiciones</a> y la <a href="#">Política de Privacidad</a> de AgroTech Digital</span>
+                    </label>
+                </div>
+
+                <button class="btn-checkout" id="btnCheckout" disabled>
+                    <i class="ti ti-lock"></i>
+                    <span>Proceder al pago seguro</span>
+                </button>
+            </div>
+
+            <aside class="order-summary">
+                <h3>Resumen del Pedido</h3>
+                <div class="order-plan">
+                    <div class="plan-icon"><i class="ti ti-rocket"></i></div>
+                    <div class="plan-label">
+                        <h4 id="summaryPlanName">—</h4>
+                        <span id="summaryCycle">—</span>
+                    </div>
+                </div>
+                <div class="order-row"><span>Plan</span><span id="summaryPlanPrice">$0</span></div>
+                <div class="order-row"><span>Impuestos</span><span>Incluidos</span></div>
+                <div class="order-row total"><span>Total</span><span class="order-total-price" id="summaryTotal">$0</span></div>
+                <div class="secure-badge"><i class="ti ti-lock"></i> Pago 100% seguro y encriptado</div>
+            </aside>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <div class="logo">
+                        <img src="../../images/agrotech solo blanco.png" alt="AgroTech Digital">
+                        <span>AgroTech Digital</span>
+                    </div>
+                    <p>Agricultura de precisión con análisis satelital avanzado para maximizar tu producción.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Producto</h4>
+                    <a href="../../index.html#features">Características</a>
+                    <a href="pricing.html">Planes</a>
+                    <a href="../authentication/login.html">Iniciar Sesión</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Empresa</h4>
+                    <a href="#">Sobre Nosotros</a>
+                    <a href="#">Blog</a>
+                    <a href="#">Contacto</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Contacto</h4>
+                    <p>info@agrotechdigital.com</p>
+                    <p>+57 300 123 4567</p>
+                    <p>Bogotá, Colombia</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 AgroTech Digital. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var API = window.AGROTECH_CONFIG.API_BASE;
+        var params = new URLSearchParams(window.location.search);
+        var planTier = params.get('plan') || 'basic';
+        var billingCycle = params.get('cycle') || 'monthly';
+
+        var emailInput = document.getElementById('payerEmail');
+        var termsCheck = document.getElementById('termsCheck');
+        var btnCheckout = document.getElementById('btnCheckout');
+
+        function checkValid() {
+            var emailOk = emailInput.value.indexOf('@') > -1 && emailInput.value.indexOf('.') > -1;
+            btnCheckout.disabled = !(emailOk && termsCheck.checked);
+        }
+        emailInput.addEventListener('input', checkValid);
+        termsCheck.addEventListener('change', checkValid);
+
+        function fmtCOP(n) { return '$' + new Intl.NumberFormat('es-CO').format(n); }
+
+        // Load plan info
+        fetch(API + '/billing/api/plans/')
+            .then(function(r) { return r.json(); })
+            .then(function(plans) {
+                var plan = plans.find(function(p) { return p.tier === planTier; });
+                if (!plan) return;
+                var isYearly = billingCycle === 'yearly';
+                var price = isYearly ? plan.yearly_discount.yearly_price_cop : parseFloat(plan.price_cop);
+                document.getElementById('summaryPlanName').textContent = plan.name;
+                document.getElementById('summaryCycle').textContent = isYearly ? 'Facturación anual' : 'Facturación mensual';
+                document.getElementById('summaryPlanPrice').textContent = fmtCOP(price);
+                document.getElementById('summaryTotal').textContent = fmtCOP(price);
+            });
+
+        btnCheckout.addEventListener('click', function() {
+            btnCheckout.disabled = true;
+            document.getElementById('loadingOverlay').classList.add('show');
+
+            fetch(API + '/billing/api/create-checkout/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    plan_tier: planTier,
+                    billing_cycle: billingCycle,
+                    payer_email: emailInput.value.trim()
+                })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    throw new Error(data.error || 'Error al crear el checkout');
+                }
+            })
+            .catch(function(e) {
+                document.getElementById('loadingOverlay').classList.remove('show');
+                btnCheckout.disabled = false;
+                alert('Error: ' + e.message);
+            });
+        });
+    });
+    </script>
+</body>
+</html>
