@@ -12,7 +12,7 @@
 function getBackendUrl(apiPath = '', port = 8000) {
     // Detectar si estamos en localhost o producción
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const baseUrl = isLocalhost ? `http://localhost:${port}` : 'https://agrotechcolombia.com';
+    const baseUrl = isLocalhost ? `http://localhost:${port}` : ((window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'https://agrotech-digital-production.up.railway.app');
     
     // Agregar path si se proporciona
     if (apiPath) {

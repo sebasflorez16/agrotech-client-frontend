@@ -12,7 +12,8 @@ async function fetchParcelSummary() {
         }
 
         // Usar sistema multi-tenant ApiUrls
-        const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/summary/' : 'https://agrotechcolombia.com/api/parcels/parcel/summary/';
+        const _api = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'https://agrotech-digital-production.up.railway.app';
+        const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/summary/' : _api + '/api/parcels/parcel/summary/';
         const resp = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -114,7 +115,8 @@ async function fetchParcels() {
             return;
         }
 
-        const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/list/' : 'https://agrotechcolombia.com/api/parcels/parcel/list/';
+        const _api2 = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'https://agrotech-digital-production.up.railway.app';
+        const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/list/' : _api2 + '/api/parcels/parcel/list/';
         const resp = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -226,7 +228,8 @@ function renderChart(chartElementId, chartTitle, dataValues, dataLabels, color) 
 
 async function updateNDVIChart(polygon) {
     const token = localStorage.getItem("accessToken");
-    const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/ndvi-historical/' : 'https://agrotechcolombia.com/api/parcels/parcel/ndvi-historical/';
+    const _api3 = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'https://agrotech-digital-production.up.railway.app';
+    const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/ndvi-historical/' : _api3 + '/api/parcels/parcel/ndvi-historical/';
 
     const ndviData = await fetchChartData(url, polygon, token);
     if (ndviData) {
@@ -238,7 +241,8 @@ async function updateNDVIChart(polygon) {
 
 async function updateWaterStressChart(polygon) {
     const token = localStorage.getItem("accessToken");
-    const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/water-stress-historical/' : 'https://agrotechcolombia.com/api/parcels/parcel/water-stress-historical/';
+    const _api4 = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'https://agrotech-digital-production.up.railway.app';
+    const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/water-stress-historical/' : _api4 + '/api/parcels/parcel/water-stress-historical/';
 
     const waterStressData = await fetchChartData(url, polygon, token);
     if (waterStressData) {
@@ -261,7 +265,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function updateTable(parcelId) {
         try {
             const token = localStorage.getItem("accessToken");
-            const url = window.ApiUrls ? window.ApiUrls.parcels() + `/parcel/${parcelId}/` : `https://agrotechcolombia.com/api/parcels/parcel/${parcelId}/`;
+            const _api5 = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'https://agrotech-digital-production.up.railway.app';
+            const url = window.ApiUrls ? window.ApiUrls.parcels() + `/parcel/${parcelId}/` : `${_api5}/api/parcels/parcel/${parcelId}/`;
             const resp = await fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
