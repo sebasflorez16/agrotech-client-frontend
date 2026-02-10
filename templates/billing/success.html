@@ -84,7 +84,7 @@
                 <div class="step-card"><div class="snum">3</div><h4>Optimiza</h4><p>Revisa los informes y mejora tu rendimiento.</p></div>
             </div>
 
-            <a href="../dashboard.html" class="btn-dashboard"><i class="ti ti-layout-dashboard"></i> Ir al Dashboard</a>
+            <a href="#" class="btn-dashboard" id="btnDashboard" onclick="goToDashboard(); return false;"><i class="ti ti-layout-dashboard"></i> Ir al Dashboard</a>
             <br>
             <a href="pricing.html" class="btn-secondary-link"><i class="ti ti-arrow-left"></i> Volver a planes</a>
         </div>
@@ -127,6 +127,17 @@
     </footer>
 
     <script>
+    function goToDashboard() {
+        // Verificar si tiene tokens de sesión
+        var token = localStorage.getItem('accessToken');
+        if (token) {
+            window.location.href = '../dashboard.html';
+        } else {
+            // Sin tokens → ir a login
+            window.location.href = '../authentication/login.html';
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         var API = window.AGROTECH_CONFIG.API_BASE;
         var params = new URLSearchParams(window.location.search);
@@ -149,10 +160,26 @@
 
         var confirmStatusEl = document.getElementById('confirmStatus');
 
-        // Para planes pagos que vienen de MercadoPago: confirmar pago y crear tenant
+        // Verificar si ya estamos logueados (free plan ya guarda tokens en checkout)
+        var hasTokens = !!localStorage.getItem('accessToken');
+
+        // Actualizar botón de dashboard
+        var btnDashboard = document.getElementById('btnDashboard');
+        if (hasTokens) {
+            confirmStatusEl.textContent = '✓ Tu cuenta está lista. Puedes ir al dashboard directamente.';
+            confirmStatusEl.className = 'confirm-status show success';
+        }
+
+        // Para planes pagos que vienen de MercadoPago: confirmar pago y crear tenant + usuario
         if (!isFree && preapprovalId) {
             confirmStatusEl.textContent = 'Verificando pago y configurando tu espacio de trabajo...';
             confirmStatusEl.className = 'confirm-status show';
+
+            // Recuperar datos de checkout guardados en localStorage
+            var checkoutUsername = localStorage.getItem('checkout_username') || '';
+            var checkoutPassword = localStorage.getItem('checkout_password') || '';
+            var checkoutEmail = localStorage.getItem('checkout_email') || params.get('payer_email') || '';
+            var checkoutTenant = localStorage.getItem('checkout_tenant') || '';
 
             fetch(API + '/billing/api/confirm-payment/', {
                 method: 'POST',
@@ -161,7 +188,10 @@
                     preapproval_id: preapprovalId,
                     plan_tier: tier,
                     billing_cycle: cycle,
-                    payer_email: params.get('payer_email') || ''
+                    payer_email: checkoutEmail,
+                    tenant_name: checkoutTenant,
+                    username: checkoutUsername,
+                    password: checkoutPassword,
                 })
             })
             .then(function(r) { return r.json(); })
@@ -175,21 +205,37 @@
                     }
                     var badge = document.getElementById('detailStatus');
                     if (badge) badge.innerHTML = '<span style="color:var(--verde-claro)">✓</span> Activo y verificado';
+
+                    // Guardar tokens para auto-login
+                    if (data.tokens) {
+                        localStorage.setItem('accessToken', data.tokens.access);
+                        localStorage.setItem('refreshToken', data.tokens.refresh);
+                        localStorage.setItem('userName', data.username || checkoutUsername);
+                        localStorage.setItem('userEmail', checkoutEmail);
+                        localStorage.setItem('tenantName', data.schema_name || '');
+                    }
+
+                    // Limpiar datos temporales de checkout
+                    localStorage.removeItem('checkout_username');
+                    localStorage.removeItem('checkout_password');
+                    localStorage.removeItem('checkout_email');
+                    localStorage.removeItem('checkout_tenant');
                 } else {
-                    confirmStatusEl.textContent = 'Tu pago fue registrado. El espacio se configurará automáticamente.';
+                    confirmStatusEl.textContent = 'Tu pago fue registrado. Revisa tu email para los datos de acceso.';
                     confirmStatusEl.className = 'confirm-status show';
                 }
             })
             .catch(function(err) {
                 console.warn('Error confirmando pago:', err);
-                confirmStatusEl.textContent = 'Tu pago fue registrado. El espacio se configurará en unos minutos.';
+                confirmStatusEl.textContent = 'Tu pago fue registrado. Revisa tu email para los datos de acceso.';
                 confirmStatusEl.className = 'confirm-status show';
             });
         }
 
-        // Para plan gratuito: el tenant ya fue creado en el checkout
+        // Para plan gratuito: los tokens ya fueron guardados en checkout
         if (isFree && tenantParam) {
-            confirmStatusEl.textContent = '✓ Tu espacio de trabajo "' + tenantParam + '" está listo';
+            var userName = localStorage.getItem('userName') || '';
+            confirmStatusEl.textContent = '✓ Tu espacio de trabajo "' + tenantParam + '" está listo.' + (userName ? ' Usuario: ' + userName : '');
             confirmStatusEl.className = 'confirm-status show success';
         }
 

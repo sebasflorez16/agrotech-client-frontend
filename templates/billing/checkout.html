@@ -116,6 +116,24 @@
                     </div>
                 </div>
 
+                <div class="form-card">
+                    <h3><i class="ti ti-user-plus"></i> Crea tu cuenta</h3>
+                    <p style="color:var(--gris-400);font-size:13px;margin:-10px 0 20px;">Estos serán tus datos de acceso a la plataforma.</p>
+                    <div class="form-group">
+                        <label for="username">Nombre de usuario</label>
+                        <input type="text" class="form-input" id="username" placeholder="Ej: juanperez" required autocomplete="username" pattern="[a-zA-Z0-9_\.]+">
+                        <small style="color:var(--gris-600);font-size:12px;margin-top:4px;display:block;">Solo letras, números, puntos y guion bajo.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Contraseña</label>
+                        <input type="password" class="form-input" id="password" placeholder="Mínimo 8 caracteres" required autocomplete="new-password" minlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="passwordConfirm">Confirmar Contraseña</label>
+                        <input type="password" class="form-input" id="passwordConfirm" placeholder="Repite tu contraseña" required autocomplete="new-password" minlength="8">
+                    </div>
+                </div>
+
                 <div class="form-card" id="paymentCard">
                     <h3><i class="ti ti-shield-lock"></i> Método de Pago</h3>
                     <div class="payment-method">
@@ -200,6 +218,9 @@
 
         var emailInput = document.getElementById('payerEmail');
         var tenantInput = document.getElementById('tenantName');
+        var usernameInput = document.getElementById('username');
+        var passwordInput = document.getElementById('password');
+        var passwordConfirmInput = document.getElementById('passwordConfirm');
         var termsCheck = document.getElementById('termsCheck');
         var btnCheckout = document.getElementById('btnCheckout');
         var btnText = document.getElementById('btnCheckoutText');
@@ -215,17 +236,34 @@
             termsCheck.checked = true; // No necesita aceptar para gratis
         }
 
+        // Auto-generar username desde email
+        emailInput.addEventListener('input', function() {
+            if (!usernameInput.dataset.edited) {
+                var email = emailInput.value.trim();
+                if (email.indexOf('@') > -1) {
+                    usernameInput.value = email.split('@')[0].replace(/[^a-zA-Z0-9_.]/g, '_').toLowerCase();
+                }
+            }
+        });
+        usernameInput.addEventListener('input', function() { usernameInput.dataset.edited = '1'; });
+
         function checkValid() {
             var emailOk = emailInput.value.indexOf('@') > -1 && emailInput.value.indexOf('.') > -1;
             var tenantOk = tenantInput.value.trim().length >= 2;
+            var usernameOk = usernameInput.value.trim().length >= 3 && /^[a-zA-Z0-9_.]+$/.test(usernameInput.value.trim());
+            var passwordOk = passwordInput.value.length >= 8;
+            var passwordMatch = passwordInput.value === passwordConfirmInput.value;
             if (isFree) {
-                btnCheckout.disabled = !(emailOk && tenantOk);
+                btnCheckout.disabled = !(emailOk && tenantOk && usernameOk && passwordOk && passwordMatch);
             } else {
-                btnCheckout.disabled = !(emailOk && tenantOk && termsCheck.checked);
+                btnCheckout.disabled = !(emailOk && tenantOk && usernameOk && passwordOk && passwordMatch && termsCheck.checked);
             }
         }
         emailInput.addEventListener('input', checkValid);
         tenantInput.addEventListener('input', checkValid);
+        usernameInput.addEventListener('input', checkValid);
+        passwordInput.addEventListener('input', checkValid);
+        passwordConfirmInput.addEventListener('input', checkValid);
         termsCheck.addEventListener('change', checkValid);
 
         function fmtCOP(n) { return '$' + new Intl.NumberFormat('es-CO').format(n); }
@@ -255,6 +293,12 @@
             .catch(function() { loadPlanInfo(FALLBACK_PLANS); });
 
         btnCheckout.addEventListener('click', function() {
+            // Validar contraseñas coincidan
+            if (passwordInput.value !== passwordConfirmInput.value) {
+                alert('Las contraseñas no coinciden');
+                return;
+            }
+
             btnCheckout.disabled = true;
             var overlay = document.getElementById('loadingOverlay');
             var loadingText = overlay.querySelector('.loading-text');
@@ -264,10 +308,12 @@
                 plan_tier: planTier,
                 billing_cycle: billingCycle,
                 payer_email: emailInput.value.trim(),
-                tenant_name: tenantInput.value.trim()
+                tenant_name: tenantInput.value.trim(),
+                username: usernameInput.value.trim(),
+                password: passwordInput.value,
             };
 
-            // Plan gratuito: crear tenant directamente sin MercadoPago
+            // Plan gratuito: crear tenant + usuario directamente sin MercadoPago
             if (isFree) {
                 loadingText.textContent = 'Creando tu espacio de trabajo...';
                 fetch(API + '/billing/api/create-checkout/', {
@@ -278,6 +324,14 @@
                 .then(function(r) { return r.json(); })
                 .then(function(data) {
                     if (data.success && data.tenant_created) {
+                        // Guardar tokens para auto-login
+                        if (data.tokens) {
+                            localStorage.setItem('accessToken', data.tokens.access);
+                            localStorage.setItem('refreshToken', data.tokens.refresh);
+                            localStorage.setItem('userName', payload.username);
+                            localStorage.setItem('userEmail', payload.payer_email);
+                            localStorage.setItem('tenantName', data.schema_name || '');
+                        }
                         window.location.href = 'success.html?plan=free&cycle=monthly&tenant=' + encodeURIComponent(data.schema_name || 'trial');
                     } else {
                         throw new Error(data.error || 'Error creando trial gratuito');
@@ -291,7 +345,13 @@
                 return;
             }
 
-            // Plan pago: crear checkout en MercadoPago
+            // Plan pago: guardar datos en localStorage para después del pago
+            localStorage.setItem('checkout_username', payload.username);
+            localStorage.setItem('checkout_password', payload.password);
+            localStorage.setItem('checkout_email', payload.payer_email);
+            localStorage.setItem('checkout_tenant', payload.tenant_name);
+
+            // Crear checkout en MercadoPago
             loadingText.textContent = 'Redirigiendo a MercadoPago...';
             fetch(API + '/billing/api/create-checkout/', {
                 method: 'POST',
@@ -309,6 +369,11 @@
             .catch(function(e) {
                 overlay.classList.remove('show');
                 btnCheckout.disabled = false;
+                // Limpiar datos guardados
+                localStorage.removeItem('checkout_username');
+                localStorage.removeItem('checkout_password');
+                localStorage.removeItem('checkout_email');
+                localStorage.removeItem('checkout_tenant');
                 alert('Error: ' + e.message);
             });
         });

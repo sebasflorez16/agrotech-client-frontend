@@ -36,12 +36,11 @@
   to = "/templates/authentication/register.html"
   status = 200
 
-# 4a. Billing webhooks -> Railway
+# 3c. Authentication files (fallback for relative paths)
 [[redirects]]
-  from = "/billing/*"
-  to = "https://agrotech-digital-production.up.railway.app/billing/:splat"
+  from = "/authentication/*"
+  to = "/templates/authentication/:splat"
   status = 200
-  force = true
 
 # 4a. Billing webhooks -> Railway
 [[redirects]]
