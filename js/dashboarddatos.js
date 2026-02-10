@@ -19,7 +19,7 @@ function fetchUserCount() {
             // Token inválido o expirado: redirige al login y limpia tokens
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
-            window.location.href = "https://agrotechcolombia.netlify.app/templates/authentication/login.html";
+            window.location.href = "/templates/authentication/login.html";
             throw new Error("No autorizado, redirigiendo al login.");
         }
         return response.json();

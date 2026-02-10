@@ -44,7 +44,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 
                 // Pequeño delay para asegurar que se guarden los tokens
                 setTimeout(() => {
-                    window.location.href = "https://agrotechcolombia.netlify.app/templates/vertical_base.html";
+                    window.location.href = "/templates/dashboard.html";
                 }, 200);
                 
             } else {

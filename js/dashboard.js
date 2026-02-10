@@ -24,7 +24,7 @@ function checkAuth() {
 
     if (!token) {
         console.warn("⚠️ No hay token, redirigiendo al login...");
-        window.location.href = "https://agrotechcolombia.netlify.app/templates/authentication/login.html";
+        window.location.href = "/templates/authentication/login.html";
         return;
     }
 
@@ -43,7 +43,7 @@ function checkAuth() {
             console.error("Token inválido o expirado, redirigiendo al login...");
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
-            window.location.href = "https://agrotechcolombia.netlify.app/templates/authentication/login.html";
+            window.location.href = "/templates/authentication/login.html";
             throw new Error("No autorizado, redirigiendo al login.");
         }
         if (!response.ok) {
@@ -70,7 +70,7 @@ function checkAuth() {
 function logout() {
     localStorage.removeItem("accessToken");
     localStorage.removeItem("refreshToken");
-    window.location.href = "https://agrotechcolombia.netlify.app/templates/authentication/login.html";
+    window.location.href = "/templates/authentication/login.html";
 }
 
 // Botón para ir a la gestión de labores

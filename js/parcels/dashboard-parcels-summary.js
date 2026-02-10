@@ -7,7 +7,7 @@ async function fetchParcelSummary() {
         const token = localStorage.getItem("accessToken");
         if (!token) {
             console.error("Token no encontrado. Redirigiendo al login.");
-            window.location.href = "https://agrotechcolombia.netlify.app/templates/authentication/login.html";
+            window.location.href = "/templates/authentication/login.html";
             return;
         }
 
@@ -111,7 +111,7 @@ async function fetchParcels() {
         const token = localStorage.getItem("accessToken");
         if (!token) {
             console.error("Token no encontrado. Redirigiendo al login.");
-            window.location.href = "https://agrotechcolombia.netlify.app/templates/authentication/login.html";
+            window.location.href = "/templates/authentication/login.html";
             return;
         }
 

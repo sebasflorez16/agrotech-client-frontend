@@ -3,7 +3,7 @@
 // Get base URL from config
 const AUTH_BASE = window.AGROTECH_CONFIG
     ? window.AGROTECH_CONFIG.STATIC_BASE
-    : 'https://agrotechcolombia.netlify.app';
+    : 'https://frontend-cliente-agrotech.netlify.app';
 
 // 🔹 Check if user is authenticated
 export function isAuthenticated() {
