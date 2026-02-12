@@ -28,7 +28,7 @@ function initializeHistoricalChart() {
  */
 async function mostrarGraficoHistorico() {
     // Obtener ID de parcela del estado global
-    const parcelId = window.EOSDA_STATE?.selectedParcelId || selectedParcelId;
+    const parcelId = window.AGROTECH_STATE?.selectedParcelId || selectedParcelId;
     
     // Verificar que haya una parcela seleccionada
     if (!parcelId) {

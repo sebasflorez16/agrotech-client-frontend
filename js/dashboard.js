@@ -30,7 +30,7 @@ function checkAuth() {
 
     //Validar si el token es realmente válido llamando a una API protegida
     const dashboardUrl = window.ApiUrls ? window.ApiUrls.auth() + '/dashboard/' : 
-                        ((window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : 'https://agrotech-digital-production.up.railway.app')) + '/api/authentication/dashboard/';
+                        ((window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '') + '/api/authentication/dashboard/';
     
     fetch(dashboardUrl, {
         method: "GET",

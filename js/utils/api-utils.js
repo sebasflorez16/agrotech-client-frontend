@@ -5,14 +5,16 @@
 
 /**
  * Genera la URL base del backend
+ * Siempre retorna '' (vacío) porque Netlify proxy redirige /api/* al backend correcto.
  * @param {string} apiPath - Ruta de la API (ej: '/api/parcels', '/api/authentication')
- * @param {number} port - Puerto del backend (no usado en producción)
- * @returns {string} URL completa del backend
+ * @param {number} port - (Ignorado) Se mantiene por compatibilidad
+ * @returns {string} URL relativa del backend
  */
 function getBackendUrl(apiPath = '', port = 8000) {
-    // Detectar si estamos en localhost o producción
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const baseUrl = isLocalhost ? `http://localhost:${port}` : ((window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'https://agrotech-digital-production.up.railway.app');
+    // Siempre usar URLs relativas - Netlify proxy se encarga del redireccionamiento
+    // Local:      localhost:8080/api/* → localhost:8000/api/*
+    // Producción: netlify.app/api/*    → railway.app/api/*
+    const baseUrl = '';
     
     // Agregar path si se proporciona
     if (apiPath) {
@@ -57,6 +59,14 @@ const ApiUrls = {
 };
 
 /**
+ * Obtiene el dominio del tenant actual del usuario
+ * @returns {string} Dominio del tenant (ej: 'prueba.localhost') o vacío
+ */
+function getTenantDomain() {
+    return localStorage.getItem('tenantDomain') || '';
+}
+
+/**
  * Obtiene el token de autenticación actual
  * @returns {string} Token de acceso
  */
@@ -69,27 +79,35 @@ function getAuthToken() {
 }
 
 /**
- * Crea headers estándar para peticiones autenticadas
+ * Crea headers estándar para peticiones autenticadas.
+ * Incluye automáticamente:
+ * - Authorization: Bearer {token}
+ * - X-Tenant-Domain: {domain del tenant del usuario}
  * @param {Object} additionalHeaders - Headers adicionales opcionales
  * @returns {Object} Headers para fetch/axios
  */
 function getAuthHeaders(additionalHeaders = {}) {
     const token = getAuthToken();
+    const tenantDomain = getTenantDomain();
     const headers = {
         'Content-Type': 'application/json',
         ...additionalHeaders
     };
     
     if (token) {
-        // Usar Bearer para JWT tokens, Token para DRF tokens
         headers['Authorization'] = `Bearer ${token}`;
+    }
+    
+    // Enviar el tenant domain para que el backend resuelva el schema correcto
+    if (tenantDomain) {
+        headers['X-Tenant-Domain'] = tenantDomain;
     }
     
     return headers;
 }
 
 /**
- * Wrapper para fetch con autenticación automática
+ * Wrapper para fetch con autenticación automática y resolución de tenant
  * @param {string} url - URL del endpoint
  * @param {Object} options - Opciones de fetch
  * @returns {Promise} Promesa de fetch
@@ -106,11 +124,12 @@ async function authenticatedFetch(url, options = {}) {
 // Exportar para uso global
 window.getBackendUrl = getBackendUrl;
 window.ApiUrls = ApiUrls;
+window.getTenantDomain = getTenantDomain;
 window.getAuthToken = getAuthToken;
 window.getAuthHeaders = getAuthHeaders;
 window.authenticatedFetch = authenticatedFetch;
 
 // Exportar para módulos ES6
-export { getBackendUrl, ApiUrls, getAuthToken, getAuthHeaders, authenticatedFetch };
+// Export comentado para compatibilidad con scripts regulares
 
 console.log('[API-UTILS] Utilidades de API cargadas para tenant:', window.location.hostname);

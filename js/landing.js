@@ -8,9 +8,9 @@
 // CONFIGURATION
 // ============================================
 const CONFIG = {
-    BACKEND_URL: (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' ? 'http://localhost:8000' : 'https://agrotech-digital-production.up.railway.app'),
-    LOGIN_URL: 'https://frontend-cliente-agrotech.netlify.app/templates/authentication/login.html',
-    DASHBOARD_URL: 'https://frontend-cliente-agrotech.netlify.app/templates/dashboard.html',
+    BACKEND_URL: (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '',
+    LOGIN_URL: '/templates/authentication/login.html',
+    DASHBOARD_URL: '/templates/dashboard.html',
     API_VERSION: 'v1',
     DEBUG: false
 };

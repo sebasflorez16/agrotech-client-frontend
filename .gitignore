@@ -49,3 +49,4 @@ node_modules/
 
 # Netlify
 .netlify/
+netlify-local.toml

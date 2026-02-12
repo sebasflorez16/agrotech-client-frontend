@@ -3,11 +3,8 @@
  * Autenticación con diseño Apple-inspired
  */
 
-// Configuración API (usa config.js si está disponible)
-const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
-    || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:8000'
-        : 'https://agrotech-digital-production.up.railway.app');
+// Configuración API - Siempre usa URLs relativas (Netlify proxy redirige al backend)
+const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
 
 // Elementos del DOM
 const loginForm = document.getElementById('loginForm');
@@ -58,11 +55,11 @@ loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideError();
     
-    const username = document.getElementById('username').value.trim();
+    const email = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     
     // Validación básica
-    if (!username || !password) {
+    if (!email || !password) {
         showError('Por favor completa todos los campos');
         return;
     }
@@ -70,14 +67,14 @@ loginForm.addEventListener('submit', async (e) => {
     setLoading(true);
     
     try {
-        // Hacer login
+        // Hacer login por email
         const response = await fetch(`${API_BASE_URL}/api/auth/login/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                username: username,
+                email: email,
                 password: password
             })
         });
@@ -98,7 +95,7 @@ loginForm.addEventListener('submit', async (e) => {
         }
         
         // Login exitoso
-        // New API format: { success, tokens: { access, refresh }, user }
+        // New API format: { success, tokens: { access, refresh }, user, tenant?, tenants? }
         const token = data.tokens?.access || data.access || data.token;
         if (token) {
             // Guardar tokens
@@ -112,6 +109,17 @@ loginForm.addEventListener('submit', async (e) => {
             if (data.user) {
                 localStorage.setItem('userName', data.user.name || '');
                 localStorage.setItem('userEmail', data.user.email || '');
+            }
+            
+            // Guardar info del tenant (para resolver el schema correcto)
+            if (data.tenant) {
+                localStorage.setItem('tenantDomain', data.tenant.domain || '');
+                localStorage.setItem('tenantName', data.tenant.name || '');
+                localStorage.setItem('tenantSchema', data.tenant.schema_name || '');
+                console.log(`🏢 Tenant: ${data.tenant.name} (${data.tenant.domain})`);
+            }
+            if (data.tenants) {
+                localStorage.setItem('userTenants', JSON.stringify(data.tenants));
             }
             
             console.log('✅ Login exitoso');

@@ -1,5 +1,5 @@
 /**
- * Análisis Meteorológico - Datos EOSDA Reales
+ * Análisis Meteorológico - Datos Satelitales
  * Módulo optimizado para análisis meteorológico puro sin NDVI
  * Incluye avisos de actualización y navegación fluida
  */
@@ -64,7 +64,7 @@ function refreshMeteorologicalAnalysis() {
         
         // Mostrar toast de inicio de actualización
         if (typeof showToast === 'function') {
-            showToast('🔄 Actualizando datos meteorológicos EOSDA...', 'info');
+            showToast('🔄 Actualizando datos meteorológicos...', 'info');
         }
         
         // Llamar a la función de carga con indicador de actualización
@@ -218,8 +218,8 @@ function loadMeteorologicalAnalysisWithRefresh(parcelId) {
     })
     .then(data => {
         console.log('[METEOROLOGICAL] ✅ Datos actualizados recibidos del backend:', data);
-        // Procesar datos reales de EOSDA con indicador de actualización
-        processRealEOSDADataWithRefresh(data);
+        // Procesar datos satelitales con indicador de actualización
+        processRealSatelliteDataWithRefresh(data);
     })
     .catch(error => {
         console.error('[METEOROLOGICAL] Error actualizando análisis:', error);
@@ -238,8 +238,8 @@ function loadMeteorologicalAnalysisInternal(parcelId) {
     sincronizarParcelaSeleccionada();
     
     // Si se proporciona un ID específico, usarlo; si no, intentar obtener el ID de la parcela seleccionada
-    if (!parcelId && window.EOSDA_STATE && window.EOSDA_STATE.selectedParcelId) {
-        parcelId = window.EOSDA_STATE.selectedParcelId;
+    if (!parcelId && window.AGROTECH_STATE && window.AGROTECH_STATE.selectedParcelId) {
+        parcelId = window.AGROTECH_STATE.selectedParcelId;
         console.log('[METEOROLOGICAL] Usando parcela seleccionada del estado global:', parcelId);
     }
     
@@ -251,8 +251,8 @@ function loadMeteorologicalAnalysisInternal(parcelId) {
     currentParcelId = parcelId;
     
     // Actualizar también el estado global si es necesario
-    if (window.EOSDA_STATE && window.EOSDA_STATE.selectedParcelId !== parcelId) {
-        window.EOSDA_STATE.selectedParcelId = parcelId;
+    if (window.AGROTECH_STATE && window.AGROTECH_STATE.selectedParcelId !== parcelId) {
+        window.AGROTECH_STATE.selectedParcelId = parcelId;
     }
     console.log(`[METEOROLOGICAL] Cargando análisis meteorológico para parcela ${parcelId}`);
     
@@ -299,7 +299,7 @@ function loadMeteorologicalAnalysisInternal(parcelId) {
         console.log('[METEOROLOGICAL] Datos meteorológicos recibidos:', data);
         
         // Procesar datos meteorológicos reales
-        processRealEOSDAData(data);
+        processRealSatelliteData(data);
         
     })
     .catch(error => {
@@ -309,10 +309,10 @@ function loadMeteorologicalAnalysisInternal(parcelId) {
 }
 
 /**
- * Procesa datos reales de EOSDA Weather API con indicador de actualización
+ * Procesa datos satelitales Weather API con indicador de actualización
  */
-function processRealEOSDADataWithRefresh(data) {
-    console.log('[METEOROLOGICAL] 🔄 Procesando datos actualizados de EOSDA...');
+function processRealSatelliteDataWithRefresh(data) {
+    console.log('[METEOROLOGICAL] 🔄 Procesando datos satelitales actualizados...');
     
     // Extraer datos sincronizados
     const synchronizedData = data.synchronized_data || [];
@@ -347,17 +347,17 @@ function processRealEOSDADataWithRefresh(data) {
     const lastUpdate = new Date().toLocaleString('es-ES');
     
     if (typeof showToast === 'function') {
-        showToast(`✅ Datos actualizados: ${totalPoints} puntos EOSDA (${lastUpdate})`, 'success');
+        showToast(`✅ Datos actualizados: ${totalPoints} puntos de datos (${lastUpdate})`, 'success');
     }
     
     console.log(`[METEOROLOGICAL] ✅ Análisis actualizado completado con datos reales`);
 }
 
 /**
- * Procesa datos reales de EOSDA Weather API (carga inicial)
+ * Procesa datos satelitales Weather API (carga inicial)
  */
-function processRealEOSDAData(data) {
-    console.log('[METEOROLOGICAL] Procesando datos reales de EOSDA...');
+function processRealSatelliteData(data) {
+    console.log('[METEOROLOGICAL] Procesando datos satelitales...');
     
     // Extraer datos sincronizados
     const synchronizedData = data.synchronized_data || [];
@@ -408,7 +408,7 @@ function processRealEOSDAData(data) {
         showToast(`Datos meteorológicos EOSDA cargados: ${totalPoints} puntos (enero ${currentYear} - ${currentMonth})`, 'success');
     }
     
-    console.log(`[METEOROLOGICAL] Análisis completado con datos reales de EOSDA`);
+    console.log(`[METEOROLOGICAL] Análisis completado con datos satelitales`);
 }
 
 /**
@@ -611,7 +611,7 @@ function renderMeteorologicalChart(data) {
                 },
                 title: {
                     display: true,
-                    text: 'Análisis Meteorológico Multi-Variable - Datos EOSDA Reales',
+                    text: 'Análisis Meteorológico Multi-Variable - Datos Satelitales',
                     font: {
                         size: 16,
                         weight: 'bold'
@@ -701,7 +701,7 @@ function renderMeteorologicalChart(data) {
             if (zoomAvailable) {
                 showToast('� Gráfico meteorológico cargado', 'info');
             } else {
-                showToast('📊 Gráfico de datos EOSDA reales cargado exitosamente', 'success');
+                showToast('📊 Gráfico de datos satelitales cargado exitosamente', 'success');
             }
         }, 1000);
     }
@@ -717,8 +717,8 @@ function loadWeatherForecast(parcelId) {
     sincronizarParcelaSeleccionada();
     
     // Si se proporciona un ID específico, usarlo; si no, intentar obtener el ID de la parcela seleccionada
-    if (!parcelId && window.EOSDA_STATE && window.EOSDA_STATE.selectedParcelId) {
-        parcelId = window.EOSDA_STATE.selectedParcelId;
+    if (!parcelId && window.AGROTECH_STATE && window.AGROTECH_STATE.selectedParcelId) {
+        parcelId = window.AGROTECH_STATE.selectedParcelId;
         console.log('[METEOROLOGICAL] Usando parcela seleccionada del estado global:', parcelId);
     }
     
@@ -735,8 +735,8 @@ function loadWeatherForecast(parcelId) {
     currentParcelId = parcelId;
     
     // Actualizar también el estado global si es necesario
-    if (window.EOSDA_STATE && window.EOSDA_STATE.selectedParcelId !== parcelId) {
-        window.EOSDA_STATE.selectedParcelId = parcelId;
+    if (window.AGROTECH_STATE && window.AGROTECH_STATE.selectedParcelId !== parcelId) {
+        window.AGROTECH_STATE.selectedParcelId = parcelId;
     }
     console.log(`[METEOROLOGICAL] Cargando pronóstico del tiempo para parcela ${parcelId}`);
     
@@ -809,13 +809,13 @@ function loadWeatherForecast(parcelId) {
     })
     .catch(error => {
         console.error('[METEOROLOGICAL] Error cargando pronóstico del tiempo:', error);
-        showMeteorologicalError('Error al cargar el pronóstico meteorológico. No se pudieron obtener datos reales de EOSDA.');
+        showMeteorologicalError('Error al cargar el pronóstico meteorológico. No se pudieron obtener datos satelitales.');
     });
 }
 
 /**
  * Renderiza el pronóstico del tiempo en tarjetas
- * Basado en la documentación de EOSDA Weather API: https://doc.eos.com/docs/weather/basic-weather-providers/
+ * Basado en la documentación de API meteorológica: https://doc.eos.com/docs/weather/basic-weather-providers/
  */
 function renderWeatherForecast(data) {
     console.log('[METEOROLOGICAL] Renderizando pronóstico del tiempo');
@@ -947,7 +947,7 @@ function renderWeatherForecast(data) {
                     <button class="btn btn-sm btn-outline-primary" onclick="loadMeteorologicalAnalysis(currentParcelId)">
                         <i class="fas fa-chart-line me-1"></i>Ver análisis histórico
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary" onclick="loadWeatherForecast(window.EOSDA_STATE.selectedParcelId)">
+                    <button class="btn btn-sm btn-outline-secondary" onclick="loadWeatherForecast(window.AGROTECH_STATE.selectedParcelId)">
                         <i class="fas fa-sync-alt me-1"></i>Actualizar
                     </button>
                 </div>
@@ -1001,7 +1001,7 @@ function renderWeatherForecast(data) {
         const tempMax = day.temperature_max || day.Temp_air_max || day.temp_max;
         const tempMin = day.temperature_min || day.Temp_air_min || day.temp_min;
         
-        // Usar directamente los campos de EOSDA (incluye 0 como valor válido)
+        // Usar directamente los campos del proveedor satelital (incluye 0 como valor válido)
         const precipitation = day.precipitation !== undefined ? day.precipitation : (day.calculated_precipitation !== undefined ? day.calculated_precipitation : null);
         const windSpeed = day.wind_speed !== undefined ? day.wind_speed : (day.calculated_wind_speed !== undefined ? day.calculated_wind_speed : null);
         const humidity = day.humidity || day.Rel_humidity || day.humidity_avg;
@@ -1208,7 +1208,7 @@ function createCurrentDayCard(dayData) {
         temp = (tempMax + tempMin) / 2;
     }
     
-    // Usar directamente los campos de EOSDA (incluye 0 como valor válido)
+    // Usar directamente los campos del proveedor satelital (incluye 0 como valor válido)
     const precipitation = dayData.precipitation !== undefined ? dayData.precipitation : (dayData.calculated_precipitation !== undefined ? dayData.calculated_precipitation : null);
     const windSpeed = dayData.wind_speed !== undefined ? dayData.wind_speed : (dayData.calculated_wind_speed !== undefined ? dayData.calculated_wind_speed : null);
     const humidity = dayData.humidity || dayData.Rel_humidity || dayData.humidity_avg;
@@ -1296,7 +1296,7 @@ function createCurrentDayCard(dayData) {
 
 /**
  * Determina la información del clima basada en los datos del día
- * Según la documentación de EOSDA Weather API: https://doc.eos.com/docs/weather/basic-weather-providers/
+ * Según la documentación de API meteorológica: https://doc.eos.com/docs/weather/basic-weather-providers/
  */
 function getWeatherInfo(dayData) {
     // Valores predeterminados
@@ -1331,7 +1331,7 @@ function getWeatherInfo(dayData) {
         }
     }
     
-    // Obtener precipitación - priorizar campos directos de EOSDA API
+    // Obtener precipitación - priorizar campos directos de API satelital
     let precipitation = null;
     if (dayData.precipitation !== null && dayData.precipitation !== undefined) {
         precipitation = dayData.precipitation;
@@ -1347,7 +1347,7 @@ function getWeatherInfo(dayData) {
         precipitation = dayData.precip_mm || dayData.Precip_total;
     }
     
-    // Obtener velocidad del viento - priorizar campos directos de EOSDA API
+    // Obtener velocidad del viento - priorizar campos directos de API satelital
     let windSpeed = null;
     if (dayData.wind_speed !== null && dayData.wind_speed !== undefined) {
         windSpeed = dayData.wind_speed;
@@ -1470,17 +1470,17 @@ function getWeatherInfo(dayData) {
  * Esta función debe ser llamada antes de cualquier operación con parcelas
  */
 function sincronizarParcelaSeleccionada() {
-    if (window.EOSDA_STATE && window.EOSDA_STATE.selectedParcelId) {
-        if (currentParcelId !== window.EOSDA_STATE.selectedParcelId) {
+    if (window.AGROTECH_STATE && window.AGROTECH_STATE.selectedParcelId) {
+        if (currentParcelId !== window.AGROTECH_STATE.selectedParcelId) {
             console.log('[METEOROLOGICAL] Sincronizando ID de parcela:', 
                       'local:', currentParcelId, 
-                      'global:', window.EOSDA_STATE.selectedParcelId);
-            currentParcelId = window.EOSDA_STATE.selectedParcelId;
+                      'global:', window.AGROTECH_STATE.selectedParcelId);
+            currentParcelId = window.AGROTECH_STATE.selectedParcelId;
         }
     } else if (currentParcelId) {
         // Si no hay parcela global pero sí local, actualizar el estado global
-        if (window.EOSDA_STATE) {
-            window.EOSDA_STATE.selectedParcelId = currentParcelId;
+        if (window.AGROTECH_STATE) {
+            window.AGROTECH_STATE.selectedParcelId = currentParcelId;
         }
     }
     return currentParcelId;
@@ -1532,9 +1532,9 @@ function showMeteorologicalError(errorMessage) {
                 <h5 class="mb-0">Error cargando datos meteorológicos reales</h5>
             </div>
             <p class="mb-3">${errorMessage}</p>
-            <p class="small mb-3"><i class="fas fa-info-circle me-1"></i> No se están utilizando datos ficticios. El sistema solo muestra datos reales de EOSDA.</p>
+            <p class="small mb-3"><i class="fas fa-info-circle me-1"></i> No se están utilizando datos ficticios. El sistema solo muestra datos satelitales.</p>
             <div class="d-flex gap-2">
-                <button class="btn btn-outline-danger" onclick="loadWeatherForecast(window.EOSDA_STATE.selectedParcelId)">
+                <button class="btn btn-outline-danger" onclick="loadWeatherForecast(window.AGROTECH_STATE.selectedParcelId)">
                     <i class="fas fa-sync-alt me-2"></i>Reintentar
                 </button>
                 <button class="btn btn-outline-secondary" onclick="closeMeterologicalAnalysis()">
@@ -1780,7 +1780,7 @@ function updateInsights(insights) {
         li.innerHTML = `
             <div class="alert alert-info py-2 px-3 mb-0">
                 <i class="fas fa-info-circle me-2"></i>
-                <small>Análisis basado en datos EOSDA reales. Use el botón "Actualizar" para obtener los datos más recientes.</small>
+                <small>Análisis basado en datos satelitales. Use el botón "Actualizar" para obtener los datos más recientes.</small>
             </div>
         `;
         insightsList.appendChild(li);
@@ -1976,7 +1976,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Verificar que las funciones están disponibles INMEDIATAMENTE
 console.log('[METEOROLOGICAL] 🔍 Módulo de análisis meteorológico con zoom cargado correctamente');
-console.log('[METEOROLOGICAL] ✅ Datos EOSDA reales confirmados');
+console.log('[METEOROLOGICAL] ✅ Datos satelitales confirmados');
 console.log('[METEOROLOGICAL] 🔄 Funcionalidad de actualización disponible');
 console.log('[METEOROLOGICAL] 🖱️ Navegación mejorada: pan fluido + zoom responsivo');
 console.log('[METEOROLOGICAL] 🚀 Funciones globales disponibles:', {

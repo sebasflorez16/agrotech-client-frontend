@@ -1,7 +1,7 @@
 // Botón independiente para solicitar analítica de la escena
-window.solicitarAnaliticaEscenaEOSDA = async function(viewId) {
-    const fieldId = window.EOSDA_STATE.selectedEosdaId;
-    const parcelId = window.EOSDA_STATE.selectedParcelId;
+window.solicitarAnaliticaEscena = async function(viewId) {
+    const fieldId = window.AGROTECH_STATE.selectedSatelliteId;
+    const parcelId = window.AGROTECH_STATE.selectedParcelId;
     const token = localStorage.getItem("accessToken");
     if (!fieldId || !viewId) {
         showErrorToast("No se encontró el field_id o view_id para la escena seleccionada.");
@@ -9,7 +9,7 @@ window.solicitarAnaliticaEscenaEOSDA = async function(viewId) {
     }
     // Buscar el request_id cacheado para la imagen NDVI
     const cacheKey = `${viewId}_ndvi`;
-    const requestId = window.EOSDA_STATE.requestIds[cacheKey];
+    const requestId = window.AGROTECH_STATE.requestIds[cacheKey];
     if (!requestId) {
         showErrorToast("Primero debes solicitar la imagen NDVI para obtener el request_id.");
         return;

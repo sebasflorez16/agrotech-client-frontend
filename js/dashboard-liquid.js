@@ -3,11 +3,8 @@
  * Maneja la lógica del dashboard principal con diseño Apple-inspired
  */
 
-// Configuración API (usa config.js global)
-const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
-    || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:8000'
-        : 'https://agrotech-digital-production.up.railway.app');
+// Configuración API - Siempre usa URLs relativas (Netlify proxy redirige al backend)
+const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
 
 // Obtener token de autenticación
 function getAuthToken() {
@@ -19,13 +16,19 @@ function getAuthToken() {
     return token;
 }
 
-// Headers para requests
+// Headers para requests (incluye tenant domain para resolución correcta)
 function getHeaders() {
     const token = getAuthToken();
-    return {
+    const headers = {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
     };
+    // Incluir dominio del tenant para resolución en el backend
+    const tenantDomain = localStorage.getItem('tenantDomain');
+    if (tenantDomain) {
+        headers['X-Tenant-Domain'] = tenantDomain;
+    }
+    return headers;
 }
 
 // Función para hacer fetch con autenticación
@@ -89,10 +92,12 @@ async function loadUserInfo() {
 // Cargar estadísticas del dashboard
 async function loadDashboardStats() {
     try {
-        // Cargar parcelas
-        const parcelsResponse = await fetchWithAuth(`${API_BASE_URL}/api/parcels/`);
+        // Cargar parcelas (la URL del ViewSet DRF es /api/parcels/parcel/)
+        const parcelsResponse = await fetchWithAuth(`${API_BASE_URL}/api/parcels/parcel/`);
         if (parcelsResponse && parcelsResponse.ok) {
-            const parcels = await parcelsResponse.json();
+            const data = await parcelsResponse.json();
+            // El endpoint devuelve { cesium_token, parcels: [...] }
+            const parcels = data.parcels || data.results || (Array.isArray(data) ? data : []);
             const parcelCount = document.getElementById('parcelCount');
             if (parcelCount) {
                 parcelCount.textContent = parcels.length || 0;
@@ -103,7 +108,8 @@ async function loadDashboardStats() {
         // Cargar cultivos
         const cropsResponse = await fetchWithAuth(`${API_BASE_URL}/api/crop/crops/`);
         if (cropsResponse && cropsResponse.ok) {
-            const crops = await cropsResponse.json();
+            const data = await cropsResponse.json();
+            const crops = data.results || (Array.isArray(data) ? data : []);
             const cropCount = document.getElementById('cropCount');
             if (cropCount) {
                 animateNumber(cropCount, crops.length || 0);
@@ -113,7 +119,8 @@ async function loadDashboardStats() {
         // Cargar empleados
         const employeesResponse = await fetchWithAuth(`${API_BASE_URL}/api/RRHH/empleados/`);
         if (employeesResponse && employeesResponse.ok) {
-            const employees = await employeesResponse.json();
+            const data = await employeesResponse.json();
+            const employees = data.results || (Array.isArray(data) ? data : []);
             const employeeCount = document.getElementById('employeeCount');
             if (employeeCount) {
                 animateNumber(employeeCount, employees.length || 0);
@@ -145,6 +152,18 @@ async function loadEOSDAUsage() {
             
             // Actualizar información de suscripción
             displaySubscriptionInfo(data);
+        } else {
+            // Sin suscripción activa (404) o error — mostrar defaults
+            console.warn('Billing no disponible (sin suscripción o error). Mostrando defaults.');
+            const eosdaUsage = document.getElementById('eosdaUsage');
+            if (eosdaUsage) {
+                eosdaUsage.textContent = '0/0';
+            }
+            displaySubscriptionInfo({
+                subscription: { name: 'Sin plan activo', monthly_price: 0 },
+                current_usage: { eosda_requests: { used: 0, limit: 0, percentage: 0, status: 'ok' } },
+                alerts: []
+            });
         }
     } catch (error) {
         console.error('Error cargando uso EOSDA:', error);

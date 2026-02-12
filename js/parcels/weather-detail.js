@@ -292,10 +292,10 @@ function showWeatherDetailModal(dayData) {
     // Actualizar descripción del tiempo
     weatherDescription.textContent = getWeatherDescription(weatherCondition);
     
-    // === CAMPOS DISPONIBLES EN EOSDA ===
+    // === CAMPOS DISPONIBLES ===
     console.log("[WEATHER_DETAIL] Campos disponibles en dayData:", Object.keys(dayData));
     
-    // Temperaturas del aire - usar los nombres de campos reales de EOSDA
+    // Temperaturas del aire - usar los nombres de campos del proveedor satelital
     const tempMax = dayData.temperature_max || dayData.Temp_air_max;
     const tempMin = dayData.temperature_min || dayData.Temp_air_min;
     
@@ -304,7 +304,7 @@ function showWeatherDetailModal(dayData) {
     
     console.log("[WEATHER_DETAIL] Temperaturas - Max:", tempMax, "Min:", tempMin);
     
-    // Temperaturas del suelo (usar los nombres de campos de EOSDA si están disponibles)
+    // Temperaturas del suelo (usar los nombres de campos del proveedor satelital si están disponibles)
     if (document.getElementById('detailTempLandMax')) {
         const tempLandMax = dayData.Temp_land_max;
         document.getElementById('detailTempLandMax').textContent = tempLandMax ? `${parseFloat(tempLandMax).toFixed(1)}°C` : 'N/A';
@@ -314,13 +314,13 @@ function showWeatherDetailModal(dayData) {
         document.getElementById('detailTempLandMin').textContent = tempLandMin ? `${parseFloat(tempLandMin).toFixed(1)}°C` : 'N/A';
     }
     
-    // Humedad relativa - usar los nombres de campos reales de EOSDA
+    // Humedad relativa - usar los nombres de campos del proveedor satelital
     const humidityValue = dayData.humidity || dayData.Rel_humidity;
     document.getElementById('detailHumidity').textContent = humidityValue ? `${parseFloat(humidityValue).toFixed(0)}%` : 'N/A';
     
     console.log("[WEATHER_DETAIL] Humedad:", humidityValue);
     
-    // Precipitación - usar campos reales de EOSDA
+    // Precipitación - usar campos del proveedor satelital
     let precipTotal = dayData.precipitation || dayData.calculated_precipitation || 0;
     
     // Si no hay valor directo, intentar sumar valores horarios de Rain
@@ -331,7 +331,7 @@ function showWeatherDetailModal(dayData) {
     
     console.log("[WEATHER_DETAIL] Precipitación:", precipTotal);
     
-    // Velocidad del viento - usar campos reales de EOSDA
+    // Velocidad del viento - usar campos del proveedor satelital
     let windAvg = dayData.wind_speed || dayData.calculated_wind_speed;
     
     // Si no hay valor directo, intentar calcular promedio de valores horarios de Windspeed
@@ -394,7 +394,7 @@ function showWeatherDetailModal(dayData) {
         modalContent.style.color = '#212529';  // Color oscuro para contraste
     }
     
-    console.log('[WEATHER_DETAIL] Modal configurado y mostrado con datos EOSDA únicamente');
+    console.log('[WEATHER_DETAIL] Modal configurado y mostrado con datos satelitales únicamente');
 }
 
 /**

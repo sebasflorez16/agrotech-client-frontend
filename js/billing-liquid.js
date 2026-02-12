@@ -3,11 +3,8 @@
  * Gestión de facturación y uso con diseño Apple-inspired
  */
 
-// Configuración API (usa config.js global)
-const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
-    || (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? 'http://localhost:8000'
-        : 'https://agrotech-digital-production.up.railway.app');
+// Configuración API - Siempre usa URLs relativas (Netlify proxy redirige al backend)
+const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
 
 // Obtener token de autenticación
 function getAuthToken() {
