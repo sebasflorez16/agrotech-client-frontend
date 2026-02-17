@@ -289,6 +289,48 @@ function initializeLeaflet() {
                 "Authorization": `Bearer ${token}`
             }
         });
+
+        // 🔄 Interceptor: auto-refresh token en caso de 401/expiración
+        axiosInstance.interceptors.response.use(
+            response => response,
+            async error => {
+                const originalRequest = error.config;
+                // Si es 401 o 404 (puede ser 404 por tenant no resuelto con token expirado)
+                // y no es un retry, intentar refrescar el token
+                if ((error.response?.status === 401 || error.response?.status === 404) && !originalRequest._retry) {
+                    originalRequest._retry = true;
+                    console.warn('[PARCEL.JS] Token posiblemente expirado, intentando refresh...');
+                    const refreshToken = localStorage.getItem("refreshToken");
+                    if (!refreshToken) {
+                        console.error('[PARCEL.JS] No hay refreshToken. Redirigiendo a login.');
+                        window.location.href = "/templates/authentication/login.html";
+                        return Promise.reject(error);
+                    }
+                    try {
+                        const refreshResponse = await axios.post(
+                            (window.AGROTECH_CONFIG?.API_BASE || '') + '/api/token/refresh/',
+                            { refresh: refreshToken },
+                            { headers: { 'Content-Type': 'application/json' } }
+                        );
+                        const newToken = refreshResponse.data.access;
+                        localStorage.setItem("accessToken", newToken);
+                        // Actualizar headers del axiosInstance y del request original
+                        axiosInstance.defaults.headers['Authorization'] = `Bearer ${newToken}`;
+                        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
+                        console.log('[PARCEL.JS] ✅ Token refrescado correctamente. Reintentando petición...');
+                        return axiosInstance(originalRequest);
+                    } catch (refreshError) {
+                        console.error('[PARCEL.JS] ❌ No se pudo refrescar el token:', refreshError);
+                        localStorage.removeItem("accessToken");
+                        localStorage.removeItem("refreshToken");
+                        window.location.href = "/templates/authentication/login.html";
+                        return Promise.reject(refreshError);
+                    }
+                }
+                return Promise.reject(error);
+            }
+        );
+
         window.axiosInstance = axiosInstance;
 
         // Inicializar el mapa Leaflet centrado en Colombia
@@ -343,7 +385,7 @@ function initializeLeaflet() {
                 errorMessage: 'No se encontró la ubicación',
                 position: 'topright',
                 geocoder: L.Control.Geocoder.nominatim({
-                    serviceUrl: BASE_URL + '/geocode/', // Usar proxy backend
+                    serviceUrl: 'https://nominatim.openstreetmap.org', // Nominatim oficial (no requiere proxy)
                     geocodingQueryParams: {
                         countrycodes: 'co', // Priorizar resultados en Colombia
                         limit: 5
