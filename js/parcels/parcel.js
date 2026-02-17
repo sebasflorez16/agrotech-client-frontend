@@ -385,7 +385,7 @@ function initializeLeaflet() {
                 errorMessage: 'No se encontró la ubicación',
                 position: 'topright',
                 geocoder: L.Control.Geocoder.nominatim({
-                    serviceUrl: 'https://nominatim.openstreetmap.org', // Nominatim oficial (no requiere proxy)
+                    serviceUrl: 'https://nominatim.openstreetmap.org/', // Nominatim oficial (no requiere proxy)
                     geocodingQueryParams: {
                         countrycodes: 'co', // Priorizar resultados en Colombia
                         limit: 5
