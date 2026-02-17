@@ -153,4 +153,49 @@ document.getElementById('username').addEventListener('keypress', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🍎 Login Liquid Glass - Iniciando...');
     checkExistingAuth();
+    
+    // ═══ Mobile UX Enhancements ═══
+    
+    // Auto-focus email field on load (desktop only, mobile opens keyboard)
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (!isMobile) {
+        setTimeout(() => document.getElementById('username')?.focus(), 300);
+    }
+    
+    // Haptic feedback on button press (if supported)
+    btnLogin?.addEventListener('touchstart', () => {
+        if (navigator.vibrate) navigator.vibrate(10);
+    }, { passive: true });
+    
+    // Handle keyboard on iOS - scroll form into view
+    const inputs = document.querySelectorAll('.form-input');
+    inputs.forEach(input => {
+        input.addEventListener('focus', () => {
+            if (isMobile) {
+                setTimeout(() => {
+                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            }
+        });
+    });
+    
+    // Handle back button / navigation
+    window.addEventListener('pageshow', (event) => {
+        if (event.persisted) {
+            // Page was restored from bfcache
+            setLoading(false);
+            checkExistingAuth();
+        }
+    });
+    
+    // Network status indicator
+    window.addEventListener('offline', () => {
+        showError('Sin conexión a internet. Verifica tu red.');
+    });
+    
+    window.addEventListener('online', () => {
+        hideError();
+    });
+    
+    console.log('📱 Login mobile UX enhancements loaded');
 });

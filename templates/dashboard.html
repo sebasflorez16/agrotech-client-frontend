@@ -2,14 +2,23 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Dashboard - AgroTech Digital</title>
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="../images/agrotech solo negro.png">
+    <link rel="apple-touch-icon" href="../images/agrotech solo negro.png">
+    
+    <!-- Theme color for mobile browsers -->
+    <meta name="theme-color" content="#0B0F14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <!-- Liquid Glass Design System -->
     <link rel="stylesheet" href="../css/liquid-glass-system.css">
+    
+    <!-- Dashboard Mobile V2 -->
+    <link rel="stylesheet" href="../css/dashboard-mobile-v2.css">
     
     <!-- 🌍 Configuración global (debe cargarse primero) -->
     <script src="../js/config.js"></script>
@@ -17,7 +26,16 @@
     <!-- Tabler Icons -->
     <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
     
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
+        }
+        
         body {
             margin: 0;
             overflow-x: hidden;
@@ -188,156 +206,6 @@
         }
         .sidebar-overlay.show { display: block; }
         
-        /* ═══ Mobile Responsive ═══ */
-        @media (max-width: 768px) {
-            body {
-                background: linear-gradient(135deg, #0F1419 0%, #1a2332 100%) !important;
-                background-attachment: fixed;
-            }
-            
-            .mobile-menu-btn {
-                display: flex;
-            }
-            
-            .sidebar {
-                position: fixed;
-                top: 0;
-                left: -300px;
-                width: 280px;
-                height: 100vh;
-                z-index: 150;
-                background: rgba(15, 20, 25, 0.98);
-                backdrop-filter: blur(20px);
-                border-right: 1px solid rgba(53, 184, 53, 0.15);
-                box-shadow: 4px 0 24px rgba(0,0,0,0.5);
-                transition: left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-                overflow-y: auto;
-            }
-            
-            .sidebar.open {
-                left: 0;
-            }
-            
-            .sidebar .logo-container img {
-                filter: brightness(0) invert(1) drop-shadow(0 4px 12px rgba(0,0,0,0.3));
-            }
-            
-            .sidebar .brand-name {
-                background: linear-gradient(135deg, #35B835, #4CAF50);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-            }
-            
-            .sidebar .nav-section-title {
-                color: rgba(255,255,255,0.4);
-            }
-            
-            .sidebar .nav-item-glass {
-                color: rgba(255,255,255,0.75);
-            }
-            
-            .sidebar .nav-item-glass:hover {
-                background: rgba(53, 184, 53, 0.12);
-                color: #35B835;
-            }
-            
-            .sidebar .nav-item-glass.active {
-                background: linear-gradient(135deg, rgba(53, 184, 53, 0.2), rgba(0, 122, 32, 0.15));
-                color: #35B835;
-            }
-            
-            .dashboard-layout {
-                flex-direction: column;
-            }
-            
-            .main-content {
-                margin-left: 0;
-                padding: 72px 16px 24px 16px;
-            }
-            
-            /* Dark glass cards en mobile */
-            .glass-card, .stat-card {
-                background: rgba(26, 31, 38, 0.75) !important;
-                backdrop-filter: blur(20px);
-                border: 1px solid rgba(53, 184, 53, 0.12) !important;
-                color: rgba(255,255,255,0.9);
-            }
-            
-            .stat-card .stat-label {
-                color: rgba(255,255,255,0.5);
-            }
-            
-            .stat-card .stat-value {
-                color: #fff;
-            }
-            
-            .glass-card h2 {
-                color: #fff !important;
-            }
-            
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 12px;
-            }
-            
-            .header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: var(--space-md);
-            }
-            
-            .header-title h1 {
-                font-size: 1.4rem;
-                color: #fff;
-            }
-            
-            .header-subtitle {
-                color: rgba(255,255,255,0.5);
-            }
-            
-            .user-profile {
-                background: rgba(26, 31, 38, 0.8);
-                border-color: rgba(53, 184, 53, 0.15);
-                color: rgba(255,255,255,0.85);
-            }
-            
-            .btn-glass {
-                background: rgba(26, 31, 38, 0.6);
-                border: 1px solid rgba(255,255,255,0.08);
-                color: rgba(255,255,255,0.8);
-            }
-            
-            .btn-glass:hover {
-                background: rgba(53, 184, 53, 0.15);
-                color: #35B835;
-            }
-            
-            #recentActivity p {
-                color: rgba(255,255,255,0.5) !important;
-            }
-            
-            .icon-circle.green { color: #35B835; }
-            .icon-circle.blue { color: #4A9EFF; }
-            .icon-circle.orange { color: #FF9F0A; }
-        }
-        
-        @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
-            .main-content {
-                padding: 68px 12px 20px 12px;
-            }
-            .header-title h1 {
-                font-size: 1.2rem;
-            }
-        }
-        
         /* Loading Skeleton */
         .skeleton {
             background: linear-gradient(90deg, 
@@ -380,9 +248,30 @@
             background: linear-gradient(135deg, rgba(0, 122, 255, 0.15) 0%, rgba(0, 122, 255, 0.05) 100%);
             color: #0A7AFF;
         }
+        
+        /* Logout button style */
+        .sidebar-logout {
+            margin-top: auto;
+            padding-top: var(--space-lg);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        
+        .nav-item-glass.logout-btn {
+            color: rgba(255, 100, 100, 0.8) !important;
+        }
+        
+        .nav-item-glass.logout-btn:hover {
+            background: rgba(255, 59, 48, 0.1) !important;
+            color: #FF3B30 !important;
+        }
     </style>
 </head>
 <body>
+    <!-- Pull to refresh indicator -->
+    <div class="pull-refresh-indicator" id="pullRefreshIndicator">
+        <i class="ti ti-refresh"></i>
+    </div>
+    
     <!-- Hamburger menu para mobile -->
     <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleSidebar()" aria-label="Abrir menú">
         <i class="ti ti-menu-2"></i>
@@ -415,47 +304,13 @@
                     </a>
                 </div>
                 
-                <!-- 
-                <div class="nav-section">
-                    <div class="nav-section-title">Gestión</div>
-                    <a href="http://localhost:8080/templates/inventory/inventario-dashboard.html" class="nav-item-glass">
-                        <i class="ti ti-box"></i>
-                        <span>Inventario</span>
-                    </a>
-                    <a href="http://localhost:8080/templates/employees/RRHH-dashboard.html" class="nav-item-glass">
-                        <i class="ti ti-users"></i>
-                        <span>Empleados</span>
-                    </a>
-                    <a href="http://localhost:8080/templates/labores/labores-dashboard.html" class="nav-item-glass">
-                        <i class="ti ti-checkbox"></i>
-                        <span>Labores</span>
-                    </a>
-                </div>
-                
-                <div class="nav-section">
-                    <div class="nav-section-title">Suscripción</div>
-                    <a href="billing.html" class="nav-item-glass">
-                        <i class="ti ti-credit-card"></i>
-                        <span>Facturación</span>
-                    </a>
-                    <a href="billing.html" class="nav-item-glass">
-                        <i class="ti ti-chart-bar"></i>
-                        <span>Uso & Límites</span>
-                    </a>
-                </div>
-                
                 <div class="nav-section">
                     <div class="nav-section-title">Cuenta</div>
-                    <a href="http://localhost:8080/templates/pages/profile.html" class="nav-item-glass">
-                        <i class="ti ti-settings"></i>
-                        <span>Configuración</span>
-                    </a>
-                    <a href="#" class="nav-item-glass" onclick="logout()">
+                    <a href="#" class="nav-item-glass logout-btn" onclick="logout(); return false;">
                         <i class="ti ti-logout"></i>
                         <span>Cerrar Sesión</span>
                     </a>
                 </div>
-                -->
             </nav>
         </aside>
         
@@ -468,8 +323,8 @@
                     <p class="header-subtitle">Aquí está el resumen de tu operación agrícola</p>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-glass">
-                        <i class="ti ti-bell"></i>
+                    <button class="btn-glass" onclick="refreshDashboard()" title="Actualizar datos">
+                        <i class="ti ti-refresh"></i>
                     </button>
                     <div class="user-profile" id="userProfile">
                         <div class="user-avatar">U</div>
@@ -528,17 +383,17 @@
                 <div class="glass-card">
                     <h2 style="margin-bottom: var(--space-lg); font-size: 1.25rem;">Acciones Rápidas</h2>
                     <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
-                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='parcels.html'">
-                            <i class="ti ti-plus"></i>
-                            <span>Nueva Parcela</span>
+                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='parcels/parcels-dashboard.html'">
+                            <i class="ti ti-map"></i>
+                            <span>Ver Parcelas</span>
                         </button>
-                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='crops.html'">
+                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='crop/crop_list.html'">
                             <i class="ti ti-plant"></i>
-                            <span>Registrar Cultivo</span>
+                            <span>Ver Cultivos</span>
                         </button>
-                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='billing.html'">
-                            <i class="ti ti-file-invoice"></i>
-                            <span>Ver Facturación</span>
+                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="refreshDashboard()">
+                            <i class="ti ti-refresh"></i>
+                            <span>Actualizar Datos</span>
                         </button>
                     </div>
                 </div>
@@ -549,6 +404,7 @@
                 <h2 style="margin-bottom: var(--space-lg); font-size: 1.25rem;">Actividad Reciente</h2>
                 <div id="recentActivity">
                     <p style="color: var(--text-secondary); text-align: center; padding: var(--space-xl);">
+                        <i class="ti ti-loader" style="font-size: 1.5rem; display: block; margin-bottom: 8px;"></i>
                         Cargando actividad...
                     </p>
                 </div>
@@ -556,9 +412,30 @@
         </main>
     </div>
     
+    <!-- Bottom Navigation Bar (Mobile) -->
+    <nav class="mobile-bottom-nav" id="mobileBottomNav">
+        <a href="dashboard.html" class="bottom-nav-item active">
+            <i class="ti ti-home"></i>
+            <span>Inicio</span>
+        </a>
+        <a href="parcels/parcels-dashboard.html" class="bottom-nav-item">
+            <i class="ti ti-map"></i>
+            <span>Parcelas</span>
+        </a>
+        <a href="crop/crop_list.html" class="bottom-nav-item">
+            <i class="ti ti-plant"></i>
+            <span>Cultivos</span>
+        </a>
+        <a href="#" class="bottom-nav-item" onclick="toggleSidebar(); return false;">
+            <i class="ti ti-menu-2"></i>
+            <span>Menú</span>
+        </a>
+    </nav>
+    
     <!-- Scripts -->
     <script src="../js/dashboard-liquid.js"></script>
     <script>
+        // ═══ Sidebar Toggle ═══
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebarNav');
             const overlay = document.getElementById('sidebarOverlay');
@@ -570,14 +447,86 @@
             btn.innerHTML = isOpen 
                 ? '<i class="ti ti-menu-2"></i>' 
                 : '<i class="ti ti-x"></i>';
+            
+            // Prevent body scroll when sidebar is open
+            document.body.style.overflow = isOpen ? '' : 'hidden';
         }
         
         // Cerrar sidebar al hacer click en un link (mobile)
         document.querySelectorAll('.sidebar .nav-item-glass').forEach(link => {
             link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) toggleSidebar();
+                if (window.innerWidth <= 768) {
+                    const sidebar = document.getElementById('sidebarNav');
+                    if (sidebar.classList.contains('open')) {
+                        toggleSidebar();
+                    }
+                }
             });
         });
+        
+        // ═══ Refresh Dashboard ═══
+        function refreshDashboard() {
+            const indicator = document.getElementById('pullRefreshIndicator');
+            if (indicator) {
+                indicator.classList.add('active');
+            }
+            
+            // Reload stats
+            if (typeof loadDashboardStats === 'function') {
+                loadDashboardStats().then(() => {
+                    if (indicator) {
+                        setTimeout(() => indicator.classList.remove('active'), 500);
+                    }
+                });
+            } else {
+                location.reload();
+            }
+        }
+        
+        // ═══ Close sidebar on resize to desktop ═══
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                const sidebar = document.getElementById('sidebarNav');
+                const overlay = document.getElementById('sidebarOverlay');
+                if (sidebar.classList.contains('open')) {
+                    sidebar.classList.remove('open');
+                    overlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            }
+        });
+        
+        // ═══ Swipe to open sidebar ═══
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        }, { passive: true });
+        
+        document.addEventListener('touchend', (e) => {
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = Math.abs(touchEndY - touchStartY);
+            
+            // Swipe right from left edge to open sidebar
+            if (touchStartX < 30 && deltaX > 80 && deltaY < 50) {
+                const sidebar = document.getElementById('sidebarNav');
+                if (!sidebar.classList.contains('open')) {
+                    toggleSidebar();
+                }
+            }
+            
+            // Swipe left to close sidebar
+            if (deltaX < -80 && deltaY < 50) {
+                const sidebar = document.getElementById('sidebarNav');
+                if (sidebar.classList.contains('open')) {
+                    toggleSidebar();
+                }
+            }
+        }, { passive: true });
     </script>
 </body>
 </html>

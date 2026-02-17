@@ -1,0 +1,262 @@
+/**
+ * AGROTECH - Login Mobile V2
+ * Mejoras específicas para iPhone/Android en la página de login
+ */
+
+/* ═══ Mobile Login ═══ */
+@media (max-width: 768px) {
+    body {
+        background: linear-gradient(145deg, #0B0F14 0%, #131A24 50%, #0F1820 100%) !important;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px 16px;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Ocultar blobs de background en móvil (rendimiento) */
+    .bg-blob {
+        display: none;
+    }
+    
+    /* Login container - Dark glass */
+    .login-container {
+        background: rgba(22, 28, 36, 0.85) !important;
+        backdrop-filter: blur(30px) !important;
+        -webkit-backdrop-filter: blur(30px) !important;
+        border: 1px solid rgba(53, 184, 53, 0.12) !important;
+        border-radius: 24px !important;
+        padding: 32px 24px !important;
+        max-width: 100% !important;
+        width: 100% !important;
+        box-shadow: 
+            0 12px 40px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(53, 184, 53, 0.08) inset !important;
+    }
+    
+    /* Logo */
+    .logo-container {
+        margin-bottom: 28px;
+    }
+    
+    .logo-container img {
+        filter: brightness(0) invert(1) drop-shadow(0 4px 16px rgba(0, 0, 0, 0.3)) !important;
+        max-width: 80px !important;
+    }
+    
+    .brand-name {
+        background: linear-gradient(135deg, #35B835, #4ADE5E) !important;
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+        font-size: 1.5rem !important;
+    }
+    
+    .subtitle {
+        color: rgba(255, 255, 255, 0.45) !important;
+    }
+    
+    /* Form */
+    .form-label {
+        color: rgba(255, 255, 255, 0.7) !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .form-input {
+        background: rgba(255, 255, 255, 0.06) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: #fff !important;
+        border-radius: 14px !important;
+        padding: 14px 14px 14px 48px !important;
+        font-size: 16px !important; /* Prevent iOS zoom */
+        transition: all 0.2s ease;
+    }
+    
+    .form-input::placeholder {
+        color: rgba(255, 255, 255, 0.3) !important;
+    }
+    
+    .form-input:focus {
+        border-color: rgba(53, 184, 53, 0.5) !important;
+        box-shadow: 0 0 0 3px rgba(53, 184, 53, 0.1) !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+    }
+    
+    .input-icon {
+        color: rgba(53, 184, 53, 0.6) !important;
+    }
+    
+    /* Login button */
+    .btn-login {
+        background: linear-gradient(135deg, #35B835, #007A20) !important;
+        border-radius: 14px !important;
+        padding: 16px !important;
+        font-size: 1rem !important;
+        font-weight: 600;
+        box-shadow: 0 8px 24px rgba(53, 184, 53, 0.3) !important;
+        margin-top: 24px !important;
+        border: none;
+        min-height: 52px;
+    }
+    
+    .btn-login:active:not(:disabled) {
+        transform: scale(0.98) !important;
+        box-shadow: 0 4px 12px rgba(53, 184, 53, 0.4) !important;
+    }
+    
+    /* Error message */
+    .error-message {
+        background: rgba(255, 59, 48, 0.12) !important;
+        border: 1px solid rgba(255, 59, 48, 0.2) !important;
+        color: #FF6B6B !important;
+        border-radius: 12px !important;
+    }
+    
+    /* Forgot password / Links */
+    .forgot-password a {
+        color: rgba(53, 184, 53, 0.8) !important;
+    }
+    
+    .forgot-password a:hover {
+        color: #35B835 !important;
+    }
+    
+    /* Create account link */
+    .login-container > div:last-child {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
+    
+    .login-container > div:last-child a {
+        color: #35B835 !important;
+    }
+}
+
+/* ═══ Safe area for iPhone ═══ */
+@supports (padding-top: env(safe-area-inset-top)) {
+    @media (max-width: 768px) {
+        body {
+            padding-top: calc(20px + env(safe-area-inset-top));
+            padding-bottom: calc(20px + env(safe-area-inset-bottom));
+        }
+    }
+}
+
+/* ═══ Extra small (iPhone SE, etc) ═══ */
+@media (max-width: 380px) {
+    .login-container {
+        padding: 24px 18px !important;
+    }
+    
+    .brand-name {
+        font-size: 1.3rem !important;
+    }
+    
+    .logo-container img {
+        max-width: 60px !important;
+    }
+}
+
+/* ═══ Entrance Animations ═══ */
+@media (max-width: 768px) {
+    @keyframes loginFadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(24px) scale(0.97);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+    
+    @keyframes logoPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .login-container {
+        animation: loginFadeIn 0.5s ease-out both !important;
+    }
+    
+    .logo-container img {
+        animation: logoPulse 3s ease-in-out infinite;
+    }
+    
+    /* Smooth focus transition for inputs */
+    .form-input {
+        transition: all 0.25s ease !important;
+    }
+    
+    .form-input:focus {
+        transform: scale(1.01);
+    }
+    
+    /* Button loading state improvement */
+    .btn-login.loading {
+        opacity: 0.85;
+        pointer-events: none;
+    }
+    
+    .btn-login:not(:disabled):active {
+        transform: scale(0.97) !important;
+        transition: transform 0.1s ease !important;
+    }
+    
+    /* Keyboard open: scroll into view */
+    .form-group:focus-within {
+        scroll-margin-top: 20px;
+    }
+    
+    /* Dark mode color scheme */
+    :root {
+        color-scheme: dark;
+    }
+    
+    /* Selection */
+    ::selection {
+        background: rgba(53, 184, 53, 0.3);
+        color: #fff;
+    }
+    
+    /* Reduce motion */
+    @media (prefers-reduced-motion: reduce) {
+        .login-container,
+        .logo-container img {
+            animation: none !important;
+        }
+    }
+    
+    /* Landscape login */
+    @media (max-height: 500px) and (orientation: landscape) {
+        body {
+            align-items: flex-start !important;
+            padding-top: 12px !important;
+        }
+        
+        .login-container {
+            padding: 20px !important;
+        }
+        
+        .logo-container {
+            margin-bottom: 12px !important;
+        }
+        
+        .logo-container img {
+            max-width: 50px !important;
+        }
+        
+        .brand-name {
+            font-size: 1.1rem !important;
+        }
+        
+        .form-group {
+            margin-bottom: 10px !important;
+        }
+        
+        .btn-login {
+            padding: 12px !important;
+            margin-top: 12px !important;
+        }
+    }
+}
