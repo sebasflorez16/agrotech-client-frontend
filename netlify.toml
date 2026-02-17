@@ -42,6 +42,15 @@
   to = "/templates/authentication/:splat"
   status = 200
 
+# 3d. Proxy para Nominatim (geocodificación) - evita CORS
+[[redirects]]
+  from = "/nominatim/*"
+  to = "https://nominatim.openstreetmap.org/:splat"
+  status = 200
+  force = true
+  [redirects.headers]
+    User-Agent = "AgroTechDigital/1.0 (https://agrotechcolombia.netlify.app)"
+
 # 4a. Billing webhooks -> Railway
 [[redirects]]
   from = "/billing/*"
