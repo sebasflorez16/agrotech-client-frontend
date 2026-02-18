@@ -335,99 +335,231 @@ function initializeLeaflet() {
         ).addTo(map);
 
         // 🔍 Agregar control de búsqueda de geocodificación (lupa)
-        // Geocoder personalizado async con proxy Netlify, cache y rate-limiting
+        // Geocoder multi-fallback: Photon API → Nominatim directo → ciudades offline
         if (typeof L.Control.Geocoder !== 'undefined') {
-            // Cache y rate-limit para respetar política de Nominatim (1 req/seg mínimo)
             const _geoCache = {};
             let _lastGeoReq = 0;
-            const _GEO_INTERVAL = 1500; // 1.5s entre peticiones
+            const _GEO_INTERVAL = 2000; // 2s entre peticiones
+            let _nominatimBlocked = false;
+            let _nominatimBlockedUntil = 0;
 
-            // Geocoder personalizado compatible con leaflet-control-geocoder v2+
-            // Usa métodos async que devuelven Promise (NO callbacks)
-            const customGeocoder = {
+            // Ciudades principales de Colombia (fallback offline)
+            const _colombiaCities = {
+                'bogota': { lat: 4.7110, lon: -74.0721, name: 'Bogotá, Colombia' },
+                'bogotá': { lat: 4.7110, lon: -74.0721, name: 'Bogotá, Colombia' },
+                'medellin': { lat: 6.2476, lon: -75.5658, name: 'Medellín, Antioquia, Colombia' },
+                'medellín': { lat: 6.2476, lon: -75.5658, name: 'Medellín, Antioquia, Colombia' },
+                'cali': { lat: 3.4516, lon: -76.5320, name: 'Cali, Valle del Cauca, Colombia' },
+                'barranquilla': { lat: 10.9685, lon: -74.7813, name: 'Barranquilla, Atlántico, Colombia' },
+                'cartagena': { lat: 10.3910, lon: -75.5144, name: 'Cartagena, Bolívar, Colombia' },
+                'bucaramanga': { lat: 7.1254, lon: -73.1198, name: 'Bucaramanga, Santander, Colombia' },
+                'pereira': { lat: 4.8133, lon: -75.6961, name: 'Pereira, Risaralda, Colombia' },
+                'manizales': { lat: 5.0689, lon: -75.5174, name: 'Manizales, Caldas, Colombia' },
+                'santa marta': { lat: 11.2404, lon: -74.1990, name: 'Santa Marta, Magdalena, Colombia' },
+                'ibague': { lat: 4.4389, lon: -75.2322, name: 'Ibagué, Tolima, Colombia' },
+                'ibagué': { lat: 4.4389, lon: -75.2322, name: 'Ibagué, Tolima, Colombia' },
+                'pasto': { lat: 1.2136, lon: -77.2811, name: 'Pasto, Nariño, Colombia' },
+                'neiva': { lat: 2.9273, lon: -75.2819, name: 'Neiva, Huila, Colombia' },
+                'villavicencio': { lat: 4.1420, lon: -73.6266, name: 'Villavicencio, Meta, Colombia' },
+                'monteria': { lat: 8.7479, lon: -75.8814, name: 'Montería, Córdoba, Colombia' },
+                'montería': { lat: 8.7479, lon: -75.8814, name: 'Montería, Córdoba, Colombia' },
+                'armenia': { lat: 4.5339, lon: -75.6811, name: 'Armenia, Quindío, Colombia' },
+                'popayan': { lat: 2.4419, lon: -76.6063, name: 'Popayán, Cauca, Colombia' },
+                'popayán': { lat: 2.4419, lon: -76.6063, name: 'Popayán, Cauca, Colombia' },
+                'sincelejo': { lat: 9.3047, lon: -75.3978, name: 'Sincelejo, Sucre, Colombia' },
+                'tunja': { lat: 5.5353, lon: -73.3678, name: 'Tunja, Boyacá, Colombia' },
+                'valledupar': { lat: 10.4769, lon: -73.2505, name: 'Valledupar, Cesar, Colombia' },
+                'cucuta': { lat: 7.8891, lon: -72.4967, name: 'Cúcuta, Norte de Santander, Colombia' },
+                'cúcuta': { lat: 7.8891, lon: -72.4967, name: 'Cúcuta, Norte de Santander, Colombia' },
+                'rionegro': { lat: 6.1556, lon: -75.3742, name: 'Rionegro, Antioquia, Colombia' },
+                'florencia': { lat: 1.6144, lon: -75.6062, name: 'Florencia, Caquetá, Colombia' },
+                'quibdo': { lat: 5.6919, lon: -76.6584, name: 'Quibdó, Chocó, Colombia' },
+                'quibdó': { lat: 5.6919, lon: -76.6584, name: 'Quibdó, Chocó, Colombia' },
+                'yopal': { lat: 5.3378, lon: -72.3959, name: 'Yopal, Casanare, Colombia' },
+                'sogamoso': { lat: 5.7143, lon: -72.9339, name: 'Sogamoso, Boyacá, Colombia' },
+                'duitama': { lat: 5.8267, lon: -73.0333, name: 'Duitama, Boyacá, Colombia' },
+                'palmira': { lat: 3.5394, lon: -76.3036, name: 'Palmira, Valle del Cauca, Colombia' },
+                'buga': { lat: 3.9008, lon: -76.3030, name: 'Buga, Valle del Cauca, Colombia' },
+                'tulua': { lat: 4.0847, lon: -76.1998, name: 'Tuluá, Valle del Cauca, Colombia' },
+                'tuluá': { lat: 4.0847, lon: -76.1998, name: 'Tuluá, Valle del Cauca, Colombia' },
+                'cartago': { lat: 4.7464, lon: -75.9113, name: 'Cartago, Valle del Cauca, Colombia' },
+                'apartado': { lat: 7.8822, lon: -76.6264, name: 'Apartadó, Antioquia, Colombia' },
+                'apartadó': { lat: 7.8822, lon: -76.6264, name: 'Apartadó, Antioquia, Colombia' },
+            };
+
+            // Búsqueda offline por ciudades conocidas
+            function _offlineSearch(query) {
+                var q = query.toLowerCase().trim();
+                var results = [];
+                for (var key in _colombiaCities) {
+                    if (key.indexOf(q) !== -1 || q.indexOf(key) !== -1) {
+                        var city = _colombiaCities[key];
+                        results.push({
+                            name: city.name,
+                            html: city.name,
+                            center: L.latLng(city.lat, city.lon),
+                            bbox: L.latLngBounds(
+                                L.latLng(city.lat - 0.05, city.lon - 0.05),
+                                L.latLng(city.lat + 0.05, city.lon + 0.05)
+                            ),
+                            properties: { source: 'offline' }
+                        });
+                    }
+                }
+                return results;
+            }
+
+            // Búsqueda en Photon API (Komoot) - sin rate-limit estricto, soporta CORS
+            async function _photonSearch(query) {
+                var params = new URLSearchParams({
+                    q: query + ' Colombia',
+                    limit: '5',
+                    lang: 'es'
+                });
+                var response = await fetch('https://photon.komoot.io/api/?' + params.toString());
+                if (!response.ok) throw new Error('Photon: ' + response.status);
+                var data = await response.json();
+                return (data.features || []).map(function(f) {
+                    var coords = f.geometry.coordinates;
+                    var props = f.properties || {};
+                    var parts = [props.name, props.city, props.state, props.country].filter(Boolean);
+                    return {
+                        name: parts.join(', ') || (coords[1] + ', ' + coords[0]),
+                        html: parts.join(', ') || (coords[1] + ', ' + coords[0]),
+                        center: L.latLng(coords[1], coords[0]),
+                        bbox: L.latLngBounds(
+                            L.latLng(coords[1] - 0.05, coords[0] - 0.05),
+                            L.latLng(coords[1] + 0.05, coords[0] + 0.05)
+                        ),
+                        properties: Object.assign({}, props, { source: 'photon' })
+                    };
+                });
+            }
+
+            // Búsqueda en Nominatim (directo desde navegador, CORS habilitado)
+            async function _nominatimSearch(query) {
+                var params = new URLSearchParams({
+                    q: query,
+                    format: 'json',
+                    addressdetails: '1',
+                    limit: '5',
+                    countrycodes: 'co',
+                    'accept-language': 'es',
+                    email: 'contact@agrotechcolombia.com'
+                });
+                var response = await fetch('https://nominatim.openstreetmap.org/search?' + params.toString(), {
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!response.ok) {
+                    if (response.status === 403 || response.status === 429) {
+                        _nominatimBlocked = true;
+                        _nominatimBlockedUntil = Date.now() + 300000; // 5 min
+                        console.warn('[GEOCODER] Nominatim bloqueado temporalmente');
+                    }
+                    throw new Error('Nominatim: ' + response.status);
+                }
+                var data = await response.json();
+                return data.map(function(item) {
+                    return {
+                        name: item.display_name,
+                        html: item.display_name,
+                        center: L.latLng(parseFloat(item.lat), parseFloat(item.lon)),
+                        bbox: L.latLngBounds(
+                            L.latLng(parseFloat(item.boundingbox[0]), parseFloat(item.boundingbox[2])),
+                            L.latLng(parseFloat(item.boundingbox[1]), parseFloat(item.boundingbox[3]))
+                        ),
+                        properties: Object.assign({}, item, { source: 'nominatim' })
+                    };
+                });
+            }
+
+            // Geocoder async con fallback múltiple (compatible con leaflet-control-geocoder v2+)
+            var customGeocoder = {
                 geocode: async function(query) {
                     console.log('[GEOCODER] Buscando:', query);
-                    
-                    // Verificar cache primero
-                    const cacheKey = query.toLowerCase().trim();
+                    var cacheKey = query.toLowerCase().trim();
+
+                    // 1. Cache
                     if (_geoCache[cacheKey]) {
                         console.log('[GEOCODER] Cache hit:', query);
                         return _geoCache[cacheKey];
                     }
-                    
+
                     // Rate limiting
-                    const now = Date.now();
-                    const wait = Math.max(0, _GEO_INTERVAL - (now - _lastGeoReq));
+                    var now = Date.now();
+                    var wait = Math.max(0, _GEO_INTERVAL - (now - _lastGeoReq));
                     if (wait > 0) {
-                        await new Promise(resolve => setTimeout(resolve, wait));
+                        await new Promise(function(resolve) { setTimeout(resolve, wait); });
                     }
                     _lastGeoReq = Date.now();
-                    
-                    try {
-                        const params = new URLSearchParams({
-                            q: query,
-                            format: 'json',
-                            addressdetails: '1',
-                            limit: '5',
-                            countrycodes: 'co',
-                            'accept-language': 'es'
-                        });
-                        
-                        // Usar proxy Netlify para evitar CORS con Nominatim
-                        const response = await fetch('/nominatim/search?' + params.toString());
-                        
-                        if (!response.ok) {
-                            console.warn('[GEOCODER] Error de Nominatim:', response.status);
-                            return [];
-                        }
-                        
-                        const data = await response.json();
-                        
-                        // Convertir respuesta al formato Leaflet Control Geocoder
-                        const results = data.map(function(item) {
-                            return {
-                                name: item.display_name,
-                                html: item.display_name,
-                                center: L.latLng(parseFloat(item.lat), parseFloat(item.lon)),
-                                bbox: L.latLngBounds(
-                                    L.latLng(parseFloat(item.boundingbox[0]), parseFloat(item.boundingbox[2])),
-                                    L.latLng(parseFloat(item.boundingbox[1]), parseFloat(item.boundingbox[3]))
-                                ),
-                                properties: item
-                            };
-                        });
-                        
-                        // Guardar en cache
-                        _geoCache[cacheKey] = results;
-                        console.log('[GEOCODER] Resultados:', results.length, 'para', query);
-                        
-                        return results;
-                    } catch (error) {
-                        console.error('[GEOCODER] Error:', error);
-                        return [];
+
+                    var results = [];
+
+                    // Desbloquear Nominatim si pasó el tiempo
+                    if (_nominatimBlocked && Date.now() > _nominatimBlockedUntil) {
+                        _nominatimBlocked = false;
                     }
+
+                    // 2. Photon primero (más fiable, sin rate-limit)
+                    try {
+                        results = await _photonSearch(query);
+                        if (results.length > 0) {
+                            console.log('[GEOCODER] Photon:', results.length, 'resultados');
+                        }
+                    } catch (e) {
+                        console.warn('[GEOCODER] Photon falló:', e.message);
+                    }
+
+                    // 3. Nominatim como fallback (si Photon falló y no está bloqueado)
+                    if (results.length === 0 && !_nominatimBlocked) {
+                        try {
+                            results = await _nominatimSearch(query);
+                            if (results.length > 0) {
+                                console.log('[GEOCODER] Nominatim:', results.length, 'resultados');
+                            }
+                        } catch (e) {
+                            console.warn('[GEOCODER] Nominatim falló:', e.message);
+                        }
+                    }
+
+                    // 4. Fallback offline
+                    if (results.length === 0) {
+                        results = _offlineSearch(query);
+                        if (results.length > 0) {
+                            console.log('[GEOCODER] Offline:', results.length, 'resultados');
+                        }
+                    }
+
+                    // Cache
+                    if (results.length > 0) {
+                        _geoCache[cacheKey] = results;
+                    }
+
+                    return results;
                 },
                 reverse: async function(location, scale) {
                     try {
-                        const lat = location.lat;
-                        const lng = location.lng;
-                        const zoom = Math.round(Math.log(scale / 256) / Math.log(2));
-                        
-                        const response = await fetch('/nominatim/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=' + zoom + '&addressdetails=1');
-                        const data = await response.json();
-                        
-                        if (!data || !data.lat) return [];
-                        
-                        return [{
-                            name: data.display_name,
-                            html: data.display_name,
-                            center: L.latLng(parseFloat(data.lat), parseFloat(data.lon)),
-                            bbox: L.latLngBounds(
-                                L.latLng(parseFloat(data.lat), parseFloat(data.lon)),
-                                L.latLng(parseFloat(data.lat), parseFloat(data.lon))
-                            ),
-                            properties: data
-                        }];
+                        var lat = location.lat;
+                        var lng = location.lng;
+                        var response = await fetch('https://photon.komoot.io/reverse?lat=' + lat + '&lon=' + lng);
+                        var data = await response.json();
+                        var f = (data.features || [])[0];
+                        if (f) {
+                            var coords = f.geometry.coordinates;
+                            var props = f.properties || {};
+                            var parts = [props.name, props.city, props.state, props.country].filter(Boolean);
+                            return [{
+                                name: parts.join(', '),
+                                html: parts.join(', '),
+                                center: L.latLng(coords[1], coords[0]),
+                                bbox: L.latLngBounds(
+                                    L.latLng(coords[1], coords[0]),
+                                    L.latLng(coords[1], coords[0])
+                                ),
+                                properties: props
+                            }];
+                        }
+                        return [];
                     } catch (error) {
                         console.error('[GEOCODER] Error reverse:', error);
                         return [];
@@ -437,31 +569,31 @@ function initializeLeaflet() {
 
             L.Control.geocoder({
                 defaultMarkGeocode: false,
-                placeholder: 'Buscar ubicación en Colombia...',
+                placeholder: 'Buscar ciudad o ubicación...',
                 errorMessage: 'No se encontró la ubicación',
                 position: 'topright',
                 suggestMinLength: 3,
                 queryMinLength: 3,
-                geocoder: customGeocoder
+                geocoder: customGeocoder,
+                collapsed: true,
+                showUniqueResult: true
             }).on('markgeocode', function(e) {
-                const bbox = e.geocode.bbox;
-                const poly = L.polygon([
+                var bbox = e.geocode.bbox;
+                var poly = L.polygon([
                     bbox.getSouthEast(),
                     bbox.getNorthEast(),
                     bbox.getNorthWest(),
                     bbox.getSouthWest()
                 ]);
                 map.fitBounds(poly.getBounds());
-                // Agregar marcador temporal en la ubicación encontrada
-                const marker = L.marker(e.geocode.center).addTo(map)
-                    .bindPopup(e.geocode.name)
+                var marker = L.marker(e.geocode.center).addTo(map)
+                    .bindPopup('<strong>' + e.geocode.name + '</strong>')
                     .openPopup();
-                // Remover marcador después de 5 segundos
                 setTimeout(function() {
                     map.removeLayer(marker);
-                }, 5000);
+                }, 8000);
             }).addTo(map);
-            console.log('[LEAFLET] Control de búsqueda agregado (Geocoder async con proxy Netlify)');
+            console.log('[LEAFLET] Control de búsqueda agregado (Geocoder: Photon → Nominatim → Offline)');
         } else {
             console.warn('[LEAFLET] Plugin Geocoder no disponible - verifique que el script esté cargado');
         }

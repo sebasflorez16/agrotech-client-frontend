@@ -42,14 +42,8 @@
   to = "/templates/authentication/:splat"
   status = 200
 
-# 3d. Proxy para Nominatim (geocodificación) - evita CORS
-[[redirects]]
-  from = "/nominatim/*"
-  to = "https://nominatim.openstreetmap.org/:splat"
-  status = 200
-  force = true
-  [redirects.headers]
-    User-Agent = "AgroTechDigital/1.0 (contact@agrotechcolombia.com; https://agrotechcolombia.com)"
+# 3d. (Eliminado) Ya no se usa proxy para Nominatim
+# El geocoder ahora usa Photon API (Komoot) + Nominatim directo + fallback offline
 
 # 4a. Billing webhooks -> Railway
 [[redirects]]
