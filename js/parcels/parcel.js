@@ -335,29 +335,103 @@ function initializeLeaflet() {
         ).addTo(map);
 
         // 🔍 Agregar control de búsqueda de geocodificación (lupa)
-        // Usando proxy Netlify para evitar CORS con Nominatim
+        // Geocoder personalizado con cache y rate-limiting para evitar 403 de Nominatim
         if (typeof L.Control.Geocoder !== 'undefined') {
-            // Construir URL absoluta del proxy de Nominatim en Netlify
-            // netlify.toml redirige /nominatim/* -> https://nominatim.openstreetmap.org/*
-            const nominatimProxyUrl = window.location.origin + '/nominatim/';
-            console.log('[GEOCODER] Usando proxy Nominatim:', nominatimProxyUrl);
-            
+            // Cache y rate-limit para respetar política de Nominatim (1 req/seg mínimo)
+            const _geoCache = {};
+            let _lastGeoReq = 0;
+            const _GEO_INTERVAL = 1500; // 1.5s entre peticiones
+
+            // Geocoder personalizado que NO usa el plugin nominatim (evita problemas de CORS/403)
+            const customGeocoder = {
+                geocode: function(query, cb, context) {
+                    // Verificar cache primero
+                    const cacheKey = query.toLowerCase().trim();
+                    if (_geoCache[cacheKey]) {
+                        console.log('[GEOCODER] Cache hit:', query);
+                        cb.call(context, _geoCache[cacheKey]);
+                        return;
+                    }
+                    
+                    // Rate limiting
+                    const now = Date.now();
+                    const wait = Math.max(0, _GEO_INTERVAL - (now - _lastGeoReq));
+                    
+                    setTimeout(async () => {
+                        _lastGeoReq = Date.now();
+                        try {
+                            const params = new URLSearchParams({
+                                q: query,
+                                format: 'json',
+                                addressdetails: '1',
+                                limit: '5',
+                                countrycodes: 'co',
+                                'accept-language': 'es'
+                            });
+                            
+                            // Usar fetch directo a Nominatim - funciona desde navegador sin CORS
+                            // (Nominatim permite CORS, el problema era el rate-limiting del proxy)
+                            const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
+                            
+                            if (!response.ok) {
+                                console.warn('[GEOCODER] Error de Nominatim:', response.status);
+                                cb.call(context, []);
+                                return;
+                            }
+                            
+                            const data = await response.json();
+                            
+                            // Convertir respuesta al formato Leaflet Control Geocoder
+                            const results = data.map(item => ({
+                                name: item.display_name,
+                                center: L.latLng(parseFloat(item.lat), parseFloat(item.lon)),
+                                bbox: L.latLngBounds(
+                                    L.latLng(parseFloat(item.boundingbox[0]), parseFloat(item.boundingbox[2])),
+                                    L.latLng(parseFloat(item.boundingbox[1]), parseFloat(item.boundingbox[3]))
+                                ),
+                                properties: item
+                            }));
+                            
+                            // Guardar en cache
+                            _geoCache[cacheKey] = results;
+                            console.log('[GEOCODER] Resultados:', results.length, 'para', query);
+                            
+                            cb.call(context, results);
+                        } catch (error) {
+                            console.error('[GEOCODER] Error:', error);
+                            cb.call(context, []);
+                        }
+                    }, wait);
+                },
+                reverse: function(location, scale, cb, context) {
+                    const lat = location.lat;
+                    const lng = location.lng;
+                    
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=${scale}&addressdetails=1`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const result = {
+                            name: data.display_name,
+                            center: L.latLng(parseFloat(data.lat), parseFloat(data.lon)),
+                            properties: data
+                        };
+                        cb.call(context, [result]);
+                    })
+                    .catch(error => {
+                        console.error('[GEOCODER] Error reverse:', error);
+                        cb.call(context, []);
+                    });
+                }
+            };
+
             L.Control.geocoder({
                 defaultMarkGeocode: false,
-                placeholder: 'Buscar ubicación...',
+                placeholder: 'Buscar ubicación en Colombia...',
                 errorMessage: 'No se encontró la ubicación',
                 position: 'topright',
-                geocoder: L.Control.Geocoder.nominatim({
-                    serviceUrl: nominatimProxyUrl,
-                    geocodingQueryParams: {
-                        countrycodes: 'co',
-                        limit: 5,
-                        'accept-language': 'es'
-                    },
-                    htmlTemplate: function(r) {
-                        return r.display_name;
-                    }
-                })
+                suggestMinLength: 4,
+                queryMinLength: 3,
+                geocoder: customGeocoder
             }).on('markgeocode', function(e) {
                 const bbox = e.geocode.bbox;
                 const poly = L.polygon([
@@ -376,7 +450,7 @@ function initializeLeaflet() {
                     map.removeLayer(marker);
                 }, 5000);
             }).addTo(map);
-            console.log('[LEAFLET] Control de búsqueda agregado (Nominatim OSM)');
+            console.log('[LEAFLET] Control de búsqueda agregado (Geocoder personalizado con cache)');
         } else {
             console.warn('[LEAFLET] Plugin Geocoder no disponible - verifique que el script esté cargado');
         }
