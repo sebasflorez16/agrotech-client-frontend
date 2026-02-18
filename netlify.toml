@@ -49,7 +49,7 @@
   status = 200
   force = true
   [redirects.headers]
-    User-Agent = "AgroTechDigital/1.0 (https://agrotechcolombia.netlify.app)"
+    User-Agent = "AgroTechDigital/1.0 (contact@agrotechcolombia.com; https://agrotechcolombia.com)"
 
 # 4a. Billing webhooks -> Railway
 [[redirects]]

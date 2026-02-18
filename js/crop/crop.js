@@ -1,11 +1,17 @@
 // crop.js - Gestión profesional de cultivos
-const API_BASE = `http://${window.location.hostname}:8000/api/crop/`;
+
+// Detectar entorno: en producción (Netlify) usar rutas relativas (proxy),
+// en desarrollo local apuntar al backend en puerto 8000
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const BACKEND_BASE = isLocalhost ? `http://${window.location.hostname}:8000` : '';
+
+const API_BASE = `${BACKEND_BASE}/api/crop/`;
 const API_TYPE = `${API_BASE}types/`;
 const API_CROP = `${API_BASE}crops/`;
-const API_PARCEL = `http://${window.location.hostname}:8000/api/parcels/parcel/`;
-const API_EMPLOYEE = `http://${window.location.hostname}:8000/api/RRHH/empleados/`;
-const API_VARIETY = `http://${window.location.hostname}:8000/api/inventario/supplies/`;
-const API_SUPPLIER = `http://${window.location.hostname}:8000/api/inventario/suppliers/`;
+const API_PARCEL = `${BACKEND_BASE}/api/parcels/parcel/`;
+const API_EMPLOYEE = `${BACKEND_BASE}/api/RRHH/empleados/`;
+const API_VARIETY = `${BACKEND_BASE}/api/inventario/supplies/`;
+const API_SUPPLIER = `${BACKEND_BASE}/api/inventario/suppliers/`;
 const token = localStorage.getItem("accessToken");
 
 // --- CARGA DE TABLA DE CULTIVOS ---

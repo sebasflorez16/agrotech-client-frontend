@@ -377,20 +377,52 @@ function initializeLeaflet() {
         ).addTo(map);
 
         // 🔍 Agregar control de búsqueda de geocodificación (lupa)
-        // Usando el proxy backend para evitar CORS
+        // Con cache y rate-limiting para evitar 403 de Nominatim
         if (typeof L.Control.Geocoder !== 'undefined') {
+            // Crear geocoder Nominatim base
+            const nominatimBase = L.Control.Geocoder.nominatim({
+                serviceUrl: window.location.origin + '/nominatim/',
+                geocodingQueryParams: {
+                    countrycodes: 'co',
+                    limit: 5
+                }
+            });
+
+            // Wrapper con cache y rate-limit para evitar 403
+            const _geoCache = {};
+            let _lastGeoReq = 0;
+            const _GEO_INTERVAL = 1500; // 1.5s entre peticiones (Nominatim pide 1s mínimo)
+
+            const cachedGeocoder = {
+                geocode: function(query, cb, context) {
+                    if (_geoCache[query]) {
+                        console.log('[GEOCODER] Cache hit:', query);
+                        cb.call(context, _geoCache[query]);
+                        return;
+                    }
+                    const now = Date.now();
+                    const wait = Math.max(0, _GEO_INTERVAL - (now - _lastGeoReq));
+                    setTimeout(() => {
+                        _lastGeoReq = Date.now();
+                        nominatimBase.geocode(query, function(results) {
+                            _geoCache[query] = results;
+                            cb.call(context, results);
+                        }, context);
+                    }, wait);
+                },
+                reverse: function(loc, scale, cb, ctx) {
+                    nominatimBase.reverse(loc, scale, cb, ctx);
+                }
+            };
+
             L.Control.geocoder({
                 defaultMarkGeocode: false,
                 placeholder: 'Buscar ubicación...',
                 errorMessage: 'No se encontró la ubicación',
                 position: 'topright',
-                geocoder: L.Control.Geocoder.nominatim({
-                    serviceUrl: window.location.origin + '/nominatim/', // Proxy via Netlify (evita CORS y 403)
-                    geocodingQueryParams: {
-                        countrycodes: 'co', // Priorizar resultados en Colombia
-                        limit: 5
-                    }
-                })
+                suggestMinLength: 4,
+                queryMinLength: 3,
+                geocoder: cachedGeocoder
             }).on('markgeocode', function(e) {
                 const bbox = e.geocode.bbox;
                 const poly = L.polygon([
