@@ -335,15 +335,20 @@ function initializeLeaflet() {
         ).addTo(map);
 
         // 🔍 Agregar control de búsqueda de geocodificación (lupa)
-        // Usando Nominatim de OpenStreetMap directamente
+        // Usando proxy Netlify para evitar CORS con Nominatim
         if (typeof L.Control.Geocoder !== 'undefined') {
+            // Construir URL absoluta del proxy de Nominatim en Netlify
+            // netlify.toml redirige /nominatim/* -> https://nominatim.openstreetmap.org/*
+            const nominatimProxyUrl = window.location.origin + '/nominatim/';
+            console.log('[GEOCODER] Usando proxy Nominatim:', nominatimProxyUrl);
+            
             L.Control.geocoder({
                 defaultMarkGeocode: false,
                 placeholder: 'Buscar ubicación...',
                 errorMessage: 'No se encontró la ubicación',
                 position: 'topright',
                 geocoder: L.Control.Geocoder.nominatim({
-                    serviceUrl: 'https://nominatim.openstreetmap.org/',
+                    serviceUrl: nominatimProxyUrl,
                     geocodingQueryParams: {
                         countrycodes: 'co',
                         limit: 5,
