@@ -335,7 +335,7 @@ function initializeLeaflet() {
         ).addTo(map);
 
         // 🔍 Agregar control de búsqueda de geocodificación (lupa)
-        // Usando el proxy backend para evitar CORS
+        // Usando Nominatim de OpenStreetMap directamente
         if (typeof L.Control.Geocoder !== 'undefined') {
             L.Control.geocoder({
                 defaultMarkGeocode: false,
@@ -343,10 +343,14 @@ function initializeLeaflet() {
                 errorMessage: 'No se encontró la ubicación',
                 position: 'topright',
                 geocoder: L.Control.Geocoder.nominatim({
-                    serviceUrl: BASE_URL + '/geocode/', // Usar proxy backend
+                    serviceUrl: 'https://nominatim.openstreetmap.org/',
                     geocodingQueryParams: {
-                        countrycodes: 'co', // Priorizar resultados en Colombia
-                        limit: 5
+                        countrycodes: 'co',
+                        limit: 5,
+                        'accept-language': 'es'
+                    },
+                    htmlTemplate: function(r) {
+                        return r.display_name;
                     }
                 })
             }).on('markgeocode', function(e) {
@@ -367,7 +371,7 @@ function initializeLeaflet() {
                     map.removeLayer(marker);
                 }, 5000);
             }).addTo(map);
-            console.log('[LEAFLET] Control de búsqueda agregado (proxy backend)');
+            console.log('[LEAFLET] Control de búsqueda agregado (Nominatim OSM)');
         } else {
             console.warn('[LEAFLET] Plugin Geocoder no disponible - verifique que el script esté cargado');
         }
