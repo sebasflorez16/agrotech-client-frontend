@@ -335,118 +335,103 @@ function initializeLeaflet() {
         ).addTo(map);
 
         // 🔍 Agregar control de búsqueda de geocodificación (lupa)
-        // Geocoder personalizado con cache y rate-limiting para evitar 403 de Nominatim
+        // Geocoder personalizado async con proxy Netlify, cache y rate-limiting
         if (typeof L.Control.Geocoder !== 'undefined') {
             // Cache y rate-limit para respetar política de Nominatim (1 req/seg mínimo)
             const _geoCache = {};
             let _lastGeoReq = 0;
             const _GEO_INTERVAL = 1500; // 1.5s entre peticiones
 
-            // Geocoder personalizado usando proxy Netlify (evita CORS y respeta rate-limit)
+            // Geocoder personalizado compatible con leaflet-control-geocoder v2+
+            // Usa métodos async que devuelven Promise (NO callbacks)
             const customGeocoder = {
-                geocode: function(query, cb, context) {
-                    // Validar callback
-                    const callback = typeof cb === 'function' ? cb : (typeof cb === 'object' && cb.call ? cb : null);
-                    if (!callback) {
-                        console.error('[GEOCODER] Callback inválido:', cb);
-                        return;
-                    }
-                    
-                    // Helper para invocar callback de forma segura
-                    const safeCallback = (results) => {
-                        try {
-                            if (typeof callback === 'function') {
-                                callback.call(context || window, results);
-                            }
-                        } catch (e) {
-                            console.error('[GEOCODER] Error en callback:', e);
-                        }
-                    };
+                geocode: async function(query) {
+                    console.log('[GEOCODER] Buscando:', query);
                     
                     // Verificar cache primero
                     const cacheKey = query.toLowerCase().trim();
                     if (_geoCache[cacheKey]) {
                         console.log('[GEOCODER] Cache hit:', query);
-                        safeCallback(_geoCache[cacheKey]);
-                        return;
+                        return _geoCache[cacheKey];
                     }
                     
                     // Rate limiting
                     const now = Date.now();
                     const wait = Math.max(0, _GEO_INTERVAL - (now - _lastGeoReq));
+                    if (wait > 0) {
+                        await new Promise(resolve => setTimeout(resolve, wait));
+                    }
+                    _lastGeoReq = Date.now();
                     
-                    setTimeout(async () => {
-                        _lastGeoReq = Date.now();
-                        try {
-                            const params = new URLSearchParams({
-                                q: query,
-                                format: 'json',
-                                addressdetails: '1',
-                                limit: '5',
-                                countrycodes: 'co',
-                                'accept-language': 'es'
-                            });
-                            
-                            // Usar proxy Netlify para evitar CORS
-                            const response = await fetch(`/nominatim/search?${params}`);
-                            
-                            if (!response.ok) {
-                                console.warn('[GEOCODER] Error de Nominatim:', response.status);
-                                safeCallback([]);
-                                return;
-                            }
-                            
-                            const data = await response.json();
-                            
-                            // Convertir respuesta al formato Leaflet Control Geocoder
-                            const results = data.map(item => ({
+                    try {
+                        const params = new URLSearchParams({
+                            q: query,
+                            format: 'json',
+                            addressdetails: '1',
+                            limit: '5',
+                            countrycodes: 'co',
+                            'accept-language': 'es'
+                        });
+                        
+                        // Usar proxy Netlify para evitar CORS con Nominatim
+                        const response = await fetch('/nominatim/search?' + params.toString());
+                        
+                        if (!response.ok) {
+                            console.warn('[GEOCODER] Error de Nominatim:', response.status);
+                            return [];
+                        }
+                        
+                        const data = await response.json();
+                        
+                        // Convertir respuesta al formato Leaflet Control Geocoder
+                        const results = data.map(function(item) {
+                            return {
                                 name: item.display_name,
+                                html: item.display_name,
                                 center: L.latLng(parseFloat(item.lat), parseFloat(item.lon)),
                                 bbox: L.latLngBounds(
                                     L.latLng(parseFloat(item.boundingbox[0]), parseFloat(item.boundingbox[2])),
                                     L.latLng(parseFloat(item.boundingbox[1]), parseFloat(item.boundingbox[3]))
                                 ),
                                 properties: item
-                            }));
-                            
-                            // Guardar en cache
-                            _geoCache[cacheKey] = results;
-                            console.log('[GEOCODER] Resultados:', results.length, 'para', query);
-                            
-                            safeCallback(results);
-                        } catch (error) {
-                            console.error('[GEOCODER] Error:', error);
-                            safeCallback([]);
-                        }
-                    }, wait);
+                            };
+                        });
+                        
+                        // Guardar en cache
+                        _geoCache[cacheKey] = results;
+                        console.log('[GEOCODER] Resultados:', results.length, 'para', query);
+                        
+                        return results;
+                    } catch (error) {
+                        console.error('[GEOCODER] Error:', error);
+                        return [];
+                    }
                 },
-                reverse: function(location, scale, cb, context) {
-                    const callback = typeof cb === 'function' ? cb : null;
-                    const safeCallback = (results) => {
-                        try {
-                            if (callback) callback.call(context || window, results);
-                        } catch (e) {
-                            console.error('[GEOCODER] Error en callback reverse:', e);
-                        }
-                    };
-                    
-                    const lat = location.lat;
-                    const lng = location.lng;
-                    
-                    fetch(`/nominatim/reverse?format=json&lat=${lat}&lon=${lng}&zoom=${scale}&addressdetails=1`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const result = {
+                reverse: async function(location, scale) {
+                    try {
+                        const lat = location.lat;
+                        const lng = location.lng;
+                        const zoom = Math.round(Math.log(scale / 256) / Math.log(2));
+                        
+                        const response = await fetch('/nominatim/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=' + zoom + '&addressdetails=1');
+                        const data = await response.json();
+                        
+                        if (!data || !data.lat) return [];
+                        
+                        return [{
                             name: data.display_name,
+                            html: data.display_name,
                             center: L.latLng(parseFloat(data.lat), parseFloat(data.lon)),
+                            bbox: L.latLngBounds(
+                                L.latLng(parseFloat(data.lat), parseFloat(data.lon)),
+                                L.latLng(parseFloat(data.lat), parseFloat(data.lon))
+                            ),
                             properties: data
-                        };
-                        safeCallback([result]);
-                    })
-                    .catch(error => {
+                        }];
+                    } catch (error) {
                         console.error('[GEOCODER] Error reverse:', error);
-                        safeCallback([]);
-                    });
+                        return [];
+                    }
                 }
             };
 
@@ -455,7 +440,7 @@ function initializeLeaflet() {
                 placeholder: 'Buscar ubicación en Colombia...',
                 errorMessage: 'No se encontró la ubicación',
                 position: 'topright',
-                suggestMinLength: 4,
+                suggestMinLength: 3,
                 queryMinLength: 3,
                 geocoder: customGeocoder
             }).on('markgeocode', function(e) {
@@ -472,11 +457,11 @@ function initializeLeaflet() {
                     .bindPopup(e.geocode.name)
                     .openPopup();
                 // Remover marcador después de 5 segundos
-                setTimeout(() => {
+                setTimeout(function() {
                     map.removeLayer(marker);
                 }, 5000);
             }).addTo(map);
-            console.log('[LEAFLET] Control de búsqueda agregado (Geocoder personalizado con cache)');
+            console.log('[LEAFLET] Control de búsqueda agregado (Geocoder async con proxy Netlify)');
         } else {
             console.warn('[LEAFLET] Plugin Geocoder no disponible - verifique que el script esté cargado');
         }
