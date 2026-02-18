@@ -289,48 +289,6 @@ function initializeLeaflet() {
                 "Authorization": `Bearer ${token}`
             }
         });
-
-        // 🔄 Interceptor: auto-refresh token en caso de 401/expiración
-        axiosInstance.interceptors.response.use(
-            response => response,
-            async error => {
-                const originalRequest = error.config;
-                // Si es 401 o 404 (puede ser 404 por tenant no resuelto con token expirado)
-                // y no es un retry, intentar refrescar el token
-                if ((error.response?.status === 401 || error.response?.status === 404) && !originalRequest._retry) {
-                    originalRequest._retry = true;
-                    console.warn('[PARCEL.JS] Token posiblemente expirado, intentando refresh...');
-                    const refreshToken = localStorage.getItem("refreshToken");
-                    if (!refreshToken) {
-                        console.error('[PARCEL.JS] No hay refreshToken. Redirigiendo a login.');
-                        window.location.href = "/templates/authentication/login.html";
-                        return Promise.reject(error);
-                    }
-                    try {
-                        const refreshResponse = await axios.post(
-                            (window.AGROTECH_CONFIG?.API_BASE || '') + '/api/token/refresh/',
-                            { refresh: refreshToken },
-                            { headers: { 'Content-Type': 'application/json' } }
-                        );
-                        const newToken = refreshResponse.data.access;
-                        localStorage.setItem("accessToken", newToken);
-                        // Actualizar headers del axiosInstance y del request original
-                        axiosInstance.defaults.headers['Authorization'] = `Bearer ${newToken}`;
-                        originalRequest.headers['Authorization'] = `Bearer ${newToken}`;
-                        console.log('[PARCEL.JS] ✅ Token refrescado correctamente. Reintentando petición...');
-                        return axiosInstance(originalRequest);
-                    } catch (refreshError) {
-                        console.error('[PARCEL.JS] ❌ No se pudo refrescar el token:', refreshError);
-                        localStorage.removeItem("accessToken");
-                        localStorage.removeItem("refreshToken");
-                        window.location.href = "/templates/authentication/login.html";
-                        return Promise.reject(refreshError);
-                    }
-                }
-                return Promise.reject(error);
-            }
-        );
-
         window.axiosInstance = axiosInstance;
 
         // Inicializar el mapa Leaflet centrado en Colombia
@@ -377,52 +335,20 @@ function initializeLeaflet() {
         ).addTo(map);
 
         // 🔍 Agregar control de búsqueda de geocodificación (lupa)
-        // Con cache y rate-limiting para evitar 403 de Nominatim
+        // Usando el proxy backend para evitar CORS
         if (typeof L.Control.Geocoder !== 'undefined') {
-            // Crear geocoder Nominatim base
-            const nominatimBase = L.Control.Geocoder.nominatim({
-                serviceUrl: window.location.origin + '/nominatim/',
-                geocodingQueryParams: {
-                    countrycodes: 'co',
-                    limit: 5
-                }
-            });
-
-            // Wrapper con cache y rate-limit para evitar 403
-            const _geoCache = {};
-            let _lastGeoReq = 0;
-            const _GEO_INTERVAL = 1500; // 1.5s entre peticiones (Nominatim pide 1s mínimo)
-
-            const cachedGeocoder = {
-                geocode: function(query, cb, context) {
-                    if (_geoCache[query]) {
-                        console.log('[GEOCODER] Cache hit:', query);
-                        cb.call(context, _geoCache[query]);
-                        return;
-                    }
-                    const now = Date.now();
-                    const wait = Math.max(0, _GEO_INTERVAL - (now - _lastGeoReq));
-                    setTimeout(() => {
-                        _lastGeoReq = Date.now();
-                        nominatimBase.geocode(query, function(results) {
-                            _geoCache[query] = results;
-                            cb.call(context, results);
-                        }, context);
-                    }, wait);
-                },
-                reverse: function(loc, scale, cb, ctx) {
-                    nominatimBase.reverse(loc, scale, cb, ctx);
-                }
-            };
-
             L.Control.geocoder({
                 defaultMarkGeocode: false,
                 placeholder: 'Buscar ubicación...',
                 errorMessage: 'No se encontró la ubicación',
                 position: 'topright',
-                suggestMinLength: 4,
-                queryMinLength: 3,
-                geocoder: cachedGeocoder
+                geocoder: L.Control.Geocoder.nominatim({
+                    serviceUrl: BASE_URL + '/geocode/', // Usar proxy backend
+                    geocodingQueryParams: {
+                        countrycodes: 'co', // Priorizar resultados en Colombia
+                        limit: 5
+                    }
+                })
             }).on('markgeocode', function(e) {
                 const bbox = e.geocode.bbox;
                 const poly = L.polygon([
@@ -805,6 +731,11 @@ function selectParcel(parcel) {
     // Toast de confirmación
     if (typeof showInfoToast === 'function') {
         showInfoToast(`📍 Parcela "${parcelData.name}" seleccionada`);
+    }
+    
+    // Cargar ciclo de cultivo activo (si el módulo está disponible)
+    if (window.AgrotechCropCycles && typeof window.AgrotechCropCycles.showCropCycleBadge === 'function') {
+        window.AgrotechCropCycles.showCropCycleBadge(parcel.id);
     }
 }
 window.selectParcel = selectParcel;
@@ -2712,6 +2643,61 @@ window.mostrarImagenNDVIConAnalisis = async function(imageSrc, tipo = 'ndvi', sc
                         console.log(`[IMAGE_ANALYSIS] Interpretación profesional generada para ${tipo.toUpperCase()}`);
                     } catch (interpError) {
                         console.warn('[IMAGE_ANALYSIS] Error al generar interpretación profesional:', interpError);
+                    }
+                    
+                    // CONTEXTUALIZACIÓN CON CICLO DE CULTIVO (si existe)
+                    // No modifica el análisis existente, solo agrega información adicional debajo
+                    try {
+                        if (window.AgrotechCropCycles && typeof window.AgrotechCropCycles.getContextualInterpretation === 'function') {
+                            const parcelId = window.AGROTECH_STATE?.selectedParcelId;
+                            if (parcelId) {
+                                // Calcular valor promedio ponderado del índice a partir de los resultados del análisis
+                                // Usar la categoría dominante para estimar un valor representativo
+                                const indexRanges = {
+                                    ndvi: {
+                                        'Vegetación Muy Densa': 0.85, 'Vegetación Densa': 0.65,
+                                        'Vegetación Moderada': 0.45, 'Vegetación Escasa': 0.25,
+                                        'Estrés Severo': 0.10, 'Suelo Desnudo': 0.02
+                                    },
+                                    ndmi: {
+                                        'Muy Húmedo': 0.50, 'Húmedo': 0.30, 'Moderado': 0.10,
+                                        'Seco': -0.10, 'Muy Seco': -0.30, 'Estrés Hídrico': -0.50
+                                    },
+                                    savi: {
+                                        'Vegetación Muy Densa': 0.75, 'Vegetación Densa': 0.55,
+                                        'Vegetación Moderada': 0.35, 'Vegetación Escasa': 0.18,
+                                        'Suelo con poca vegetación': 0.08, 'Suelo Desnudo': 0.02
+                                    }
+                                };
+                                const ranges = indexRanges[tipo.toLowerCase()] || {};
+                                let weightedSum = 0;
+                                let totalPercent = 0;
+                                for (const r of resultsWithColors) {
+                                    const refValue = ranges[r.name] ?? 0.5;
+                                    weightedSum += refValue * r.percent;
+                                    totalPercent += r.percent;
+                                }
+                                const avgValue = totalPercent > 0 ? parseFloat((weightedSum / totalPercent).toFixed(3)) : 0.5;
+                                
+                                const contextResult = await window.AgrotechCropCycles.getContextualInterpretation(parcelId, tipo.toLowerCase(), avgValue);
+                                if (contextResult && contextResult.status !== 'unknown') {
+                                    let cropContextContainer = legendContainer.querySelector('.crop-context-interpretation');
+                                    if (!cropContextContainer) {
+                                        cropContextContainer = document.createElement('div');
+                                        cropContextContainer.className = 'crop-context-interpretation mt-3';
+                                        legendContainer.appendChild(cropContextContainer);
+                                    }
+                                    // renderContextualBadge es async y genera su propio HTML internamente
+                                    const badgeHtml = await window.AgrotechCropCycles.renderContextualBadge(parcelId, tipo.toLowerCase(), avgValue);
+                                    if (badgeHtml) {
+                                        cropContextContainer.innerHTML = badgeHtml;
+                                    }
+                                    console.log(`[IMAGE_ANALYSIS] Contexto de ciclo de cultivo agregado para ${tipo.toUpperCase()} (valor estimado: ${avgValue})`);
+                                }
+                            }
+                        }
+                    } catch (cropContextError) {
+                        console.warn('[IMAGE_ANALYSIS] Ciclo de cultivo no disponible (esperado si no hay ciclo activo):', cropContextError.message);
                     }
                 }
                 
