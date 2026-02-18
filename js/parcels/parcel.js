@@ -342,14 +342,32 @@ function initializeLeaflet() {
             let _lastGeoReq = 0;
             const _GEO_INTERVAL = 1500; // 1.5s entre peticiones
 
-            // Geocoder personalizado que NO usa el plugin nominatim (evita problemas de CORS/403)
+            // Geocoder personalizado usando proxy Netlify (evita CORS y respeta rate-limit)
             const customGeocoder = {
                 geocode: function(query, cb, context) {
+                    // Validar callback
+                    const callback = typeof cb === 'function' ? cb : (typeof cb === 'object' && cb.call ? cb : null);
+                    if (!callback) {
+                        console.error('[GEOCODER] Callback inválido:', cb);
+                        return;
+                    }
+                    
+                    // Helper para invocar callback de forma segura
+                    const safeCallback = (results) => {
+                        try {
+                            if (typeof callback === 'function') {
+                                callback.call(context || window, results);
+                            }
+                        } catch (e) {
+                            console.error('[GEOCODER] Error en callback:', e);
+                        }
+                    };
+                    
                     // Verificar cache primero
                     const cacheKey = query.toLowerCase().trim();
                     if (_geoCache[cacheKey]) {
                         console.log('[GEOCODER] Cache hit:', query);
-                        cb.call(context, _geoCache[cacheKey]);
+                        safeCallback(_geoCache[cacheKey]);
                         return;
                     }
                     
@@ -369,13 +387,12 @@ function initializeLeaflet() {
                                 'accept-language': 'es'
                             });
                             
-                            // Usar fetch directo a Nominatim - funciona desde navegador sin CORS
-                            // (Nominatim permite CORS, el problema era el rate-limiting del proxy)
-                            const response = await fetch(`https://nominatim.openstreetmap.org/search?${params}`);
+                            // Usar proxy Netlify para evitar CORS
+                            const response = await fetch(`/nominatim/search?${params}`);
                             
                             if (!response.ok) {
                                 console.warn('[GEOCODER] Error de Nominatim:', response.status);
-                                cb.call(context, []);
+                                safeCallback([]);
                                 return;
                             }
                             
@@ -396,18 +413,27 @@ function initializeLeaflet() {
                             _geoCache[cacheKey] = results;
                             console.log('[GEOCODER] Resultados:', results.length, 'para', query);
                             
-                            cb.call(context, results);
+                            safeCallback(results);
                         } catch (error) {
                             console.error('[GEOCODER] Error:', error);
-                            cb.call(context, []);
+                            safeCallback([]);
                         }
                     }, wait);
                 },
                 reverse: function(location, scale, cb, context) {
+                    const callback = typeof cb === 'function' ? cb : null;
+                    const safeCallback = (results) => {
+                        try {
+                            if (callback) callback.call(context || window, results);
+                        } catch (e) {
+                            console.error('[GEOCODER] Error en callback reverse:', e);
+                        }
+                    };
+                    
                     const lat = location.lat;
                     const lng = location.lng;
                     
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=${scale}&addressdetails=1`)
+                    fetch(`/nominatim/reverse?format=json&lat=${lat}&lon=${lng}&zoom=${scale}&addressdetails=1`)
                     .then(response => response.json())
                     .then(data => {
                         const result = {
@@ -415,11 +441,11 @@ function initializeLeaflet() {
                             center: L.latLng(parseFloat(data.lat), parseFloat(data.lon)),
                             properties: data
                         };
-                        cb.call(context, [result]);
+                        safeCallback([result]);
                     })
                     .catch(error => {
                         console.error('[GEOCODER] Error reverse:', error);
-                        cb.call(context, []);
+                        safeCallback([]);
                     });
                 }
             };
