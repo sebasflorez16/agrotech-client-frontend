@@ -45,6 +45,22 @@
 # 3d. (Eliminado) Ya no se usa proxy para Nominatim
 # El geocoder ahora usa Photon API (Komoot) + Nominatim directo + fallback offline
 
+# 3e. Compatibilidad /static/* (rutas Django) → archivos locales de Netlify
+[[redirects]]
+  from = "/static/css/*"
+  to = "/css/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/static/js/*"
+  to = "/js/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/static/images/*"
+  to = "/images/:splat"
+  status = 200
+
 # 4a. Billing webhooks -> Railway
 [[redirects]]
   from = "/billing/*"
