@@ -79,7 +79,7 @@ async function loadCropTable() {
         document.getElementById('crop-table-card').style.display   = '';
         crops.forEach(c => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${c.name||'—'}</td><td>${c.crop_type_name||c.crop_type||'—'}</td><td>${c.variety_name||'—'}</td><td>${c.parcel_name||'—'}</td><td>${c.area||'—'}</td><td>${c.sowing_date||'—'}</td><td>${c.harvest_date||'—'}</td><td>${c.manager_name||'—'}</td><td><button class="btn btn-sm btn-info me-1" onclick="showCropDetail(${c.id})"><i class="bi bi-eye"></i></button><button class="btn btn-sm btn-warning me-1" onclick="editCrop(${c.id})"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-danger" onclick="deleteCrop(${c.id})"><i class="bi bi-trash"></i></button></td>`;
+            tr.innerHTML = `<td>${c.name||'—'}</td><td>${c.crop_type_name||c.crop_type||'—'}</td><td>${c.variety_name||'—'}</td><td>${c.parcel_name||'—'}</td><td>${c.area||'—'}</td><td>${c.sowing_date||'—'}</td><td>${c.harvest_date||'—'}</td><td>${c.manager_name||'—'}</td><td><button class="btn btn-sm btn-info me-1" onclick="showCropDetail(${c.id})"><i class="fa fa-eye"></i></button><button class="btn btn-sm btn-warning me-1" onclick="editCrop(${c.id})"><i class="fa fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="deleteCrop(${c.id})"><i class="fa fa-trash"></i></button></td>`;
             tbody.appendChild(tr);
         });
     } catch (e) { if (e.message !== 'session_expired') console.error('Error al cargar cultivos:', e); }
@@ -139,16 +139,16 @@ async function showCropModal() {
     document.getElementById('crop-variety-hint').classList.add('d-none');
     try {
         const [typesRes, parcelsRes, employeesRes, suppliersRes] = await Promise.all([
-            apiFetch(`${API_BASE}types/`),
-            apiFetch(API_PARCELS),
+            apiFetch(`${API_BASE}types/`).catch(() => null),
+            apiFetch(API_PARCELS).catch(() => null),
             apiFetch(API_EMPLOYEES).catch(() => null),
             apiFetch(API_SUPPLIERS).catch(() => null),
         ]);
         const [types, parcels, employees, suppliers] = await Promise.all([
-            typesRes.json(),
-            parcelsRes.json(),
-            employeesRes  ? employeesRes.json().catch(() => []) : Promise.resolve([]),
-            suppliersRes  ? suppliersRes.json().catch(() => []) : Promise.resolve([]),
+            typesRes     ? typesRes.json().catch(() => [])     : Promise.resolve([]),
+            parcelsRes   ? parcelsRes.json().catch(() => [])   : Promise.resolve([]),
+            employeesRes ? employeesRes.json().catch(() => []) : Promise.resolve([]),
+            suppliersRes ? suppliersRes.json().catch(() => []) : Promise.resolve([]),
         ]);
         populateSelect('crop-type',         extractList(types),     'id', 'name',      'crop-type-hint',     '⚠ Sin tipos. Usa + para agregar.');
         populateSelect('crop-variety',       [],                     'id', 'name',      'crop-variety-hint',  'Selecciona primero el tipo para ver variedades.', null, false);

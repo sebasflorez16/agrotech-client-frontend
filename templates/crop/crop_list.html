@@ -3,94 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Resumen de Cultivos | Agrotech</title>
+    <meta name="theme-color" content="#0B0F14">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Cultivos | Agrotech</title>
     <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="/static/css/icons.min.css" rel="stylesheet" type="text/css" />
     <link href="/static/css/app.min.css" rel="stylesheet" type="text/css" />
+    <link href="/css/agrotech-neomorphic.css" rel="stylesheet" type="text/css" />
     <link href="/css/global-mobile-responsive.css" rel="stylesheet" type="text/css" />
+    <!-- Font Awesome — respaldo (el sistema lo carga también desde vendorjs.html) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
+    <style>
+        #main-content { margin-top: 110px !important; }
+        .btn-add-inline {
+            width: 36px; height: 36px; min-width: 36px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #34A853, #2E8B57);
+            border: none; color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 3px 3px 8px rgba(0,0,0,.2), -2px -2px 6px rgba(255,255,255,.08);
+            flex-shrink: 0; cursor: pointer;
+            transition: transform .15s, box-shadow .15s;
+            font-size: .85rem;
+        }
+        .btn-add-inline:hover { transform: scale(1.1); box-shadow: 4px 4px 12px rgba(0,0,0,.25); color: #fff; }
+        .crop-step-card {
+            background: #f0f4f8;
+            border-radius: 14px;
+            box-shadow: 5px 5px 14px rgba(0,0,0,.1), -3px -3px 10px rgba(255,255,255,.55);
+            padding: 1.2rem; height: 100%;
+        }
+        #crop-table-card {
+            border: none; border-radius: 16px;
+            box-shadow: 6px 6px 18px rgba(0,0,0,.1), -4px -4px 12px rgba(255,255,255,.45);
+        }
+        #crop-table-card .card-body { padding: 0; }
+        #crop-summary-table thead th {
+            background: #f8fafb; font-size: .78rem;
+            text-transform: uppercase; letter-spacing: .04em;
+            color: #6b7280; border-bottom: 2px solid #e5e7eb; padding: .75rem 1rem;
+        }
+        #crop-summary-table tbody td { padding: .7rem 1rem; vertical-align: middle; }
+        .modal-content.neomorphic-modal {
+            background: #e8edf2; border: none; border-radius: 20px;
+            box-shadow: 12px 12px 35px rgba(0,0,0,.22), -6px -6px 20px rgba(255,255,255,.07);
+        }
+        .modal-content.neomorphic-modal .modal-header {
+            background: linear-gradient(135deg, #2E8B57 0%, #34A853 100%);
+            border-radius: 20px 20px 0 0; border-bottom: none; padding: 1rem 1.5rem;
+        }
+        .modal-content.neomorphic-modal .modal-header .modal-title { color: #fff; font-weight: 700; }
+        .modal-content.neomorphic-modal .modal-header .btn-close { filter: invert(1) brightness(2); }
+        .modal-content.neomorphic-modal .modal-body { padding: 1.5rem; }
+        .modal-content.neomorphic-modal .form-label {
+            font-weight: 600; font-size: .84rem; color: #374151; margin-bottom: 4px;
+        }
+        .modal-content.neomorphic-modal .form-control,
+        .modal-content.neomorphic-modal .form-select {
+            background: #f0f4f8; border: none; border-radius: 10px;
+            box-shadow: inset 4px 4px 8px rgba(0,0,0,.12), inset -2px -2px 6px rgba(255,255,255,.7);
+            color: #1f2937; padding: .5rem .85rem;
+        }
+        .modal-content.neomorphic-modal .form-control:focus,
+        .modal-content.neomorphic-modal .form-select:focus {
+            outline: none;
+            box-shadow: inset 4px 4px 8px rgba(0,0,0,.12), inset -2px -2px 6px rgba(255,255,255,.7), 0 0 0 2.5px #34A85355;
+        }
+        .modal-content.neomorphic-modal .modal-footer {
+            background: transparent; border-top: 1px solid rgba(0,0,0,.07); padding: .75rem 1.5rem 1.25rem;
+        }
+    </style>
 </head>
 <body>
+    <!-- ORDEN CRÍTICO: topbar primero con display:none, luego sidebar, luego contenido -->
+    <div id="topbar-container" style="display:none;"></div>
     <div id="left-sidebar"></div>
-    <div id="topbar-container"></div>
-    <main id="main-content" class="container-fluid" style="margin-top: 90px;">
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h1 class="mb-0">Cultivos</h1>
-                    <button class="btn btn-success" id="btn-new-crop">
-                        <i class="bi bi-plus-circle"></i> Nuevo cultivo
-                    </button>
-                </div>
 
-                <!-- Empty state (se oculta cuando hay datos) -->
-                <div id="crop-empty-state" class="card border-0 shadow-sm mb-4" style="display:none;">
-                    <div class="card-body text-center py-5">
-                        <i class="bi bi-seedling" style="font-size:3rem;color:#6c757d;"></i>
-                        <h5 class="mt-3 mb-2">Aún no tienes cultivos registrados</h5>
-                        <p class="text-muted mb-4">Sigue estos pasos para registrar tu primer cultivo:</p>
-                        <div class="row justify-content-center g-3 mb-4">
-                            <div class="col-12 col-sm-4">
-                                <div class="border rounded p-3 h-100">
-                                    <div class="fs-3 mb-1">1️⃣</div>
-                                    <strong>Crea una Parcela</strong>
-                                    <p class="text-muted small mb-2">Define el terreno donde plantarás</p>
-                                    <a href="/templates/parcels/parcels-dashboard.html" class="btn btn-outline-primary btn-sm">Ir a Parcelas</a>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-4">
-                                <div class="border rounded p-3 h-100">
-                                    <div class="fs-3 mb-1">2️⃣</div>
-                                    <strong>Registra el Cultivo</strong>
-                                    <p class="text-muted small mb-2">Elige el tipo (Arroz, Maíz, etc.) y la variedad</p>
-                                    <button class="btn btn-outline-success btn-sm" id="btn-new-crop-empty">+ Nuevo cultivo</button>
-                                </div>
-                            </div>
-                            <div class="col-12 col-sm-4">
-                                <div class="border rounded p-3 h-100">
-                                    <div class="fs-3 mb-1">3️⃣</div>
-                                    <strong>Asigna a la Parcela</strong>
-                                    <p class="text-muted small mb-2">Vincula el cultivo con tu parcela y empieza el seguimiento</p>
-                                    <span class="badge bg-light text-muted">Al crear el cultivo</span>
-                                </div>
-                            </div>
+    <div id="main-content" class="container mt-5" style="margin-top: 110px !important;">
+
+        <!-- Encabezado -->
+        <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between mb-4 gap-2">
+            <h2 style="font-size:1.9rem;font-weight:700;color:#253445;display:flex;align-items:center;gap:10px;margin:0;">
+                <i class="fa fa-leaf" style="color:#34A853;"></i> Cultivos
+            </h2>
+            <button class="btn btn-success" id="btn-new-crop"
+                    style="font-weight:600;border-radius:10px;padding:.5rem 1.2rem;
+                           background:linear-gradient(135deg,#2E8B57,#34A853);border:none;
+                           box-shadow:4px 4px 12px rgba(46,139,87,.35);">
+                <i class="fa fa-plus me-1"></i> Nuevo cultivo
+            </button>
+        </div>
+
+        <!-- Empty state -->
+        <div id="crop-empty-state" class="card border-0 mb-4" style="display:none;background:#f0f4f8;border-radius:16px;box-shadow:6px 6px 18px rgba(0,0,0,.1),-4px -4px 12px rgba(255,255,255,.5);">
+            <div class="card-body text-center py-5">
+                <i class="fa fa-leaf fa-3x mb-3" style="color:#34A853;"></i>
+                <h5 class="mt-2 mb-2 fw-bold">Aún no tienes cultivos registrados</h5>
+                <p class="text-muted mb-4">Sigue estos pasos para registrar tu primer cultivo:</p>
+                <div class="row justify-content-center g-3 mb-4">
+                    <div class="col-12 col-sm-4">
+                        <div class="crop-step-card text-center">
+                            <div class="fs-2 mb-2">1️⃣</div>
+                            <strong>Crea una Parcela</strong>
+                            <p class="text-muted small mt-1 mb-2">Define el terreno donde plantarás</p>
+                            <a href="/templates/parcels/parcels-dashboard.html" class="btn btn-outline-primary btn-sm rounded-pill">Ir a Parcelas</a>
                         </div>
                     </div>
-                </div>
-
-                <div class="card shadow-sm" id="crop-table-card">
-                    <div class="card-body table-responsive">
-                        <table class="table table-hover" id="crop-summary-table">
-                            <thead>
-                                <tr>
-                                    <th>Nombre</th>
-                                    <th>Tipo</th>
-                                    <th>Variedad</th>
-                                    <th>Parcela</th>
-                                    <th>Área (ha)</th>
-                                    <th>Siembra</th>
-                                    <th>Cosecha</th>
-                                    <th>Responsable</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
+                    <div class="col-12 col-sm-4">
+                        <div class="crop-step-card text-center">
+                            <div class="fs-2 mb-2">2️⃣</div>
+                            <strong>Registra el Cultivo</strong>
+                            <p class="text-muted small mt-1 mb-2">Elige el tipo (Arroz, Maíz…) y la variedad</p>
+                            <button class="btn btn-outline-success btn-sm rounded-pill" id="btn-new-crop-empty">
+                                <i class="fa fa-plus me-1"></i>Nuevo cultivo
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-4">
+                        <div class="crop-step-card text-center">
+                            <div class="fs-2 mb-2">3️⃣</div>
+                            <strong>Asigna a la Parcela</strong>
+                            <p class="text-muted small mt-1 mb-2">Vincula el cultivo y empieza el seguimiento</p>
+                            <span class="badge rounded-pill" style="background:#e9ecef;color:#6c757d;padding:.4rem .8rem;">Al crear el cultivo</span>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
+
+        <!-- Tabla cultivos -->
+        <div class="card" id="crop-table-card">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover mb-0" id="crop-summary-table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Tipo</th>
+                            <th>Variedad</th>
+                            <th>Parcela</th>
+                            <th>Área (ha)</th>
+                            <th>Siembra</th>
+                            <th>Cosecha</th>
+                            <th>Responsable</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+    </div><!-- /#main-content -->
     <div id="footer-container"></div>
 
     <!-- ===================== MODAL DETALLE ===================== -->
     <div class="modal fade" id="cropDetailModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content">
-          <div class="modal-header bg-light border-0">
-            <h5 class="modal-title fw-bold"><i class="bi bi-seedling"></i> Detalle de Cultivo</h5>
+        <div class="modal-content neomorphic-modal">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fa fa-leaf me-2"></i>Detalle de Cultivo</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
-          <div class="modal-body py-4" id="crop-detail-body"></div>
+          <div class="modal-body" id="crop-detail-body"></div>
         </div>
       </div>
     </div>
@@ -98,17 +172,17 @@
     <!-- ===================== MODAL CREAR / EDITAR ===================== -->
     <div class="modal fade" id="cropModal" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-xl modal-dialog-scrollable modal-fullscreen-sm-down">
-        <div class="modal-content">
+        <div class="modal-content neomorphic-modal">
           <form id="crop-form">
             <div class="modal-header">
-              <h5 class="modal-title" id="cropModalLabel">Nuevo Cultivo</h5>
+              <h5 class="modal-title" id="cropModalLabel"><i class="fa fa-leaf me-2"></i>Nuevo Cultivo</h5>
               <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
 
               <!-- Banner prerequisito parcelas -->
               <div id="crop-no-parcel-banner" class="alert alert-warning d-none" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <i class="fa fa-exclamation-triangle me-2"></i>
                 <strong>Necesitas al menos una parcela</strong> para asignar este cultivo.
                 <a href="/templates/parcels/parcels-dashboard.html" class="alert-link ms-1">Ir a Parcelas →</a>
               </div>
@@ -124,11 +198,9 @@
                 <!-- Tipo de cultivo -->
                 <div class="col-12 col-md-6">
                   <label for="crop-type" class="form-label">Tipo de cultivo <span class="text-danger">*</span></label>
-                  <div class="input-group">
-                    <select class="form-select" id="crop-type" name="crop_type" required></select>
-                    <button type="button" class="btn btn-outline-secondary" id="btn-add-type" title="Agregar tipo">
-                      <i class="bi bi-plus-lg"></i>
-                    </button>
+                  <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select flex-grow-1" id="crop-type" name="crop_type" required></select>
+                    <button type="button" class="btn-add-inline" id="btn-add-type" title="Agregar tipo"><i class="fa fa-plus"></i></button>
                   </div>
                   <div id="crop-type-hint" class="form-text text-warning d-none"></div>
                 </div>
@@ -136,11 +208,9 @@
                 <!-- Variedad (encadenada al tipo) -->
                 <div class="col-12 col-md-6">
                   <label for="crop-variety" class="form-label">Variedad</label>
-                  <div class="input-group">
-                    <select class="form-select" id="crop-variety" name="variety"></select>
-                    <button type="button" class="btn btn-outline-secondary" id="btn-add-variety" title="Agregar variedad">
-                      <i class="bi bi-plus-lg"></i>
-                    </button>
+                  <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select flex-grow-1" id="crop-variety" name="variety"></select>
+                    <button type="button" class="btn-add-inline" id="btn-add-variety" title="Agregar variedad"><i class="fa fa-plus"></i></button>
                   </div>
                   <div id="crop-variety-hint" class="form-text text-muted d-none">Selecciona primero el tipo de cultivo para ver las variedades disponibles.</div>
                 </div>
@@ -163,11 +233,9 @@
                 <!-- Responsable -->
                 <div class="col-12 col-md-6">
                   <label for="crop-manager" class="form-label">Responsable</label>
-                  <div class="input-group">
-                    <select class="form-select" id="crop-manager" name="manager"></select>
-                    <button type="button" class="btn btn-outline-secondary" id="btn-add-employee" title="Agregar empleado">
-                      <i class="bi bi-plus-lg"></i>
-                    </button>
+                  <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select flex-grow-1" id="crop-manager" name="manager"></select>
+                    <button type="button" class="btn-add-inline" id="btn-add-employee" title="Agregar empleado"><i class="fa fa-plus"></i></button>
                   </div>
                   <div id="crop-manager-hint" class="form-text text-warning d-none">
                     Sin empleados registrados. Usa el botón <strong>+</strong> para agregar uno.
@@ -207,11 +275,9 @@
                 <!-- Proveedor de semilla -->
                 <div class="col-12 col-md-6">
                   <label for="crop-seed-supplier" class="form-label">Proveedor de semilla</label>
-                  <div class="input-group">
-                    <select class="form-select" id="crop-seed-supplier" name="seed_supplier"></select>
-                    <button type="button" class="btn btn-outline-secondary" id="btn-add-supplier" title="Agregar proveedor">
-                      <i class="bi bi-plus-lg"></i>
-                    </button>
+                  <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select flex-grow-1" id="crop-seed-supplier" name="seed_supplier"></select>
+                    <button type="button" class="btn-add-inline" id="btn-add-supplier" title="Agregar proveedor"><i class="fa fa-plus"></i></button>
                   </div>
                   <div id="crop-supplier-hint" class="form-text text-warning d-none">
                     Sin proveedores. Usa el botón <strong>+</strong> para agregar uno.
@@ -233,7 +299,10 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-              <button type="submit" class="btn btn-primary"><i class="bi bi-save me-1"></i>Guardar</button>
+              <button type="submit" class="btn btn-success"
+                      style="font-weight:600;background:linear-gradient(135deg,#2E8B57,#34A853);border:none;border-radius:10px;box-shadow:3px 3px 10px rgba(46,139,87,.35);">
+                <i class="fa fa-save me-1"></i>Guardar
+              </button>
             </div>
           </form>
         </div>
