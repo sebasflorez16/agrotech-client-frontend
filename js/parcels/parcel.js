@@ -411,8 +411,14 @@ function initializeLeaflet() {
 
             // Búsqueda en Photon API (Komoot) - sin rate-limit estricto, soporta CORS
             async function _photonSearch(query) {
-                // Fix: Limpiar query y crear URL correctamente
+                // Fix: Limpiar query para eliminar caracteres especiales
                 var cleanQuery = query.replace(/[^\w\sñÑáéíóúÁÉÍÓÚüÜ]/g, ' ').trim();
+                
+                // Validación: Evitar llamadas cortas que suelen dar error 400 en Photon
+                if (cleanQuery.length < 3) {
+                    return []; 
+                }
+
                 var url = new URL('https://photon.komoot.io/api/');
                 url.searchParams.append('q', cleanQuery + ' Colombia');
                 url.searchParams.append('limit', '5');
@@ -440,52 +446,60 @@ function initializeLeaflet() {
 
             // Búsqueda en Nominatim (Vía Proxy Backend para evitar CORS/Bloqueos)
             async function _nominatimSearch(query) {
-                // Usamos el proxy backend que añade los headers correctos
-                var proxyUrl = '/api/parcels/geocode/?q=' + encodeURIComponent(query);
+                // Configuración de URL del Proxy
+                // En producción (Netlify), /api/ se redirige a Railway
+                // En local, usamos localhost:8000
+                var baseUrl = '/api/parcels/geocode/';
                 
-                // Si estamos en desarrollo local, ajustar URL
-                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                    // Detectar puerto backend (usualmente 8000)
-                    proxyUrl = 'http://localhost:8000/api/parcels/geocode/?q=' + encodeURIComponent(query);
+                // Si tenemos BASE_URL definida globalmente, la usamos como base
+                if (typeof BASE_URL !== 'undefined') {
+                    baseUrl = BASE_URL.replace(/\/$/, '') + '/geocode/';
+                } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    baseUrl = 'http://localhost:8000/api/parcels/geocode/';
                 }
+
+                var url = new URL(baseUrl, window.location.origin);
+                url.searchParams.append('q', query);
+
+                console.log('[NOMINATIM_PROXY] Calling:', url.toString());
                 
-                // Obtener token
-                const token = localStorage.getItem('access_token');
+                // Obtener token (si es necesario para endpoints protegidos)
+                const token = localStorage.getItem('access_token') || localStorage.getItem('accessToken');
                 const headers = { 'Accept': 'application/json' };
                 if (token) {
                     headers['Authorization'] = 'Bearer ' + token;
                 }
 
-                var response = await fetch(proxyUrl, { headers: headers });
-                
-                if (!response.ok) {
-                    // Si falla el proxy (ej. backend caído), fallback a directo con riesgo
-                    console.warn('Backend proxy falló, intentando directo...');
-                    var directUrl = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&countrycodes=co&limit=5';
-                    response = await fetch(directUrl);
-                }
-
-                if (!response.ok) {
-                    if (response.status === 403 || response.status === 429) {
-                        _nominatimBlocked = true;
-                        _nominatimBlockedUntil = Date.now() + 300000; // 5 min
-                        console.warn('[GEOCODER] Nominatim bloqueado temporalmente');
+                try {
+                    var response = await fetch(url.toString(), { headers: headers }); 
+                    
+                    if (!response.ok) {
+                        throw new Error('Proxy Nominatim error: ' + response.status);
                     }
-                    throw new Error('Nominatim: ' + response.status);
+
+                    var data = await response.json();
+                    
+                    // Si la respuesta es un error del backend (ej: {"error": "..."})
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    return data.map(function(item) {
+                        return {
+                            name: item.display_name,
+                            html: item.display_name,
+                            center: L.latLng(parseFloat(item.lat), parseFloat(item.lon)),
+                            bbox: L.latLngBounds(
+                                L.latLng(parseFloat(item.boundingbox[0]), parseFloat(item.boundingbox[2])),
+                                L.latLng(parseFloat(item.boundingbox[1]), parseFloat(item.boundingbox[3]))
+                            ),
+                            properties: Object.assign({}, item, { source: 'nominatim' })
+                        };
+                    });
+                } catch (e) {
+                    console.warn('[NOMINATIM_PROXY] Falló:', e);
+                    return [];
                 }
-                var data = await response.json();
-                return data.map(function(item) {
-                    return {
-                        name: item.display_name,
-                        html: item.display_name,
-                        center: L.latLng(parseFloat(item.lat), parseFloat(item.lon)),
-                        bbox: L.latLngBounds(
-                            L.latLng(parseFloat(item.boundingbox[0]), parseFloat(item.boundingbox[2])),
-                            L.latLng(parseFloat(item.boundingbox[1]), parseFloat(item.boundingbox[3]))
-                        ),
-                        properties: Object.assign({}, item, { source: 'nominatim' })
-                    };
-                });
             }
 
             // Geocoder async con fallback múltiple (compatible con leaflet-control-geocoder v2+)
