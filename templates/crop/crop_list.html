@@ -14,7 +14,7 @@
     <!-- Font Awesome — respaldo (el sistema lo carga también desde vendorjs.html) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
     <style>
-        #main-content { margin-top: 110px !important; }
+        #main-content { margin-top: 110px !important; min-height: calc(100vh - 110px); }
         .btn-add-inline {
             width: 36px; height: 36px; min-width: 36px;
             border-radius: 50%;
@@ -47,6 +47,8 @@
         .modal-content.neomorphic-modal {
             background: #e8edf2; border: none; border-radius: 20px;
             box-shadow: 12px 12px 35px rgba(0,0,0,.22), -6px -6px 20px rgba(255,255,255,.07);
+            display: flex; flex-direction: column;
+            max-height: 90dvh; overflow: hidden;
         }
         .modal-content.neomorphic-modal .modal-header {
             background: linear-gradient(135deg, #2E8B57 0%, #34A853 100%);
@@ -54,7 +56,7 @@
         }
         .modal-content.neomorphic-modal .modal-header .modal-title { color: #fff; font-weight: 700; }
         .modal-content.neomorphic-modal .modal-header .btn-close { filter: invert(1) brightness(2); }
-        .modal-content.neomorphic-modal .modal-body { padding: 1.5rem; }
+        .modal-content.neomorphic-modal .modal-body { padding: 1.5rem; flex: 1 1 auto; overflow-y: auto; }
         .modal-content.neomorphic-modal .form-label {
             font-weight: 600; font-size: .84rem; color: #374151; margin-bottom: 4px;
         }

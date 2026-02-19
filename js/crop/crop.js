@@ -31,17 +31,25 @@ async function apiFetch(url, options = {}) {
     if (res.status === 401) {
         const refresh = localStorage.getItem('refreshToken');
         if (refresh) {
-            const rr = await fetch(`${BACKEND}/api/token/refresh/`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refresh })
-            });
-            if (rr.ok) {
-                const data = await rr.json();
-                localStorage.setItem('accessToken', data.access);
-                config.headers['Authorization'] = `Bearer ${data.access}`;
-                res = await fetch(url, config);
-            } else { handleAuthFailure(); throw new Error('session_expired'); }
+            // Semáforo: si hay 4 llamadas simultáneas con 401, solo UNA hace el
+            // refresh real; las demás esperan la misma promesa.
+            if (!_refreshLock) {
+                _refreshLock = fetch(`${BACKEND}/api/token/refresh/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh })
+                }).then(rr => {
+                    if (rr.ok) return rr.json().then(d => {
+                        localStorage.setItem('accessToken', d.access);
+                        return d.access;
+                    });
+                    handleAuthFailure();
+                    throw new Error('session_expired');
+                }).finally(() => { _refreshLock = null; });
+            }
+            const newToken = await _refreshLock;
+            config.headers['Authorization'] = `Bearer ${newToken}`;
+            res = await fetch(url, config);
         } else { handleAuthFailure(); throw new Error('session_expired'); }
     }
     return res;
@@ -62,6 +70,7 @@ function getAddEmployeeModal() { return _addEmployeeModal = _addEmployeeModal ||
 function getAddSupplierModal() { return _addSupplierModal = _addSupplierModal || new bootstrap.Modal(document.getElementById('modalAddSupplier')); }
 
 let editingCropId = null;
+let _refreshLock  = null;   // semáforo: evita múltiples refresh simultáneos (race condition)
 
 async function loadCropTable() {
     try {
