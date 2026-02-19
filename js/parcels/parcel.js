@@ -411,12 +411,14 @@ function initializeLeaflet() {
 
             // Búsqueda en Photon API (Komoot) - sin rate-limit estricto, soporta CORS
             async function _photonSearch(query) {
-                var params = new URLSearchParams({
-                    q: query + ' Colombia',
-                    limit: '5',
-                    lang: 'es'
-                });
-                var response = await fetch('https://photon.komoot.io/api/?' + params.toString());
+                // Fix: Limpiar query y crear URL correctamente
+                var cleanQuery = query.replace(/[^\w\sñÑáéíóúÁÉÍÓÚüÜ]/g, ' ').trim();
+                var url = new URL('https://photon.komoot.io/api/');
+                url.searchParams.append('q', cleanQuery + ' Colombia');
+                url.searchParams.append('limit', '5');
+                url.searchParams.append('lang', 'es');
+                
+                var response = await fetch(url.toString());
                 if (!response.ok) throw new Error('Photon: ' + response.status);
                 var data = await response.json();
                 return (data.features || []).map(function(f) {
@@ -436,20 +438,33 @@ function initializeLeaflet() {
                 });
             }
 
-            // Búsqueda en Nominatim (directo desde navegador, CORS habilitado)
+            // Búsqueda en Nominatim (Vía Proxy Backend para evitar CORS/Bloqueos)
             async function _nominatimSearch(query) {
-                var params = new URLSearchParams({
-                    q: query,
-                    format: 'json',
-                    addressdetails: '1',
-                    limit: '5',
-                    countrycodes: 'co',
-                    'accept-language': 'es',
-                    email: 'contact@agrotechcolombia.com'
-                });
-                var response = await fetch('https://nominatim.openstreetmap.org/search?' + params.toString(), {
-                    headers: { 'Accept': 'application/json' }
-                });
+                // Usamos el proxy backend que añade los headers correctos
+                var proxyUrl = '/api/parcels/geocode/?q=' + encodeURIComponent(query);
+                
+                // Si estamos en desarrollo local, ajustar URL
+                if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+                    // Detectar puerto backend (usualmente 8000)
+                    proxyUrl = 'http://localhost:8000/api/parcels/geocode/?q=' + encodeURIComponent(query);
+                }
+                
+                // Obtener token
+                const token = localStorage.getItem('access_token');
+                const headers = { 'Accept': 'application/json' };
+                if (token) {
+                    headers['Authorization'] = 'Bearer ' + token;
+                }
+
+                var response = await fetch(proxyUrl, { headers: headers });
+                
+                if (!response.ok) {
+                    // Si falla el proxy (ej. backend caído), fallback a directo con riesgo
+                    console.warn('Backend proxy falló, intentando directo...');
+                    var directUrl = 'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&countrycodes=co&limit=5';
+                    response = await fetch(directUrl);
+                }
+
                 if (!response.ok) {
                     if (response.status === 403 || response.status === 429) {
                         _nominatimBlocked = true;
