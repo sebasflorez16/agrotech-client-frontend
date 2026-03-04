@@ -24,6 +24,18 @@
   to = "/templates/billing.html"
   status = 200
 
+# 2b. Staff operator dashboard (API proxy primero, luego HTML)
+[[redirects]]
+  from = "/staff/api/*"
+  to = "https://agrotech-digital-production.up.railway.app/staff/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/staff"
+  to = "/templates/staff-dashboard.html"
+  status = 200
+
 # 3. Login
 [[redirects]]
   from = "/login"
