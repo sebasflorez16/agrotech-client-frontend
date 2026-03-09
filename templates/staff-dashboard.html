@@ -390,13 +390,13 @@
                         <h2>Ingresos últimos 6 meses</h2>
                         <span class="card-badge" id="revenue-total-badge">—</span>
                     </div>
-                    <canvas id="revenueChart" height="220"></canvas>
+                    <div style="position:relative;height:220px;width:100%"><canvas id="revenueChart"></canvas></div>
                 </div>
                 <div class="glass-card">
                     <div class="card-header">
                         <h2>Por plan</h2>
                     </div>
-                    <canvas id="planChart" height="220"></canvas>
+                    <div style="position:relative;height:220px;width:100%"><canvas id="planChart"></canvas></div>
                 </div>
             </div>
 
@@ -461,11 +461,11 @@
                     <h2>Ingresos mensuales</h2>
                     <span class="card-badge" id="revenue-total-badge2">—</span>
                 </div>
-                <canvas id="revenueChartFull" height="300"></canvas>
+                <div style="position:relative;height:300px;width:100%"><canvas id="revenueChartFull"></canvas></div>
             </div>
             <div class="glass-card">
                 <div class="card-header"><h2>Distribución por plan</h2></div>
-                <canvas id="planChartFull" height="260"></canvas>
+                <div style="position:relative;height:260px;width:100%"><canvas id="planChartFull"></canvas></div>
             </div>
         </section>
 
@@ -531,7 +531,8 @@ async function doLogin(e) {
         if (!res.ok) throw new Error(data.detail || 'Error de autenticación');
         _token = data.access;
         localStorage.setItem('staff_jwt', _token);
-        // Verificar que sea staff
+        // Guardar refresh token para renovación automática
+        if (data.refresh) localStorage.setItem('staff_jwt_refresh', data.refresh);
         await initDashboard(username);
     } catch (err) {
         showError(err.message || 'No se pudo conectar');
@@ -541,6 +542,7 @@ async function doLogin(e) {
 
 function logout() {
     localStorage.removeItem('staff_jwt');
+    localStorage.removeItem('staff_jwt_refresh');
     _token = null;
     document.getElementById('app').style.display = 'none';
     document.getElementById('login-overlay').style.display = 'flex';
@@ -564,20 +566,40 @@ function showSection(name, el) {
 
 // ─── API calls ───
 async function apiFetch(url) {
-    const res = await fetch(`${API}${url}`, {
+    let res = await fetch(`${API}${url}`, {
         headers: { 'Authorization': `Bearer ${_token}` },
     });
-    if (res.status === 401) { logout(); throw new Error('Sesión expirada'); }
+    if (res.status === 401) {
+        // Intentar renovar token automáticamente
+        const refreshToken = localStorage.getItem('staff_jwt_refresh');
+        if (refreshToken) {
+            try {
+                const rfRes = await fetch(`${API}/api/token/refresh/`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ refresh: refreshToken }),
+                });
+                if (rfRes.ok) {
+                    const rfData = await rfRes.json();
+                    _token = rfData.access;
+                    localStorage.setItem('staff_jwt', _token);
+                    // Reintentar con el nuevo token
+                    res = await fetch(`${API}${url}`, {
+                        headers: { 'Authorization': `Bearer ${_token}` },
+                    });
+                    if (res.ok) return res.json();
+                }
+            } catch (_) { /* ignorar errores de refresh */ }
+        }
+        logout();
+        throw new Error('Sesión expirada');
+    }
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.json();
 }
 
 // ─── Init ───
 async function initDashboard(username) {
-    document.getElementById('login-overlay').style.display = 'none';
-    document.getElementById('app').style.display = 'flex';
-    document.getElementById('sidebar-username').textContent = username || 'Operador';
-    document.getElementById('avatar-initials').textContent = (username || 'ST').substring(0,2).toUpperCase();
     setLoading(true);
     try {
         const [metrics, tenants] = await Promise.all([
@@ -586,13 +608,23 @@ async function initDashboard(username) {
         ]);
         _metricsData = metrics;
         _tenantsData = tenants;
+        // Mostrar dashboard SOLO después de confirmar sesión válida
+        document.getElementById('login-overlay').style.display = 'none';
+        document.getElementById('app').style.display = 'flex';
+        document.getElementById('sidebar-username').textContent = username || 'Operador';
+        document.getElementById('avatar-initials').textContent = (username || 'ST').substring(0,2).toUpperCase();
         renderKPIs(metrics);
         renderRevenueChart(metrics, 'revenueChart');
         renderPlanChart(metrics, 'planChart');
         renderEventsFeed(metrics);
         renderInvoicesFeed(metrics);
     } catch (err) {
-        console.error(err);
+        // Solo mostrar en consola si no es expiración de sesión normal
+        if (err.message !== 'Sesión expirada') console.error(err);
+        // Asegurar que el login overlay esté visible
+        document.getElementById('login-overlay').style.display = 'flex';
+        document.getElementById('app').style.display = 'none';
+        throw err;
     } finally {
         setLoading(false);
     }
