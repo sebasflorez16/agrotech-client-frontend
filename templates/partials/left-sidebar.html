@@ -151,10 +151,6 @@
         <li><a href="/templates/crop/crop_list.html" data-page="crop"><i class="ti ti-plant"></i> Cultivos</a></li>
         <li><a href="/templates/labores/labores-dashboard.html" data-page="labores"><i class="ti ti-list-check"></i> Labores</a></li>
         
-        <li class="nav-section">Gestión</li>
-        <li><a href="/templates/inventory/inventario-dashboard.html" data-page="inventory"><i class="ti ti-packages"></i> Inventario</a></li>
-        <li><a href="/templates/employees/RRHH-dashboard.html" data-page="employees"><i class="ti ti-users"></i> Empleados</a></li>
-        
         <li class="nav-section">Cuenta</li>
         <li><a href="/templates/billing/pricing.html" data-page="billing"><i class="ti ti-credit-card"></i> Facturación</a></li>
         <li><a href="/templates/pages/profile.html" data-page="profile"><i class="ti ti-user-circle"></i> Mi Perfil</a></li>
@@ -182,8 +178,6 @@ document.addEventListener('DOMContentLoaded', function() {
             (page === 'parcels' && currentPath.includes('parcels')) ||
             (page === 'crop' && currentPath.includes('crop')) ||
             (page === 'labores' && currentPath.includes('labores')) ||
-            (page === 'inventory' && currentPath.includes('inventari')) ||
-            (page === 'employees' && (currentPath.includes('rrhh') || currentPath.includes('employees'))) ||
             (page === 'billing' && currentPath.includes('billing')) ||
             (page === 'profile' && currentPath.includes('profile')) ||
             (page === 'dashboard' && (currentPath.includes('dashboard.html') || currentPath === '/' || currentPath === '/templates/'))
