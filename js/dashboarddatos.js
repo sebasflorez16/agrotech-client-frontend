@@ -7,16 +7,37 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function fetchUserCount() {
-    let token = localStorage.getItem("accessToken");
-
     const API_BASE = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
+
+    // Usar agAuth si está disponible (incluye refresh automático)
+    if (window.agAuth) {
+        window.agAuth.fetchWithAuth(`${API_BASE}/api/authentication/dashboard/`)
+        .then(response => {
+            if (!response) return; // null = redirigido a login
+            return response.json();
+        })
+        .then(data => {
+            if (!data) return;
+            console.log("Número de usuarios registrados:", data.user_count);
+            const userCountElement = document.getElementById("userCount");
+            if (userCountElement) {
+                userCountElement.textContent = `Usuarios registrados: ${data.user_count}`;
+            }
+        })
+        .catch(error => {
+            console.error("Error al obtener el número de usuarios:", error);
+        });
+        return;
+    }
+
+    // Fallback: sin agAuth
+    let token = localStorage.getItem("accessToken");
     fetch(`${API_BASE}/api/authentication/dashboard/`, {
         method: "GET",
         headers: { "Authorization": `Bearer ${token}` }
     })
     .then(response => {
         if (response.status === 401) {
-            // Token inválido o expirado: redirige al login y limpia tokens
             localStorage.removeItem("accessToken");
             localStorage.removeItem("refreshToken");
             window.location.href = "/templates/authentication/login.html";

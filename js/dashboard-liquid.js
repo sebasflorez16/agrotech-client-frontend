@@ -6,8 +6,9 @@
 // Configuración API - Siempre usa URLs relativas (Netlify proxy redirige al backend)
 const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
 
-// Obtener token de autenticación
+// ═══ Usar auth-global.js si está disponible, sino fallback local ═══
 function getAuthToken() {
+    if (window.agAuth) return window.agAuth.getToken();
     const token = localStorage.getItem('accessToken');
     if (!token || token === 'null' || token === 'undefined') {
         window.location.href = '../templates/authentication/login.html';
@@ -16,45 +17,27 @@ function getAuthToken() {
     return token;
 }
 
-// Headers para requests (incluye tenant domain para resolución correcta)
-function getHeaders() {
-    const token = getAuthToken();
-    if (!token) return null;
-    
-    const headers = {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-    };
-    
-    // Incluir dominio del tenant para resolución en el backend
-    const tenantDomain = localStorage.getItem('tenantDomain');
-    if (tenantDomain) {
-        headers['X-Tenant-Domain'] = tenantDomain;
-    }
-    
-    return headers;
+function forceLogout() {
+    if (window.agAuth) { window.agAuth.forceLogout(); return; }
+    localStorage.clear();
+    window.location.href = '../templates/authentication/login.html';
 }
 
-// Función para hacer fetch con autenticación
 async function fetchWithAuth(url, options = {}) {
-    const headers = getHeaders();
-    if (!headers) return null;
-    
+    if (window.agAuth) return window.agAuth.fetchWithAuth(url, options);
+    // Fallback básico si auth-global.js no se cargó
+    const token = getAuthToken();
+    if (!token) return null;
+    const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+    };
+    const tenantDomain = localStorage.getItem('tenantDomain');
+    if (tenantDomain) headers['X-Tenant-Domain'] = tenantDomain;
     try {
-        const response = await fetch(url, {
-            ...options,
-            headers: {
-                ...headers,
-                ...options.headers
-            }
-        });
-        
-        if (response.status === 401) {
-            localStorage.removeItem('accessToken');
-            window.location.href = '../templates/authentication/login.html';
-            return null;
-        }
-        
+        const response = await fetch(url, { ...options, headers });
+        if (response.status === 401) { forceLogout(); return null; }
         return response;
     } catch (error) {
         console.error('Error en fetch:', error);
@@ -385,15 +368,7 @@ function animateNumber(element, target) {
 // Logout
 function logout() {
     if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('userName');
-        localStorage.removeItem('userEmail');
-        localStorage.removeItem('tenantDomain');
-        localStorage.removeItem('tenantName');
-        localStorage.removeItem('tenantSchema');
-        localStorage.removeItem('userTenants');
-        window.location.href = '../templates/authentication/login.html';
+        forceLogout();
     }
 }
 
@@ -401,9 +376,13 @@ function logout() {
 document.addEventListener('DOMContentLoaded', async () => {
     console.log('🍎 Dashboard Liquid Glass - Iniciando...');
     
-    // Verificar autenticación
-    if (!getAuthToken()) {
-        return;
+    // Verificar autenticación (con refresh automático si expira)
+    if (window.agAuth) {
+        const ok = await window.agAuth.requireAuth();
+        if (!ok) return;
+    } else {
+        // Fallback: verificación simple sin refresh
+        if (!getAuthToken()) return;
     }
     
     // Cargar datos en paralelo para máxima velocidad

@@ -4,28 +4,43 @@ const PARCEL_LIMIT = 50;
 
 async function fetchParcelSummary() {
     try {
-        const token = localStorage.getItem("accessToken");
+        // Usar auth-global.js si está disponible
+        if (window.agAuth) {
+            const ok = await window.agAuth.requireAuth();
+            if (!ok) return;
+        }
+
+        const token = window.agAuth ? window.agAuth.getToken() : localStorage.getItem("accessToken");
         if (!token) {
             console.error("Token no encontrado. Redirigiendo al login.");
-            window.location.href = "/templates/authentication/login.html";
+            if (window.agAuth) window.agAuth.forceLogout();
+            else window.location.href = "/templates/authentication/login.html";
             return;
         }
 
         // Usar sistema multi-tenant ApiUrls
         const _api = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
         const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/summary/' : _api + '/api/parcels/parcel/summary/';
-        const resp = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-            }
-        });
+        
+        let resp;
+        if (window.agAuth) {
+            resp = await window.agAuth.fetchWithAuth(url);
+            if (!resp) return; // null = redirigido a login
+        } else {
+            resp = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+        }
 
         console.log("Respuesta del servidor:", resp);
 
         if (resp.status === 401) {
             console.error("Token inválido o expirado. Redirigiendo al login.");
-            window.location.href = "/templates/authentication/login.html";
+            if (window.agAuth) window.agAuth.forceLogout();
+            else window.location.href = "/templates/authentication/login.html";
             return;
         }
 

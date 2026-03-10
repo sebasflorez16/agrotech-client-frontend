@@ -56,6 +56,7 @@ async function apiFetch(url, options = {}) {
 }
 
 function handleAuthFailure() {
+    if (window.agAuth) { window.agAuth.forceLogout(); return; }
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     window.location.href = '/templates/authentication/login.html';

@@ -6,8 +6,9 @@
 // Configuración API - Siempre usa URLs relativas (Netlify proxy redirige al backend)
 const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
 
-// Obtener token de autenticación
+// ═══ Usar auth-global.js si está disponible ═══
 function getAuthToken() {
+    if (window.agAuth) return window.agAuth.getToken();
     const token = localStorage.getItem('accessToken');
     if (!token || token === 'null' || token === 'undefined') {
         window.location.href = '../authentication/login.html';
@@ -27,6 +28,8 @@ function getHeaders() {
 
 // Función para hacer fetch con autenticación
 async function fetchWithAuth(url, options = {}) {
+    if (window.agAuth) return window.agAuth.fetchWithAuth(url, options);
+    
     const headers = getHeaders();
     if (!headers) return null;
     
@@ -40,8 +43,11 @@ async function fetchWithAuth(url, options = {}) {
         });
         
         if (response.status === 401) {
-            localStorage.removeItem('accessToken');
-            window.location.href = '../authentication/login.html';
+            if (window.agAuth) { window.agAuth.forceLogout(); } 
+            else {
+                localStorage.removeItem('accessToken');
+                window.location.href = '../authentication/login.html';
+            }
             return null;
         }
         
