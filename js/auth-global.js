@@ -18,7 +18,11 @@
 (function() {
     'use strict';
 
-    const API_BASE = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
+    const API_BASE = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
+        ? window.AGROTECH_CONFIG.API_BASE
+        : (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'http://localhost:8000'
+            : 'https://agrotech-digital-production.up.railway.app';
     
     // Flag para evitar múltiples redirecciones simultáneas
     let _isRedirecting = false;

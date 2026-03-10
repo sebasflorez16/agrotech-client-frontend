@@ -20,14 +20,12 @@
     const isProduction = !isDevelopment && !isStaging;
     
     // Configuración global
-    // IMPORTANTE: API_BASE es siempre '' (vacío) porque Netlify hace el proxy:
-    //   - Local:      localhost:8080/api/* → proxy → localhost:8000/api/*
-    //   - Producción: netlify.app/api/*    → proxy → railway.app/api/*
-    // Esto evita problemas de CORS y CSP, y simplifica todo.
+    // API_BASE apunta directamente al backend (Railway en prod, localhost en dev).
+    // El proxy de Netlify sigue activo como fallback para rutas relativas /api/*.
     window.AGROTECH_CONFIG = {
-        // URLs Base - Siempre relativas (el proxy de Netlify redirige al backend correcto)
-        API_BASE: '',
-        STATIC_BASE: '',
+        // URLs Base
+        API_BASE: isLocalhost ? 'http://localhost:8000' : 'https://agrotech-digital-production.up.railway.app',
+        STATIC_BASE: isLocalhost ? 'http://localhost:8080' : '',
         
         // Puertos (solo para desarrollo)
         PORTS: {

@@ -3,12 +3,15 @@
  * Gestión de facturación y uso con diseño Apple-inspired
  */
 
-// Configuración API - Siempre usa URLs relativas (Netlify proxy redirige al backend)
-const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
+// Configuración API - usar config.js centralizado
+const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
+    ? window.AGROTECH_CONFIG.API_BASE
+    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:8000'
+        : 'https://agrotech-digital-production.up.railway.app');
 
-// ═══ Usar auth-global.js si está disponible ═══
+// Obtener token de autenticación
 function getAuthToken() {
-    if (window.agAuth) return window.agAuth.getToken();
     const token = localStorage.getItem('accessToken');
     if (!token || token === 'null' || token === 'undefined') {
         window.location.href = '../authentication/login.html';
@@ -28,8 +31,6 @@ function getHeaders() {
 
 // Función para hacer fetch con autenticación
 async function fetchWithAuth(url, options = {}) {
-    if (window.agAuth) return window.agAuth.fetchWithAuth(url, options);
-    
     const headers = getHeaders();
     if (!headers) return null;
     
@@ -43,11 +44,8 @@ async function fetchWithAuth(url, options = {}) {
         });
         
         if (response.status === 401) {
-            if (window.agAuth) { window.agAuth.forceLogout(); } 
-            else {
-                localStorage.removeItem('accessToken');
-                window.location.href = '../authentication/login.html';
-            }
+            localStorage.removeItem('accessToken');
+            window.location.href = '../authentication/login.html';
             return null;
         }
         

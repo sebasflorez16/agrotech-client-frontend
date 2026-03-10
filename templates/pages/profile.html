@@ -451,7 +451,11 @@
     </div>
     
     <script>
-        const API_BASE = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
+        const API_BASE = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
+            ? window.AGROTECH_CONFIG.API_BASE
+            : (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+                ? 'http://localhost:8000'
+                : 'https://agrotech-digital-production.up.railway.app';
         
         function getToken() {
             return localStorage.getItem('accessToken');
@@ -471,7 +475,7 @@
             }
             
             try {
-                const response = await fetch(`${API_BASE}/users/api/profile-utils/`, {
+                const response = await fetch(`${API_BASE}/api/auth/profile/`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -513,7 +517,7 @@
             if (!token) return;
             
             try {
-                const response = await fetch(`${API_BASE}/billing/api/subscription/status/`, {
+                const response = await fetch(`${API_BASE}/billing/api/status/`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -556,8 +560,8 @@
             if (!token) return;
             
             try {
-                const response = await fetch(`${API_BASE}/users/api/profile-utils/`, {
-                    method: 'PUT',
+                const response = await fetch(`${API_BASE}/api/auth/profile/`, {
+                    method: 'PATCH',
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json'
@@ -603,7 +607,7 @@
             if (!token) return;
             
             try {
-                const response = await fetch(`${API_BASE}/users/api/change-password/`, {
+                const response = await fetch(`${API_BASE}/api/auth/password/change/`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`,

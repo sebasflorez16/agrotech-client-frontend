@@ -12,7 +12,9 @@
 
 const _hostname = window.location.hostname;
 const _isLocal  = _hostname === 'localhost' || _hostname === '127.0.0.1';
-const BACKEND   = _isLocal ? `http://${_hostname}:8000` : '';
+const BACKEND   = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
+    ? window.AGROTECH_CONFIG.API_BASE
+    : (_isLocal ? `http://${_hostname}:8000` : 'https://agrotech-digital-production.up.railway.app');
 const API_BASE  = `${BACKEND}/api/crop/`;
 const API_VARIETY   = `${BACKEND}/api/crop/varieties/`;
 const API_PARCELS   = `${BACKEND}/api/parcels/parcel/`;
@@ -31,32 +33,23 @@ async function apiFetch(url, options = {}) {
     if (res.status === 401) {
         const refresh = localStorage.getItem('refreshToken');
         if (refresh) {
-            // Semáforo: si hay 4 llamadas simultáneas con 401, solo UNA hace el
-            // refresh real; las demás esperan la misma promesa.
-            if (!_refreshLock) {
-                _refreshLock = fetch(`${BACKEND}/api/token/refresh/`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ refresh })
-                }).then(rr => {
-                    if (rr.ok) return rr.json().then(d => {
-                        localStorage.setItem('accessToken', d.access);
-                        return d.access;
-                    });
-                    handleAuthFailure();
-                    throw new Error('session_expired');
-                }).finally(() => { _refreshLock = null; });
-            }
-            const newToken = await _refreshLock;
-            config.headers['Authorization'] = `Bearer ${newToken}`;
-            res = await fetch(url, config);
+            const rr = await fetch(`${BACKEND}/api/token/refresh/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ refresh })
+            });
+            if (rr.ok) {
+                const data = await rr.json();
+                localStorage.setItem('accessToken', data.access);
+                config.headers['Authorization'] = `Bearer ${data.access}`;
+                res = await fetch(url, config);
+            } else { handleAuthFailure(); throw new Error('session_expired'); }
         } else { handleAuthFailure(); throw new Error('session_expired'); }
     }
     return res;
 }
 
 function handleAuthFailure() {
-    if (window.agAuth) { window.agAuth.forceLogout(); return; }
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     window.location.href = '/templates/authentication/login.html';
@@ -71,7 +64,6 @@ function getAddEmployeeModal() { return _addEmployeeModal = _addEmployeeModal ||
 function getAddSupplierModal() { return _addSupplierModal = _addSupplierModal || new bootstrap.Modal(document.getElementById('modalAddSupplier')); }
 
 let editingCropId = null;
-let _refreshLock  = null;   // semáforo: evita múltiples refresh simultáneos (race condition)
 
 async function loadCropTable() {
     try {
@@ -89,7 +81,7 @@ async function loadCropTable() {
         document.getElementById('crop-table-card').style.display   = '';
         crops.forEach(c => {
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td>${c.name||'—'}</td><td>${c.crop_type_name||c.crop_type||'—'}</td><td>${c.variety_name||'—'}</td><td>${c.parcel_name||'—'}</td><td>${c.area||'—'}</td><td>${c.sowing_date||'—'}</td><td>${c.harvest_date||'—'}</td><td>${c.manager_name||'—'}</td><td><button class="btn btn-sm btn-info me-1" onclick="showCropDetail(${c.id})"><i class="fa fa-eye"></i></button><button class="btn btn-sm btn-warning me-1" onclick="editCrop(${c.id})"><i class="fa fa-edit"></i></button><button class="btn btn-sm btn-danger" onclick="deleteCrop(${c.id})"><i class="fa fa-trash"></i></button></td>`;
+            tr.innerHTML = `<td>${c.name||'—'}</td><td>${c.crop_type_name||c.crop_type||'—'}</td><td>${c.variety_name||'—'}</td><td>${c.parcel_name||'—'}</td><td>${c.area||'—'}</td><td>${c.sowing_date||'—'}</td><td>${c.harvest_date||'—'}</td><td>${c.manager_name||'—'}</td><td><button class="btn btn-sm btn-info me-1" onclick="showCropDetail(${c.id})"><i class="bi bi-eye"></i></button><button class="btn btn-sm btn-warning me-1" onclick="editCrop(${c.id})"><i class="bi bi-pencil"></i></button><button class="btn btn-sm btn-danger" onclick="deleteCrop(${c.id})"><i class="bi bi-trash"></i></button></td>`;
             tbody.appendChild(tr);
         });
     } catch (e) { if (e.message !== 'session_expired') console.error('Error al cargar cultivos:', e); }
@@ -149,16 +141,16 @@ async function showCropModal() {
     document.getElementById('crop-variety-hint').classList.add('d-none');
     try {
         const [typesRes, parcelsRes, employeesRes, suppliersRes] = await Promise.all([
-            apiFetch(`${API_BASE}types/`).catch(() => null),
-            apiFetch(API_PARCELS).catch(() => null),
+            apiFetch(`${API_BASE}types/`),
+            apiFetch(API_PARCELS),
             apiFetch(API_EMPLOYEES).catch(() => null),
             apiFetch(API_SUPPLIERS).catch(() => null),
         ]);
         const [types, parcels, employees, suppliers] = await Promise.all([
-            typesRes     ? typesRes.json().catch(() => [])     : Promise.resolve([]),
-            parcelsRes   ? parcelsRes.json().catch(() => [])   : Promise.resolve([]),
-            employeesRes ? employeesRes.json().catch(() => []) : Promise.resolve([]),
-            suppliersRes ? suppliersRes.json().catch(() => []) : Promise.resolve([]),
+            typesRes.json(),
+            parcelsRes.json(),
+            employeesRes  ? employeesRes.json().catch(() => []) : Promise.resolve([]),
+            suppliersRes  ? suppliersRes.json().catch(() => []) : Promise.resolve([]),
         ]);
         populateSelect('crop-type',         extractList(types),     'id', 'name',      'crop-type-hint',     '⚠ Sin tipos. Usa + para agregar.');
         populateSelect('crop-variety',       [],                     'id', 'name',      'crop-variety-hint',  'Selecciona primero el tipo para ver variedades.', null, false);

@@ -3,8 +3,12 @@
  * Flujo de registro en 2 pasos con validación en tiempo real
  */
 
-// Configuración API - Siempre usa URLs relativas (Netlify proxy redirige al backend)
-const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
+// Configuración API
+const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
+    ? window.AGROTECH_CONFIG.API_BASE
+    : (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+        ? 'http://localhost:8000'
+        : 'https://agrotech-digital-production.up.railway.app';
 
 // DOM Elements
 const registerForm = document.getElementById('registerForm');

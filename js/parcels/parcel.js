@@ -232,7 +232,11 @@ window.clearEOSDACache = function() {
 // BASE_URL: Detectar correctamente el backend en desarrollo local
 // En localhost, el frontend puede estar en puerto diferente (8080, 3000) que el backend (8000)
 function getBaseUrl() {
-    // Si ApiUrls está disponible, usarlo
+    // Usar config.js centralizado como fuente principal
+    if (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) {
+        return window.AGROTECH_CONFIG.API_BASE + '/api/parcels';
+    }
+    // Fallback: Si ApiUrls está disponible, usarlo
     if (window.ApiUrls) {
         return window.ApiUrls.parcels();
     }
@@ -241,12 +245,11 @@ function getBaseUrl() {
     const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     
     if (isLocalhost) {
-        // En desarrollo local, el backend Django está en puerto 8000
         return 'http://localhost:8000/api/parcels';
     }
     
-    // En producción (Netlify), usar rutas relativas que el proxy redirige
-    return '/api/parcels';
+    // En producción, usar URL de Railway
+    return 'https://agrotech-digital-production.up.railway.app/api/parcels';
 }
 
 const BASE_URL = getBaseUrl();
@@ -290,6 +293,31 @@ function initializeLeaflet() {
             }
         });
         window.axiosInstance = axiosInstance;
+
+        // Interceptor de respuesta: maneja token expirado (401) automáticamente
+        axiosInstance.interceptors.response.use(
+            response => response,
+            async error => {
+                const status = error.response?.status;
+                if (status === 401) {
+                    console.warn('[AUTH] Token expirado (401), intentando refresh...');
+                    const refreshed = typeof window.refreshAccessToken === 'function'
+                        ? await window.refreshAccessToken()
+                        : false;
+                    if (refreshed) {
+                        const newToken = localStorage.getItem('accessToken');
+                        axiosInstance.defaults.headers['Authorization'] = `Bearer ${newToken}`;
+                        error.config.headers['Authorization'] = `Bearer ${newToken}`;
+                        return axiosInstance.request(error.config);
+                    } else {
+                        if (typeof window.handleAuthFailure === 'function') {
+                            window.handleAuthFailure();
+                        }
+                    }
+                }
+                return Promise.reject(error);
+            }
+        );
 
         // Inicializar el mapa Leaflet centrado en Colombia
         map = L.map('mapContainer', {
@@ -335,294 +363,39 @@ function initializeLeaflet() {
         ).addTo(map);
 
         // 🔍 Agregar control de búsqueda de geocodificación (lupa)
-        // Geocoder multi-fallback: Photon API → Nominatim directo → ciudades offline
+        // Usando el proxy backend para evitar CORS
         if (typeof L.Control.Geocoder !== 'undefined') {
-            const _geoCache = {};
-            let _lastGeoReq = 0;
-            const _GEO_INTERVAL = 2000; // 2s entre peticiones
-            let _nominatimBlocked = false;
-            let _nominatimBlockedUntil = 0;
-
-            // Ciudades principales de Colombia (fallback offline)
-            const _colombiaCities = {
-                'bogota': { lat: 4.7110, lon: -74.0721, name: 'Bogotá, Colombia' },
-                'bogotá': { lat: 4.7110, lon: -74.0721, name: 'Bogotá, Colombia' },
-                'medellin': { lat: 6.2476, lon: -75.5658, name: 'Medellín, Antioquia, Colombia' },
-                'medellín': { lat: 6.2476, lon: -75.5658, name: 'Medellín, Antioquia, Colombia' },
-                'cali': { lat: 3.4516, lon: -76.5320, name: 'Cali, Valle del Cauca, Colombia' },
-                'barranquilla': { lat: 10.9685, lon: -74.7813, name: 'Barranquilla, Atlántico, Colombia' },
-                'cartagena': { lat: 10.3910, lon: -75.5144, name: 'Cartagena, Bolívar, Colombia' },
-                'bucaramanga': { lat: 7.1254, lon: -73.1198, name: 'Bucaramanga, Santander, Colombia' },
-                'pereira': { lat: 4.8133, lon: -75.6961, name: 'Pereira, Risaralda, Colombia' },
-                'manizales': { lat: 5.0689, lon: -75.5174, name: 'Manizales, Caldas, Colombia' },
-                'santa marta': { lat: 11.2404, lon: -74.1990, name: 'Santa Marta, Magdalena, Colombia' },
-                'ibague': { lat: 4.4389, lon: -75.2322, name: 'Ibagué, Tolima, Colombia' },
-                'ibagué': { lat: 4.4389, lon: -75.2322, name: 'Ibagué, Tolima, Colombia' },
-                'pasto': { lat: 1.2136, lon: -77.2811, name: 'Pasto, Nariño, Colombia' },
-                'neiva': { lat: 2.9273, lon: -75.2819, name: 'Neiva, Huila, Colombia' },
-                'villavicencio': { lat: 4.1420, lon: -73.6266, name: 'Villavicencio, Meta, Colombia' },
-                'monteria': { lat: 8.7479, lon: -75.8814, name: 'Montería, Córdoba, Colombia' },
-                'montería': { lat: 8.7479, lon: -75.8814, name: 'Montería, Córdoba, Colombia' },
-                'armenia': { lat: 4.5339, lon: -75.6811, name: 'Armenia, Quindío, Colombia' },
-                'popayan': { lat: 2.4419, lon: -76.6063, name: 'Popayán, Cauca, Colombia' },
-                'popayán': { lat: 2.4419, lon: -76.6063, name: 'Popayán, Cauca, Colombia' },
-                'sincelejo': { lat: 9.3047, lon: -75.3978, name: 'Sincelejo, Sucre, Colombia' },
-                'tunja': { lat: 5.5353, lon: -73.3678, name: 'Tunja, Boyacá, Colombia' },
-                'valledupar': { lat: 10.4769, lon: -73.2505, name: 'Valledupar, Cesar, Colombia' },
-                'cucuta': { lat: 7.8891, lon: -72.4967, name: 'Cúcuta, Norte de Santander, Colombia' },
-                'cúcuta': { lat: 7.8891, lon: -72.4967, name: 'Cúcuta, Norte de Santander, Colombia' },
-                'rionegro': { lat: 6.1556, lon: -75.3742, name: 'Rionegro, Antioquia, Colombia' },
-                'florencia': { lat: 1.6144, lon: -75.6062, name: 'Florencia, Caquetá, Colombia' },
-                'quibdo': { lat: 5.6919, lon: -76.6584, name: 'Quibdó, Chocó, Colombia' },
-                'quibdó': { lat: 5.6919, lon: -76.6584, name: 'Quibdó, Chocó, Colombia' },
-                'yopal': { lat: 5.3378, lon: -72.3959, name: 'Yopal, Casanare, Colombia' },
-                'sogamoso': { lat: 5.7143, lon: -72.9339, name: 'Sogamoso, Boyacá, Colombia' },
-                'duitama': { lat: 5.8267, lon: -73.0333, name: 'Duitama, Boyacá, Colombia' },
-                'palmira': { lat: 3.5394, lon: -76.3036, name: 'Palmira, Valle del Cauca, Colombia' },
-                'buga': { lat: 3.9008, lon: -76.3030, name: 'Buga, Valle del Cauca, Colombia' },
-                'tulua': { lat: 4.0847, lon: -76.1998, name: 'Tuluá, Valle del Cauca, Colombia' },
-                'tuluá': { lat: 4.0847, lon: -76.1998, name: 'Tuluá, Valle del Cauca, Colombia' },
-                'cartago': { lat: 4.7464, lon: -75.9113, name: 'Cartago, Valle del Cauca, Colombia' },
-                'apartado': { lat: 7.8822, lon: -76.6264, name: 'Apartadó, Antioquia, Colombia' },
-                'apartadó': { lat: 7.8822, lon: -76.6264, name: 'Apartadó, Antioquia, Colombia' },
-            };
-
-            // Búsqueda offline por ciudades conocidas
-            function _offlineSearch(query) {
-                var q = query.toLowerCase().trim();
-                var results = [];
-                for (var key in _colombiaCities) {
-                    if (key.indexOf(q) !== -1 || q.indexOf(key) !== -1) {
-                        var city = _colombiaCities[key];
-                        results.push({
-                            name: city.name,
-                            html: city.name,
-                            center: L.latLng(city.lat, city.lon),
-                            bbox: L.latLngBounds(
-                                L.latLng(city.lat - 0.05, city.lon - 0.05),
-                                L.latLng(city.lat + 0.05, city.lon + 0.05)
-                            ),
-                            properties: { source: 'offline' }
-                        });
-                    }
-                }
-                return results;
-            }
-
-            // Búsqueda en Photon API (Komoot) - sin rate-limit estricto, soporta CORS
-            async function _photonSearch(query) {
-                // Fix: Limpiar query para eliminar caracteres especiales
-                var cleanQuery = query.replace(/[^\w\sñÑáéíóúÁÉÍÓÚüÜ]/g, ' ').trim();
-                
-                // Validación: Evitar llamadas cortas que suelen dar error 400 en Photon
-                if (cleanQuery.length < 3) {
-                    return []; 
-                }
-
-                var url = new URL('https://photon.komoot.io/api/');
-                url.searchParams.append('q', cleanQuery + ' Colombia');
-                url.searchParams.append('limit', '5');
-                url.searchParams.append('lang', 'es');
-                
-                var response = await fetch(url.toString());
-                if (!response.ok) throw new Error('Photon: ' + response.status);
-                var data = await response.json();
-                return (data.features || []).map(function(f) {
-                    var coords = f.geometry.coordinates;
-                    var props = f.properties || {};
-                    var parts = [props.name, props.city, props.state, props.country].filter(Boolean);
-                    return {
-                        name: parts.join(', ') || (coords[1] + ', ' + coords[0]),
-                        html: parts.join(', ') || (coords[1] + ', ' + coords[0]),
-                        center: L.latLng(coords[1], coords[0]),
-                        bbox: L.latLngBounds(
-                            L.latLng(coords[1] - 0.05, coords[0] - 0.05),
-                            L.latLng(coords[1] + 0.05, coords[0] + 0.05)
-                        ),
-                        properties: Object.assign({}, props, { source: 'photon' })
-                    };
-                });
-            }
-
-            // Búsqueda en Nominatim (Vía Proxy Backend para evitar CORS/Bloqueos)
-            async function _nominatimSearch(query) {
-                // Configuración de URL del Proxy
-                // En producción (Netlify), /api/ se redirige a Railway
-                // En local, usamos localhost:8000
-                var baseUrl = '/api/parcels/geocode/';
-                
-                // Si tenemos BASE_URL definida globalmente, la usamos como base
-                if (typeof BASE_URL !== 'undefined') {
-                    baseUrl = BASE_URL.replace(/\/$/, '') + '/geocode/';
-                } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-                    baseUrl = 'http://localhost:8000/api/parcels/geocode/';
-                }
-
-                var url = new URL(baseUrl, window.location.origin);
-                url.searchParams.append('q', query);
-
-                console.log('[NOMINATIM_PROXY] Calling:', url.toString());
-                
-                // Obtener token (si es necesario para endpoints protegidos)
-                const token = localStorage.getItem('access_token') || localStorage.getItem('accessToken');
-                const headers = { 'Accept': 'application/json' };
-                if (token) {
-                    headers['Authorization'] = 'Bearer ' + token;
-                }
-
-                try {
-                    var response = await fetch(url.toString(), { headers: headers }); 
-                    
-                    if (!response.ok) {
-                        throw new Error('Proxy Nominatim error: ' + response.status);
-                    }
-
-                    var data = await response.json();
-                    
-                    // Si la respuesta es un error del backend (ej: {"error": "..."})
-                    if (data.error) {
-                        throw new Error(data.error);
-                    }
-
-                    return data.map(function(item) {
-                        return {
-                            name: item.display_name,
-                            html: item.display_name,
-                            center: L.latLng(parseFloat(item.lat), parseFloat(item.lon)),
-                            bbox: L.latLngBounds(
-                                L.latLng(parseFloat(item.boundingbox[0]), parseFloat(item.boundingbox[2])),
-                                L.latLng(parseFloat(item.boundingbox[1]), parseFloat(item.boundingbox[3]))
-                            ),
-                            properties: Object.assign({}, item, { source: 'nominatim' })
-                        };
-                    });
-                } catch (e) {
-                    console.warn('[NOMINATIM_PROXY] Falló:', e);
-                    return [];
-                }
-            }
-
-            // Geocoder async con fallback múltiple (compatible con leaflet-control-geocoder v2+)
-            var customGeocoder = {
-                geocode: async function(query) {
-                    console.log('[GEOCODER] Buscando:', query);
-                    var cacheKey = query.toLowerCase().trim();
-
-                    // 1. Cache
-                    if (_geoCache[cacheKey]) {
-                        console.log('[GEOCODER] Cache hit:', query);
-                        return _geoCache[cacheKey];
-                    }
-
-                    // Rate limiting
-                    var now = Date.now();
-                    var wait = Math.max(0, _GEO_INTERVAL - (now - _lastGeoReq));
-                    if (wait > 0) {
-                        await new Promise(function(resolve) { setTimeout(resolve, wait); });
-                    }
-                    _lastGeoReq = Date.now();
-
-                    var results = [];
-
-                    // Desbloquear Nominatim si pasó el tiempo
-                    if (_nominatimBlocked && Date.now() > _nominatimBlockedUntil) {
-                        _nominatimBlocked = false;
-                    }
-
-                    // 2. Photon primero (más fiable, sin rate-limit)
-                    try {
-                        results = await _photonSearch(query);
-                        if (results.length > 0) {
-                            console.log('[GEOCODER] Photon:', results.length, 'resultados');
-                        }
-                    } catch (e) {
-                        console.warn('[GEOCODER] Photon falló:', e.message);
-                    }
-
-                    // 3. Nominatim como fallback (si Photon falló y no está bloqueado)
-                    if (results.length === 0 && !_nominatimBlocked) {
-                        try {
-                            results = await _nominatimSearch(query);
-                            if (results.length > 0) {
-                                console.log('[GEOCODER] Nominatim:', results.length, 'resultados');
-                            }
-                        } catch (e) {
-                            console.warn('[GEOCODER] Nominatim falló:', e.message);
-                        }
-                    }
-
-                    // 4. Fallback offline
-                    if (results.length === 0) {
-                        results = _offlineSearch(query);
-                        if (results.length > 0) {
-                            console.log('[GEOCODER] Offline:', results.length, 'resultados');
-                        }
-                    }
-
-                    // Cache
-                    if (results.length > 0) {
-                        _geoCache[cacheKey] = results;
-                    }
-
-                    return results;
-                },
-                reverse: async function(location, scale) {
-                    try {
-                        var lat = location.lat;
-                        var lng = location.lng;
-                        var response = await fetch('https://photon.komoot.io/reverse?lat=' + lat + '&lon=' + lng);
-                        var data = await response.json();
-                        var f = (data.features || [])[0];
-                        if (f) {
-                            var coords = f.geometry.coordinates;
-                            var props = f.properties || {};
-                            var parts = [props.name, props.city, props.state, props.country].filter(Boolean);
-                            return [{
-                                name: parts.join(', '),
-                                html: parts.join(', '),
-                                center: L.latLng(coords[1], coords[0]),
-                                bbox: L.latLngBounds(
-                                    L.latLng(coords[1], coords[0]),
-                                    L.latLng(coords[1], coords[0])
-                                ),
-                                properties: props
-                            }];
-                        }
-                        return [];
-                    } catch (error) {
-                        console.error('[GEOCODER] Error reverse:', error);
-                        return [];
-                    }
-                }
-            };
-
             L.Control.geocoder({
                 defaultMarkGeocode: false,
-                placeholder: 'Buscar ciudad o ubicación...',
+                placeholder: 'Buscar ubicación...',
                 errorMessage: 'No se encontró la ubicación',
                 position: 'topright',
-                suggestMinLength: 3,
-                queryMinLength: 3,
-                geocoder: customGeocoder,
-                collapsed: true,
-                showUniqueResult: true
+                geocoder: L.Control.Geocoder.nominatim({
+                    serviceUrl: BASE_URL + '/geocode/', // Usar proxy backend
+                    geocodingQueryParams: {
+                        countrycodes: 'co', // Priorizar resultados en Colombia
+                        limit: 5
+                    }
+                })
             }).on('markgeocode', function(e) {
-                var bbox = e.geocode.bbox;
-                var poly = L.polygon([
+                const bbox = e.geocode.bbox;
+                const poly = L.polygon([
                     bbox.getSouthEast(),
                     bbox.getNorthEast(),
                     bbox.getNorthWest(),
                     bbox.getSouthWest()
                 ]);
                 map.fitBounds(poly.getBounds());
-                var marker = L.marker(e.geocode.center).addTo(map)
-                    .bindPopup('<strong>' + e.geocode.name + '</strong>')
+                // Agregar marcador temporal en la ubicación encontrada
+                const marker = L.marker(e.geocode.center).addTo(map)
+                    .bindPopup(e.geocode.name)
                     .openPopup();
-                setTimeout(function() {
+                // Remover marcador después de 5 segundos
+                setTimeout(() => {
                     map.removeLayer(marker);
-                }, 8000);
+                }, 5000);
             }).addTo(map);
-            console.log('[LEAFLET] Control de búsqueda agregado (Geocoder: Photon → Nominatim → Offline)');
+            console.log('[LEAFLET] Control de búsqueda agregado (proxy backend)');
         } else {
             console.warn('[LEAFLET] Plugin Geocoder no disponible - verifique que el script esté cargado');
         }
@@ -937,8 +710,18 @@ function loadParcels() {
             });
         })
         .catch(error => {
-            console.error("Error al cargar las parcelas:", error);
-            showErrorToast("Error al cargar las parcelas: " + (error.message || error));
+            const status = error.response?.status;
+            if (status === 401) {
+                // Token expirado: el interceptor de axios ya manejó el redirect,
+                // pero por si llega aquí de todas formas lo manejamos explícitamente
+                console.warn('[AUTH] Error 401 en loadParcels, sesión expirada.');
+                if (typeof window.handleAuthFailure === 'function') {
+                    window.handleAuthFailure();
+                }
+            } else {
+                console.error("Error al cargar las parcelas:", error);
+                showErrorToast("Error al cargar las parcelas. Por favor recarga la página.");
+            }
         });
 }
 
@@ -986,11 +769,6 @@ function selectParcel(parcel) {
     // Toast de confirmación
     if (typeof showInfoToast === 'function') {
         showInfoToast(`📍 Parcela "${parcelData.name}" seleccionada`);
-    }
-    
-    // Cargar ciclo de cultivo activo (si el módulo está disponible)
-    if (window.AgrotechCropCycles && typeof window.AgrotechCropCycles.showCropCycleBadge === 'function') {
-        window.AgrotechCropCycles.showCropCycleBadge(parcel.id);
     }
 }
 window.selectParcel = selectParcel;
@@ -1462,8 +1240,13 @@ async function fetchEosdaWmtsUrls(polygonGeoJson) {
     const fechaNDVI = new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysAgo)
         .toISOString().split('T')[0];
     // Usar hostname dinámico para el proxy WMTS
+    const _pxBase = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
+        ? window.AGROTECH_CONFIG.API_BASE
+        : (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
+            ? 'http://localhost:8000'
+            : 'https://agrotech-digital-production.up.railway.app';
     const baseProxy = window.ApiUrls ? window.ApiUrls.eosdaWmts() + '/' : 
-                     `${window.location.protocol}//${window.location.hostname}:8000/api/parcels/eosda-wmts-tile/`;
+                     `${_pxBase}/api/parcels/eosda-wmts-tile/`;
     // const ndviUrl = ...; const ndmiUrl = ...; Eliminado. Usar Render API.
     return { ndvi: ndviUrl, ndmi: ndmiUrl };
 }
@@ -2898,61 +2681,6 @@ window.mostrarImagenNDVIConAnalisis = async function(imageSrc, tipo = 'ndvi', sc
                         console.log(`[IMAGE_ANALYSIS] Interpretación profesional generada para ${tipo.toUpperCase()}`);
                     } catch (interpError) {
                         console.warn('[IMAGE_ANALYSIS] Error al generar interpretación profesional:', interpError);
-                    }
-                    
-                    // CONTEXTUALIZACIÓN CON CICLO DE CULTIVO (si existe)
-                    // No modifica el análisis existente, solo agrega información adicional debajo
-                    try {
-                        if (window.AgrotechCropCycles && typeof window.AgrotechCropCycles.getContextualInterpretation === 'function') {
-                            const parcelId = window.AGROTECH_STATE?.selectedParcelId;
-                            if (parcelId) {
-                                // Calcular valor promedio ponderado del índice a partir de los resultados del análisis
-                                // Usar la categoría dominante para estimar un valor representativo
-                                const indexRanges = {
-                                    ndvi: {
-                                        'Vegetación Muy Densa': 0.85, 'Vegetación Densa': 0.65,
-                                        'Vegetación Moderada': 0.45, 'Vegetación Escasa': 0.25,
-                                        'Estrés Severo': 0.10, 'Suelo Desnudo': 0.02
-                                    },
-                                    ndmi: {
-                                        'Muy Húmedo': 0.50, 'Húmedo': 0.30, 'Moderado': 0.10,
-                                        'Seco': -0.10, 'Muy Seco': -0.30, 'Estrés Hídrico': -0.50
-                                    },
-                                    savi: {
-                                        'Vegetación Muy Densa': 0.75, 'Vegetación Densa': 0.55,
-                                        'Vegetación Moderada': 0.35, 'Vegetación Escasa': 0.18,
-                                        'Suelo con poca vegetación': 0.08, 'Suelo Desnudo': 0.02
-                                    }
-                                };
-                                const ranges = indexRanges[tipo.toLowerCase()] || {};
-                                let weightedSum = 0;
-                                let totalPercent = 0;
-                                for (const r of resultsWithColors) {
-                                    const refValue = ranges[r.name] ?? 0.5;
-                                    weightedSum += refValue * r.percent;
-                                    totalPercent += r.percent;
-                                }
-                                const avgValue = totalPercent > 0 ? parseFloat((weightedSum / totalPercent).toFixed(3)) : 0.5;
-                                
-                                const contextResult = await window.AgrotechCropCycles.getContextualInterpretation(parcelId, tipo.toLowerCase(), avgValue);
-                                if (contextResult && contextResult.status !== 'unknown') {
-                                    let cropContextContainer = legendContainer.querySelector('.crop-context-interpretation');
-                                    if (!cropContextContainer) {
-                                        cropContextContainer = document.createElement('div');
-                                        cropContextContainer.className = 'crop-context-interpretation mt-3';
-                                        legendContainer.appendChild(cropContextContainer);
-                                    }
-                                    // renderContextualBadge es async y genera su propio HTML internamente
-                                    const badgeHtml = await window.AgrotechCropCycles.renderContextualBadge(parcelId, tipo.toLowerCase(), avgValue);
-                                    if (badgeHtml) {
-                                        cropContextContainer.innerHTML = badgeHtml;
-                                    }
-                                    console.log(`[IMAGE_ANALYSIS] Contexto de ciclo de cultivo agregado para ${tipo.toUpperCase()} (valor estimado: ${avgValue})`);
-                                }
-                            }
-                        }
-                    } catch (cropContextError) {
-                        console.warn('[IMAGE_ANALYSIS] Ciclo de cultivo no disponible (esperado si no hay ciclo activo):', cropContextError.message);
                     }
                 }
                 

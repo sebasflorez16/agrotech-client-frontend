@@ -2,45 +2,34 @@
 // Suponiendo un límite de parcelas por plan (puedes cambiar este valor)
 const PARCEL_LIMIT = 50;
 
+// Base URL centralizada (accesible por todas las funciones del módulo)
+const cfgBase = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
+    ? window.AGROTECH_CONFIG.API_BASE
+    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:8000' : 'https://agrotech-digital-production.up.railway.app');
+
 async function fetchParcelSummary() {
     try {
-        // Usar auth-global.js si está disponible
-        if (window.agAuth) {
-            const ok = await window.agAuth.requireAuth();
-            if (!ok) return;
-        }
-
-        const token = window.agAuth ? window.agAuth.getToken() : localStorage.getItem("accessToken");
+        const token = localStorage.getItem("accessToken");
         if (!token) {
             console.error("Token no encontrado. Redirigiendo al login.");
-            if (window.agAuth) window.agAuth.forceLogout();
-            else window.location.href = "/templates/authentication/login.html";
+            window.location.href = "../authentication/login.html";
             return;
         }
 
-        // Usar sistema multi-tenant ApiUrls
-        const _api = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
-        const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/summary/' : _api + '/api/parcels/parcel/summary/';
-        
-        let resp;
-        if (window.agAuth) {
-            resp = await window.agAuth.fetchWithAuth(url);
-            if (!resp) return; // null = redirigido a login
-        } else {
-            resp = await fetch(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-        }
+        const url = `${cfgBase}/api/parcels/parcel/summary/`;
+        const resp = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
 
         console.log("Respuesta del servidor:", resp);
 
         if (resp.status === 401) {
             console.error("Token inválido o expirado. Redirigiendo al login.");
-            if (window.agAuth) window.agAuth.forceLogout();
-            else window.location.href = "/templates/authentication/login.html";
+            window.location.href = "/templates/authentication/login.html";
             return;
         }
 
@@ -126,12 +115,11 @@ async function fetchParcels() {
         const token = localStorage.getItem("accessToken");
         if (!token) {
             console.error("Token no encontrado. Redirigiendo al login.");
-            window.location.href = "/templates/authentication/login.html";
+            window.location.href = "../authentication/login.html";
             return;
         }
 
-        const _api2 = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
-        const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/list/' : _api2 + '/api/parcels/parcel/list/';
+        const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/list/' : `${cfgBase}/api/parcels/parcel/list/`;
         const resp = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -243,8 +231,7 @@ function renderChart(chartElementId, chartTitle, dataValues, dataLabels, color) 
 
 async function updateNDVIChart(polygon) {
     const token = localStorage.getItem("accessToken");
-    const _api3 = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
-    const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/ndvi-historical/' : _api3 + '/api/parcels/parcel/ndvi-historical/';
+    const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/ndvi-historical/' : `${cfgBase}/api/parcels/parcel/ndvi-historical/`;
 
     const ndviData = await fetchChartData(url, polygon, token);
     if (ndviData) {
@@ -256,8 +243,7 @@ async function updateNDVIChart(polygon) {
 
 async function updateWaterStressChart(polygon) {
     const token = localStorage.getItem("accessToken");
-    const _api4 = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
-    const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/water-stress-historical/' : _api4 + '/api/parcels/parcel/water-stress-historical/';
+    const url = window.ApiUrls ? window.ApiUrls.parcels() + '/parcel/water-stress-historical/' : `${cfgBase}/api/parcels/parcel/water-stress-historical/`;
 
     const waterStressData = await fetchChartData(url, polygon, token);
     if (waterStressData) {
@@ -280,8 +266,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function updateTable(parcelId) {
         try {
             const token = localStorage.getItem("accessToken");
-            const _api5 = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
-            const url = window.ApiUrls ? window.ApiUrls.parcels() + `/parcel/${parcelId}/` : `${_api5}/api/parcels/parcel/${parcelId}/`;
+            const url = window.ApiUrls ? window.ApiUrls.parcels() + `/parcel/${parcelId}/` : `${cfgBase}/api/parcels/parcel/${parcelId}/`;
             const resp = await fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`,

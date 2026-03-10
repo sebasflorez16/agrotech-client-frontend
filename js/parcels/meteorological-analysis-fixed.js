@@ -1,5 +1,5 @@
 /**
- * Análisis Meteorológico - Datos Satelitales
+ * Análisis Meteorológico - Datos EOSDA Reales
  * Módulo optimizado para análisis meteorológico con zoom y navegación
  * Incluye avisos de actualización y datos únicamente meteorológicos
  */
@@ -55,7 +55,7 @@ function setupMeteorologicalControls() {
             
             // Mostrar toast de inicio de actualización
             if (typeof showToast === 'function') {
-                showToast('🔄 Actualizando datos meteorológicos...', 'info');
+                showToast('🔄 Actualizando datos meteorológicos EOSDA...', 'info');
             }
             
             // Llamar a la función de carga con indicador de actualización
@@ -85,8 +85,10 @@ function loadMeteorologicalAnalysisWithRefresh(parcelId) {
     
     showMeteorologicalLoading(true);
     
-    // Construir URL - usar siempre window.location.origin para producción
-    const baseUrl = window.location.origin;
+    // Construir URL - usar config.js centralizado
+    const baseUrl = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
+        ? window.AGROTECH_CONFIG.API_BASE
+        : window.location.origin;
     const endpoint = `${baseUrl}/api/parcels/parcel/${parcelId}/ndvi-weather-comparison/?refresh=${Date.now()}`;
     
     console.log(`[METEOROLOGICAL] Haciendo petición de actualización a: ${endpoint}`);
@@ -108,8 +110,8 @@ function loadMeteorologicalAnalysisWithRefresh(parcelId) {
     .then(data => {
         console.log('[METEOROLOGICAL] ✅ Datos actualizados recibidos del backend:', data);
         
-        // Procesar datos satelitales con indicador de actualización
-        processRealSatelliteDataWithRefresh(data);
+        // Procesar datos reales de EOSDA con indicador de actualización
+        processRealEOSDADataWithRefresh(data);
         
     })
     .catch(error => {
@@ -136,8 +138,10 @@ function loadMeteorologicalAnalysis(parcelId) {
     
     showMeteorologicalLoading(true);
     
-    // Construir URL - usar siempre window.location.origin para producción
-    const baseUrl = window.location.origin;
+    // Construir URL - usar config.js centralizado
+    const baseUrl = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
+        ? window.AGROTECH_CONFIG.API_BASE
+        : window.location.origin;
     const endpoint = `${baseUrl}/api/parcels/parcel/${parcelId}/ndvi-weather-comparison/`;
     
     console.log(`[METEOROLOGICAL] Haciendo petición a: ${endpoint}`);
@@ -158,8 +162,8 @@ function loadMeteorologicalAnalysis(parcelId) {
     .then(data => {
         console.log('[METEOROLOGICAL] Datos recibidos del backend:', data);
         
-        // Procesar datos satelitales
-        processRealSatelliteData(data);
+        // Procesar datos reales de EOSDA
+        processRealEOSDAData(data);
         
     })
     .catch(error => {
@@ -169,10 +173,10 @@ function loadMeteorologicalAnalysis(parcelId) {
 }
 
 /**
- * Procesa datos satelitales Weather API con indicador de actualización
+ * Procesa datos reales de EOSDA Weather API con indicador de actualización
  */
-function processRealSatelliteDataWithRefresh(data) {
-    console.log('[METEOROLOGICAL] 🔄 Procesando datos satelitales actualizados...');
+function processRealEOSDADataWithRefresh(data) {
+    console.log('[METEOROLOGICAL] 🔄 Procesando datos actualizados de EOSDA...');
     
     // Extraer datos sincronizados
     const synchronizedData = data.synchronized_data || [];
@@ -207,17 +211,17 @@ function processRealSatelliteDataWithRefresh(data) {
     const lastUpdate = new Date().toLocaleString('es-ES');
     
     if (typeof showToast === 'function') {
-        showToast(`✅ Datos actualizados: ${totalPoints} puntos de datos (${lastUpdate})`, 'success');
+        showToast(`✅ Datos actualizados: ${totalPoints} puntos EOSDA (${lastUpdate})`, 'success');
     }
     
     console.log(`[METEOROLOGICAL] ✅ Análisis actualizado completado con datos reales`);
 }
 
 /**
- * Procesa datos satelitales Weather API (carga inicial)
+ * Procesa datos reales de EOSDA Weather API (carga inicial)
  */
-function processRealSatelliteData(data) {
-    console.log('[METEOROLOGICAL] Procesando datos satelitales...');
+function processRealEOSDAData(data) {
+    console.log('[METEOROLOGICAL] Procesando datos reales de EOSDA...');
     
     // Extraer datos sincronizados
     const synchronizedData = data.synchronized_data || [];
@@ -263,10 +267,10 @@ function processRealSatelliteData(data) {
     const totalPoints = data.metadata?.total_points || meteorologicalData.length;
     
     if (typeof showToast === 'function') {
-        showToast(`Datos meteorológicos cargados: ${totalPoints} puntos desde enero 2025`, 'success');
+        showToast(`Datos meteorológicos EOSDA cargados: ${totalPoints} puntos desde enero 2025`, 'success');
     }
     
-    console.log(`[METEOROLOGICAL] Análisis completado con datos satelitales`);
+    console.log(`[METEOROLOGICAL] Análisis completado con datos reales de EOSDA`);
 }
 
 /**
@@ -433,7 +437,7 @@ function renderMeteorologicalChart(data) {
                 },
                 title: {
                     display: true,
-                    text: 'Análisis Comparativo Multi-Variable - Datos Satelitales',
+                    text: 'Análisis Comparativo Multi-Variable - Datos EOSDA Reales',
                     font: {
                         size: 16,
                         weight: 'bold'
@@ -567,7 +571,7 @@ function showMeteorologicalError(errorMessage) {
                 <div class="d-flex justify-content-between align-items-center">
                     <small class="text-muted">
                         <i class="fas fa-info-circle me-1"></i>
-                        Verifique que la parcela tenga coordenadas válidas y que API satelital esté disponible.
+                        Verifique que la parcela tenga coordenadas válidas y que EOSDA API esté disponible.
                     </small>
                     <button class="btn btn-outline-danger btn-sm" onclick="refreshMeteorologicalAnalysis()">
                         <i class="fas fa-redo me-1"></i>Reintentar
@@ -663,7 +667,7 @@ function updateInsights(insights) {
         li.innerHTML = `
             <div class="alert alert-info py-2 px-3 mb-0">
                 <i class="fas fa-info-circle me-2"></i>
-                <small>Análisis basado en datos satelitales. Use el botón "Actualizar" para obtener los datos más recientes.</small>
+                <small>Análisis basado en datos EOSDA reales. Use el botón "Actualizar" para obtener los datos más recientes.</small>
             </div>
         `;
         insightsList.appendChild(li);
@@ -821,5 +825,5 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 console.log('[METEOROLOGICAL] 🔍 Módulo de análisis meteorológico con zoom cargado correctamente');
-console.log('[METEOROLOGICAL] ✅ Datos satelitales confirmados');
+console.log('[METEOROLOGICAL] ✅ Datos EOSDA reales confirmados');
 console.log('[METEOROLOGICAL] 🔄 Funcionalidad de actualización disponible');

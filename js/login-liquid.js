@@ -3,8 +3,12 @@
  * Autenticación con diseño Apple-inspired
  */
 
-// Configuración API - Siempre usa URLs relativas (Netlify proxy redirige al backend)
-const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
+// Configuración API (usa config.js si está disponible)
+const API_BASE_URL = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
+    ? window.AGROTECH_CONFIG.API_BASE
+    : (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? 'http://localhost:8000'
+        : 'https://agrotech-digital-production.up.railway.app');
 
 // Elementos del DOM
 const loginForm = document.getElementById('loginForm');
@@ -55,11 +59,11 @@ loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     hideError();
     
-    const email = document.getElementById('username').value.trim();
+    const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     
     // Validación básica
-    if (!email || !password) {
+    if (!username || !password) {
         showError('Por favor completa todos los campos');
         return;
     }
@@ -67,15 +71,19 @@ loginForm.addEventListener('submit', async (e) => {
     setLoading(true);
     
     try {
-        // Hacer login - enviar username Y email para compatibilidad con backend
-        const response = await fetch(`${API_BASE_URL}/api/auth/login/`, {
+        // Hacer login - enviar como email Y username para compatibilidad
+        const loginUrl = window.AGROTECH_CONFIG 
+            ? `${API_BASE_URL}${window.AGROTECH_CONFIG.ENDPOINTS.LOGIN}`
+            : `${API_BASE_URL}/api/auth/login/`;
+        
+        const response = await fetch(loginUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                username: email,
-                email: email,
+                username: username,
+                email: username,
                 password: password
             })
         });
@@ -96,31 +104,13 @@ loginForm.addEventListener('submit', async (e) => {
         }
         
         // Login exitoso
-        // New API format: { success, tokens: { access, refresh }, user, tenant?, tenants? }
-        const token = data.tokens?.access || data.access || data.token;
-        if (token) {
-            // Guardar tokens
+        if (data.access || data.token) {
+            const token = data.access || data.token;
+            
+            // Guardar token
             localStorage.setItem('accessToken', token);
-            const refresh = data.tokens?.refresh || data.refresh;
-            if (refresh) {
-                localStorage.setItem('refreshToken', refresh);
-            }
-            
-            // Guardar info del usuario
-            if (data.user) {
-                localStorage.setItem('userName', data.user.name || '');
-                localStorage.setItem('userEmail', data.user.email || '');
-            }
-            
-            // Guardar info del tenant (para resolver el schema correcto)
-            if (data.tenant) {
-                localStorage.setItem('tenantDomain', data.tenant.domain || '');
-                localStorage.setItem('tenantName', data.tenant.name || '');
-                localStorage.setItem('tenantSchema', data.tenant.schema_name || '');
-                console.log(`🏢 Tenant: ${data.tenant.name} (${data.tenant.domain})`);
-            }
-            if (data.tenants) {
-                localStorage.setItem('userTenants', JSON.stringify(data.tenants));
+            if (data.refresh) {
+                localStorage.setItem('refreshToken', data.refresh);
             }
             
             console.log('✅ Login exitoso');
@@ -153,49 +143,4 @@ document.getElementById('username').addEventListener('keypress', (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🍎 Login Liquid Glass - Iniciando...');
     checkExistingAuth();
-    
-    // ═══ Mobile UX Enhancements ═══
-    
-    // Auto-focus email field on load (desktop only, mobile opens keyboard)
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    if (!isMobile) {
-        setTimeout(() => document.getElementById('username')?.focus(), 300);
-    }
-    
-    // Haptic feedback on button press (if supported)
-    btnLogin?.addEventListener('touchstart', () => {
-        if (navigator.vibrate) navigator.vibrate(10);
-    }, { passive: true });
-    
-    // Handle keyboard on iOS - scroll form into view
-    const inputs = document.querySelectorAll('.form-input');
-    inputs.forEach(input => {
-        input.addEventListener('focus', () => {
-            if (isMobile) {
-                setTimeout(() => {
-                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }, 300);
-            }
-        });
-    });
-    
-    // Handle back button / navigation
-    window.addEventListener('pageshow', (event) => {
-        if (event.persisted) {
-            // Page was restored from bfcache
-            setLoading(false);
-            checkExistingAuth();
-        }
-    });
-    
-    // Network status indicator
-    window.addEventListener('offline', () => {
-        showError('Sin conexión a internet. Verifica tu red.');
-    });
-    
-    window.addEventListener('online', () => {
-        hideError();
-    });
-    
-    console.log('📱 Login mobile UX enhancements loaded');
 });
