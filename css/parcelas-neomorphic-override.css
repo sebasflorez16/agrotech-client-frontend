@@ -226,3 +226,86 @@
         font-size: 10px;
     }
 }
+
+/* ========================================
+   MOBILE DARK MODE - LEAFLET CONTROLS
+   ======================================== */
+@media (max-width: 767px) {
+    .leaflet-control-zoom a,
+    .leaflet-control-fullscreen a {
+        background: rgba(22, 28, 36, 0.9) !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .leaflet-control-zoom a:hover,
+    .leaflet-control-fullscreen a:hover {
+        background: rgba(53, 184, 53, 0.2) !important;
+        color: #4ade80 !important;
+    }
+
+    .leaflet-control-layers {
+        background: rgba(22, 28, 36, 0.9) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        color: rgba(255, 255, 255, 0.8) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 10px !important;
+    }
+
+    .leaflet-control-layers-expanded {
+        background: rgba(22, 28, 36, 0.95) !important;
+    }
+
+    .leaflet-control-layers label {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    .leaflet-control-geocoder {
+        background: rgba(22, 28, 36, 0.9) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .leaflet-control-geocoder input {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: #fff !important;
+        border: none !important;
+    }
+
+    .leaflet-control-geocoder input::placeholder {
+        color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .leaflet-control-geocoder-alternatives {
+        background: rgba(22, 28, 36, 0.97) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .leaflet-control-geocoder-alternatives li {
+        color: rgba(255, 255, 255, 0.8) !important;
+    }
+
+    .leaflet-control-geocoder-alternatives li:hover {
+        background: rgba(53, 184, 53, 0.12) !important;
+    }
+
+    /* Leaflet draw toolbar */
+    .leaflet-draw-toolbar a {
+        background-color: rgba(22, 28, 36, 0.9) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    /* Popup del mapa */
+    .leaflet-popup-content-wrapper {
+        background: rgba(22, 28, 36, 0.95) !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+    }
+
+    .leaflet-popup-tip {
+        background: rgba(22, 28, 36, 0.95) !important;
+    }
+}

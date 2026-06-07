@@ -1,18 +1,26 @@
-# 🍎 Configuración de Netlify para AgroTech Digital
-# Frontend Liquid Glass + Railway Backend REST API
+# 🏠 Configuración de Netlify para DESARROLLO LOCAL
+# ⚠️  NUNCA subir a git — este archivo está en .gitignore
+#
+# Uso: ./scripts/switch-env.sh local
 
 [build]
   publish = "."
-  command = "echo '🍎 Desplegando AgroTech Liquid Glass Frontend'"
+  command = "echo '🏠 Modo desarrollo local'"
 
 [build.environment]
   NODE_VERSION = "18"
 
+# Para desarrollo local necesitamos el proxy dev de Netlify
+# netlify dev sirve los archivos estáticos del directorio publish="."
+# y aplica los redirects de abajo para proxear /api/* y /staff/api/* a Django
+[dev]
+  port = 8080
+
 # ========================================
-# REDIRECTS - ORDEN CRÍTICO
+# REDIRECTS - ORDEN CRÍTICO (LOCAL)
 # ========================================
 
-# 1. Dashboard por defecto (redirigir raíz a dashboard si está autenticado)
+# 1. Dashboard
 [[redirects]]
   from = "/dashboard"
   to = "/templates/dashboard.html"
@@ -27,7 +35,7 @@
 # 2b. Staff operator dashboard (API proxy primero, luego HTML)
 [[redirects]]
   from = "/staff/api/*"
-  to = "https://agrotech-digital-production.up.railway.app/staff/api/:splat"
+  to = "http://localhost:8000/staff/api/:splat"
   status = 200
   force = true
 
@@ -54,10 +62,7 @@
   to = "/templates/authentication/:splat"
   status = 200
 
-# 3d. (Eliminado) Ya no se usa proxy para Nominatim
-# El geocoder ahora usa Photon API (Komoot) + Nominatim directo + fallback offline
-
-# 3e. Compatibilidad /static/* (rutas Django) → archivos locales de Netlify
+# 3d. /static/* → archivos locales
 [[redirects]]
   from = "/static/css/*"
   to = "/css/:splat"
@@ -73,71 +78,22 @@
   to = "/images/:splat"
   status = 200
 
-# 4a. Billing webhooks -> Railway
+# 4a. Billing webhooks → localhost
 [[redirects]]
   from = "/billing/*"
-  to = "https://agrotech-digital-production.up.railway.app/billing/:splat"
+  to = "http://localhost:8000/billing/:splat"
   status = 200
   force = true
 
-# 4. Redirigir TODAS las peticiones de API a Railway (Backend REST)
-# IMPORTANTE: 
-# - force=true: Redirige ANTES de buscar archivos locales
-# - status=200: Proxy transparente (el navegador no ve el redirect)
-# - Preserva headers X-Forwarded-Host para detección de tenant en django-tenants
+# 4. API → Django local
 [[redirects]]
   from = "/api/*"
-  to = "https://agrotech-digital-production.up.railway.app/api/:splat"
+  to = "http://localhost:8000/api/:splat"
   status = 200
   force = true
-  [redirects.headers]
-    X-Forwarded-Proto = "https"
 
-# 5. Manejo de 404 - Landing page
+# 5. 404 → Landing
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 404
-
-# ========================================
-# HEADERS DE SEGURIDAD
-# ========================================
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    # Content Security Policy - Permisivo para desarrollo (Leaflet, Chart.js, etc.)
-    Content-Security-Policy = "default-src 'self' https: data: blob:; script-src 'self' 'unsafe-eval' 'unsafe-inline' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: blob: https: http:; connect-src 'self' https: http:; worker-src 'self' blob:; child-src 'self' blob:; font-src 'self' data: https:; frame-src 'self'; media-src 'self' https: http: data: blob:;"
-    
-    # CORS headers - Necesarios para API calls a Railway
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
-    Access-Control-Allow-Headers = "Content-Type, Authorization, X-Requested-With"
-    Access-Control-Max-Age = "86400"
-    
-    # Security headers - Estándar de seguridad web
-    X-Frame-Options = "SAMEORIGIN"
-    X-Content-Type-Options = "nosniff"
-    X-XSS-Protection = "1; mode=block"
-    Referrer-Policy = "strict-origin-when-cross-origin"
-    
-    # Cache - Moderado para contenido dinámico
-    Cache-Control = "public, max-age=3600, must-revalidate"
-
-# Cache corto para JS - Para que las actualizaciones se apliquen rápido
-[[headers]]
-  for = "/js/*"
-  [headers.values]
-    Cache-Control = "public, max-age=300, must-revalidate"
-
-# Cache largo para CSS - Assets estáticos inmutables
-[[headers]]
-  for = "/css/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
-
-# Cache largo para imágenes - Assets estáticos inmutables
-[[headers]]
-  for = "/images/*"
-  [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"

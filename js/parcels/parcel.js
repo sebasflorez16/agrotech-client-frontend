@@ -341,6 +341,7 @@ function initializeLeaflet() {
             attributionControl: true,
             fullscreenControl: false // Lo agregamos manualmente después
         });
+        window.map = map; // Exponer para módulos externos (elevation, etc.)
 
         // Agregar la capa satelital Esri World Imagery
         const esriSatellite = L.tileLayer(
