@@ -1,9 +1,10 @@
-// Modal Bootstrap para mostrar escenas EOSDA
-function crearModalEscenasEOSDA() {
-    let modal = document.getElementById('eosdaScenesModal');
-    if (modal) return modal; // Ya existe
+// Modal Bootstrap para mostrar escenas satelitales
+function crearModalEscenasSatelitales() {
+    let modal = document.getElementById('sateliteScenesModal');
+    if (modal) return modal;
+
     modal = document.createElement('div');
-    modal.id = 'eosdaScenesModal';
+    modal.id = 'sateliteScenesModal';
     modal.className = 'modal fade';
     modal.tabIndex = -1;
     // Estilos para hacer el modal responsive y con scroll
@@ -11,11 +12,11 @@ function crearModalEscenasEOSDA() {
       <div class="modal-dialog modal-lg modal-dialog-centered" style="max-width: 95vw;">
         <div class="modal-content" style="max-height: 90vh; overflow: hidden;">
           <div class="modal-header">
-            <h5 class="modal-title">Escenas satelitales EOSDA</h5>
+            <h5 class="modal-title">Escenas satelitales</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
           </div>
           <div class="modal-body" style="overflow-y: auto; max-height: 65vh;">
-            <div id="eosdaScenesTableContainer">
+            <div id="sateliteScenesTableContainer">
               <div class="text-center">Cargando escenas...</div>
             </div>
           </div>
@@ -38,28 +39,28 @@ function crearModalEscenasEOSDA() {
 
 
 // Función para abrir el modal y mostrar las escenas
-window.mostrarModalEscenasEOSDA = async function(parcelId) {
-    const modal = crearModalEscenasEOSDA();
+window.mostrarModalEscenasSatelitales = async function(parcelId) {
+    const modal = crearModalEscenasSatelitales();
     // Usar Bootstrap 5
     const bsModal = new bootstrap.Modal(modal);
     // Limpiar contenido
-    document.getElementById('eosdaScenesTableContainer').innerHTML = '<div class="text-center">Cargando escenas...</div>';
+    document.getElementById('sateliteScenesTableContainer').innerHTML = '<div class="text-center">Cargando escenas...</div>';
     bsModal.show();
     
     // Obtener eosda_id
     let eosda_id = null;
     try {
-        const parcelResp = await axiosInstance.get(`/parcel/${parcelId}/`);
+        const parcelResp = await axiosInstance.get(`parcel/${parcelId}/`);
         eosda_id = parcelResp.data.eosda_id;
         if (!eosda_id) {
-            document.getElementById('eosdaScenesTableContainer').innerHTML = '<div class="alert alert-danger">La parcela no tiene eosda_id configurado.</div>';
+            document.getElementById('sateliteScenesTableContainer').innerHTML = '<div class="alert alert-danger">La parcela no tiene identificador satelital configurado.</div>';
             return;
         }
         // Actualizar el estado global EOSDA para asegurar que esté disponible
         window.AGROTECH_STATE.selectedParcelId = parcelId;
         window.AGROTECH_STATE.selectedSatelliteId = eosda_id;
     } catch (err) {
-        document.getElementById('eosdaScenesTableContainer').innerHTML = '<div class="alert alert-danger">Error al obtener la parcela.</div>';
+        document.getElementById('sateliteScenesTableContainer').innerHTML = '<div class="alert alert-danger">Error al obtener la parcela.</div>';
         return;
     }
     
@@ -92,20 +93,20 @@ window.mostrarModalEscenasEOSDA = async function(parcelId) {
         console.log('[CACHE SET] Escenas guardadas en cache frontend');
         
         if (!scenes.length) {
-            document.getElementById('eosdaScenesTableContainer').innerHTML = '<div class="alert alert-warning">No hay escenas disponibles para este campo.</div>';
+            document.getElementById('sateliteScenesTableContainer').innerHTML = '<div class="alert alert-warning">No hay escenas disponibles para este campo.</div>';
             return;
         }
         
         renderScenesTable(scenes);
     } catch (err) {
-        document.getElementById('eosdaScenesTableContainer').innerHTML = '<div class="alert alert-danger">Error al consultar escenas EOSDA.</div>';
+        document.getElementById('sateliteScenesTableContainer').innerHTML = '<div class="alert alert-danger">Error al consultar escenas satelitales.</div>';
     }
 };
 
 // Función helper para renderizar tabla de escenas
 function renderScenesTable(scenes) {
     if (!scenes || scenes.length === 0) {
-        document.getElementById('eosdaScenesTableContainer').innerHTML = '<p>No hay escenas disponibles.</p>';
+        document.getElementById('sateliteScenesTableContainer').innerHTML = '<p>No hay escenas disponibles.</p>';
         return;
     }
 
@@ -146,6 +147,7 @@ function renderScenesTable(scenes) {
                 <th>NDVI</th>
                 <th>NDMI</th>
                 <th>SAVI</th>
+                <th>NDRE</th>
                 <th>Analytics</th>
             </tr>
         </thead>
@@ -160,22 +162,32 @@ function renderScenesTable(scenes) {
                         <td>${scene.date || '-'}</td>
                         <td>${scene.view_id || '-'}</td>
                         <td>${cloudText}</td>
-                        <td><button class="btn btn-success btn-sm" onclick="procesarImagenEOSDA('${scene.view_id}', 'ndvi', this)">Ver NDVI</button></td>
-                        <td><button class="btn btn-info btn-sm" onclick="procesarImagenEOSDA('${scene.view_id}', 'ndmi', this)">Ver NDMI</button></td>
-                        <td><button class="btn btn-secondary btn-sm" style="background: linear-gradient(135deg, #8B4513, #228B22); border: none;" onclick="procesarImagenEOSDA('${scene.view_id}', 'savi', this)">Ver SAVI</button></td>
+                        <td><button class="btn btn-sm btn-outline-success" onclick="procesarImagenEOSDA('${scene.view_id}', 'ndvi', this, '${scene.date}')">NDVI</button></td>
+                        <td><button class="btn btn-sm btn-outline-info" onclick="procesarImagenEOSDA('${scene.view_id}', 'ndmi', this, '${scene.date}')">NDMI</button></td>
+                        <td><button class="btn btn-sm btn-outline-warning" onclick="procesarImagenEOSDA('${scene.view_id}', 'savi', this, '${scene.date}')">SAVI</button></td>
+                        <td><button class="btn btn-sm btn-outline-primary" onclick="procesarImagenEOSDA('${scene.view_id}', 'ndre', this, '${scene.date}')">NDRE</button></td>
                         <td>
-                            <button class="btn btn-warning btn-sm" onclick="obtenerAnalyticsEscena('${scene.view_id}', '${scene.date}')">📊 Stats</button>
+                            <button class="btn btn-sm btn-outline-warning" onclick="obtenerAnalyticsEscena('${scene.view_id}', '${scene.date}')">Stats</button>
                         </td>
                     </tr>
                 `;
             }).join('')}
         </tbody>
     </table>`;
-    document.getElementById('eosdaScenesTableContainer').innerHTML = html;
+    document.getElementById('sateliteScenesTableContainer').innerHTML = html;
 }
 
 // Función para obtener analíticas científicas de una escena
 window.obtenerAnalyticsEscena = async function(viewId, sceneDate) {
+    // Debounce: ignorar dobles clics sobre el mismo botón Stats (<1.5s)
+    const _now = Date.now();
+    const _key = `analytics_${viewId}`;
+    window.__eosdaAnalyticsInFlight = window.__eosdaAnalyticsInFlight || {};
+    if (window.__eosdaAnalyticsInFlight[_key] && (_now - window.__eosdaAnalyticsInFlight[_key]) < 1500) {
+        console.log(`[ANALYTICS_ESCENA] Debounce: solicitud reciente para ${viewId} ignorada`);
+        return;
+    }
+    window.__eosdaAnalyticsInFlight[_key] = _now;
     try {
         console.log(`[ANALYTICS_ESCENA] Iniciando análisis para escena: ${viewId}, fecha: ${sceneDate}`);
         
@@ -199,12 +211,21 @@ window.obtenerAnalyticsEscena = async function(viewId, sceneDate) {
     }
 };
 
-// Función para buscar escenas EOSDA y mostrar el modal
-export async function buscarEscenas(parcelId, viewer) {
-  // Eliminado: toda la lógica de escenas EOSDA y NDVI. Esta función ya no realiza ninguna acción.
-  // Si necesitas mostrar NDVI, hazlo directamente desde el botón o el flujo principal.
+// ── SceneCache helper ──
+function saveToSceneHistory(viewId, sceneDate, indexType, value) {
+    if (!window.SceneCache || !sceneDate) return;
+    const parcelId = window.AGROTECH_STATE?.selectedParcelId;
+    const parcelName = document.getElementById('parcelNameCell')?.textContent || '';
+    window.SceneCache.addToHistory({
+        viewId: viewId, sceneDate: sceneDate, indexType: indexType,
+        parcelId: parcelId, parcelName: parcelName, value: value,
+    });
+    const section = document.getElementById('sceneHistorySection');
+    if (section) section.style.display = 'block';
+    if (typeof renderSceneHistory === 'function') renderSceneHistory();
 }
-// Estado global centralizado para EOSDA
+
+// Estado global centralizado (compartido entre módulos)
 window.AGROTECH_STATE = {
   selectedParcelId: null,
   selectedSatelliteId: null,
@@ -216,6 +237,8 @@ window.AGROTECH_STATE = {
   // Nuevo: tracking de capa activa en analytics
   activeAnalyticsLayer: 'ndvi' // 'ndvi' o 'ndmi'
 };
+// Alias de compatibilidad (migración pendiente de EOSDA_STATE → AGROTECH_STATE)
+window.EOSDA_STATE = window.AGROTECH_STATE;
 // --- CACHE DE IMÁGENES NDVI/NDMI ---
 window.EOSDA_IMAGE_CACHE = window.EOSDA_IMAGE_CACHE || {};
 // --- CACHE DE ESCENAS POR FIELD_ID ---
@@ -242,10 +265,13 @@ function getBaseUrl() {
     }
     
     // Detectar si estamos en localhost/desarrollo
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    const hostname = window.location.hostname;
+    const isLocalDev = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.localhost');
     
-    if (isLocalhost) {
-        return 'http://localhost:8000/api/parcels';
+    if (isLocalDev) {
+        const port = window.location.port || '8000';
+        const protocol = window.location.protocol;
+        return `${protocol}//${hostname}:${port}/api/parcels`;
     }
     
     // En producción, usar URL de Railway
@@ -329,6 +355,21 @@ function initializeLeaflet() {
                         return Promise.reject(new Error('session_expired'));
                     }
                 }
+
+                // Manejo de límites/errores de negocio (402/403/429/404) con mensajes claros.
+                // El backend ya devuelve 'error'/'message' accionables; aquí se muestran.
+                if ([402, 403, 404, 429].includes(status) && !originalRequest._silentError) {
+                    const data = error.response?.data || {};
+                    const msg = data.error || data.message || (
+                        status === 429
+                            ? 'Has alcanzado el límite de análisis satelitales de tu plan.'
+                            : 'Tu plan no incluye esta acción.'
+                    );
+                    if (typeof window.showErrorToast === 'function') {
+                        window.showErrorToast(msg);
+                    }
+                }
+
                 return Promise.reject(error);
             }
         );
@@ -341,7 +382,9 @@ function initializeLeaflet() {
             attributionControl: true,
             fullscreenControl: false // Lo agregamos manualmente después
         });
-        window.map = map; // Exponer para módulos externos (elevation, etc.)
+
+        // Exponer mapa al scope global para otros módulos (elevation, layers)
+        window.map = map;
 
         // Agregar la capa satelital Esri World Imagery
         const esriSatellite = L.tileLayer(
@@ -602,7 +645,7 @@ function savePolygon() {
     };
 
     // Enviar los datos al backend (POST crea también en EOSDA y retorna el id)
-    axiosInstance.post("/parcel/", {
+    axiosInstance.post("parcel/", {
         name,
         description,
         field_type: fieldType,
@@ -613,9 +656,9 @@ function savePolygon() {
     .then(response => {
         const data = response.data;
         if (data.eosda_id) {
-            showInfoToast("Parcela guardada y sincronizada con EOSDA (ID: " + data.eosda_id + ")");
+            showInfoToast("Parcela guardada y sincronizada (ID: " + data.eosda_id + ")");
         } else {
-            showErrorToast("Parcela guardada localmente, pero NO sincronizada con EOSDA.");
+            showErrorToast("Parcela guardada localmente, pero NO sincronizada con el proveedor satelital.");
         }
         closeModal();
         location.reload();
@@ -636,20 +679,38 @@ function loadParcels() {
         return;
     }
 
-    axiosInstance.get("/parcel/")
+    // 🔧 LIMPIAR polígonos antiguos del mapa antes de recargar la tabla
+    if (map && mapReady) {
+        map.eachLayer(function (layer) {
+            // Eliminar solo polígonos de parcelas (no tiles, no controles, no dibujos)
+            if (layer instanceof L.Polygon && layer.parcelId && !layer._drawnByUser) {
+                map.removeLayer(layer);
+            }
+        });
+        // También remover el resaltado de selección si existe
+        if (window.selectedParcelLayer) {
+            map.removeLayer(window.selectedParcelLayer);
+            window.selectedParcelLayer = null;
+        }
+    }
+
+    axiosInstance.get("parcel/")
         .then(response => {
             console.log("Respuesta del backend para parcelas:", response.data);
             
             // Manejar diferentes formatos de respuesta
             let data;
-            if (response.data.parcels && Array.isArray(response.data.parcels)) {
+            // Formato: { cesium_token, parcels: { count, results: [...] } }
+            if (response.data.parcels && response.data.parcels.results && Array.isArray(response.data.parcels.results)) {
+                data = response.data.parcels.results;
+            } else if (response.data.parcels && Array.isArray(response.data.parcels)) {
                 data = response.data.parcels;
             } else if (response.data.results && Array.isArray(response.data.results)) {
                 data = response.data.results;
             } else if (Array.isArray(response.data)) {
                 data = response.data;
             } else {
-                console.warn("Formato de respuesta inesperado:", response.data);
+                console.warn("Formato de respuesta no reconocido:", response.data);
                 data = [];
             }
             
@@ -657,7 +718,7 @@ function loadParcels() {
             tableBody.innerHTML = "";
             
             if (!data.length) {
-                tableBody.innerHTML = `<tr><td colspan='7' class='text-center'>No hay parcelas registradas.</td></tr>`;
+                tableBody.innerHTML = `<tr><td colspan='8' class='text-center'>No hay parcelas registradas.</td></tr>`;
                 return;
             }
             
@@ -675,29 +736,30 @@ function loadParcels() {
                     selectParcel(parcel);
                 });
                 
+                const syncCell = renderSyncStatus(parcel);
                 row.innerHTML = `
                     <td>${props.name || "Sin nombre"}</td>
                     <td>${props.description || "Sin descripción"}</td>
                     <td>${props.field_type || "N/A"}</td>
                     <td>${props.soil_type || "N/A"}</td>
                     <td>${props.topography || "N/A"}</td>
+                    <td>${syncCell}</td>
                     <td>
-                        <button class="btn btn-info btn-sm" onclick="flyToParcel(${parcel.id});" title="Ver Parcela">
-                            <i class="bi bi-eye"></i> Ver
+                        <button class="btn btn-sm btn-outline-success" onclick="flyToParcel(${parcel.id});" title="Ver Parcela">
+                            Ver
                         </button>
-                    </td>
-                    <td>
-                        <button class="btn btn-primary btn-sm" onclick="editParcel('${parcel.id}')">Editar</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteParcel('${parcel.id}')">Eliminar</button>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="editParcel('${parcel.id}')">Editar</button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteParcel('${parcel.id}')">Eliminar</button>
                     </td>
                 `;
                 tableBody.appendChild(row);
                 
-                // Dibujar parcela en el mapa si tiene geometría
-                if (parcel.geometry && parcel.geometry.coordinates && map) {
+                // Dibujar parcela en el mapa si tiene geometría (campo 'geom' del backend)
+                const parcelGeom = parcel.geometry || parcel.geom;
+                if (parcelGeom && parcelGeom.coordinates && map) {
                     try {
                         // Convertir coordenadas GeoJSON [lng, lat] a Leaflet [lat, lng]
-                        const coordinates = parcel.geometry.coordinates[0].map(coord => [coord[1], coord[0]]);
+                        const coordinates = parcelGeom.coordinates[0].map(coord => [coord[1], coord[0]]);
                         
                         // Crear polígono con borde verde oscuro
                         const polygon = L.polygon(coordinates, {
@@ -740,6 +802,72 @@ function loadParcels() {
             }
         });
 }
+
+/**
+ * Renderiza la celda de estado de sincronización de una parcela.
+ * Estados: local / syncing / synced / error.
+ */
+function renderSyncStatus(parcel) {
+    const status = parcel.sync_status || 'local';
+    const error = parcel.sync_error || '';
+    const map = {
+        'synced':   { label: 'Sincronizada', cls: 'success', icon: '✅' },
+        'syncing':  { label: 'Sincronizando…', cls: 'warning', icon: '⏳' },
+        'local':    { label: 'Solo local', cls: 'secondary', icon: '📄' },
+        'error':    { label: 'Error', cls: 'danger', icon: '⚠️' },
+    };
+    const info = map[status] || map.local;
+    const errorTitle = error ? ` title="${error.replace(/"/g, '&quot;')}"` : '';
+
+    if (status === 'error' || status === 'local') {
+        return `<span${errorTitle} style="white-space:nowrap;">${info.icon} ${info.label}</span>
+            <button class="btn btn-sm btn-outline-primary" style="margin-left:6px;"
+                onclick="syncParcel(${parcel.id})" title="Reintentar sincronización">Sincronizar</button>`;
+    }
+    return `<span${errorTitle} style="white-space:nowrap;">${info.icon} ${info.label}</span>`;
+}
+
+/**
+ * Reintenta la sincronización de una parcela con el servicio satelital.
+ * Evita solicitudes duplicadas mientras la sincronización está en curso.
+ */
+window.syncParcel = async function(parcelId) {
+    const token = localStorage.getItem('accessToken');
+    if (!token) return;
+    const btn = event && event.target ? event.target : null;
+    if (btn) { btn.disabled = true; btn.textContent = 'Sincronizando…'; }
+
+    try {
+        const resp = await fetch(`${BASE_URL}/parcel/${parcelId}/sync-eosda/`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+            const statusMap = {
+                'synced': 'Parcela sincronizada correctamente.',
+                'syncing': 'Sincronización en curso…',
+                'error': 'No se pudo sincronizar: ' + (data.sync_error || 'error desconocido'),
+                'local': 'Parcela pendiente de sincronización.',
+            };
+            const msg = statusMap[data.sync_status] || 'Estado actualizado.';
+            if (data.sync_status === 'error') {
+                showErrorToast(msg);
+            } else {
+                showInfoToast(msg);
+            }
+            // Recargar la tabla para actualizar el estado
+            if (typeof loadParcels === 'function') loadParcels();
+        } else {
+            showErrorToast(data.error || 'No se pudo sincronizar la parcela.');
+        }
+    } catch (e) {
+        console.error('[SYNC_PARCEL] Error:', e);
+        showErrorToast('Error de conexión al sincronizar la parcela.');
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = 'Sincronizar'; }
+    }
+};
 
 /**
  * Selecciona una parcela y actualiza el estado global
@@ -785,6 +913,11 @@ function selectParcel(parcel) {
     // Toast de confirmación
     if (typeof showInfoToast === 'function') {
         showInfoToast(`📍 Parcela "${parcelData.name}" seleccionada`);
+    }
+    
+    // Cargar monitoreo radar (Sentinel-1)
+    if (typeof loadRadarMonitoring === 'function') {
+        loadRadarMonitoring(parcel.id);
     }
 }
 window.selectParcel = selectParcel;
@@ -873,7 +1006,7 @@ function flyToParcel(parcelId) {
     });
 
     // Obtener la geometría y centrar el mapa
-    axiosInstance.get(`/parcel/${parcelId}/`)
+    axiosInstance.get(`parcel/${parcelId}/`)
         .then(async response => {
             const feature = response.data;
             let coordinates = [];
@@ -973,10 +1106,38 @@ function flyToParcel(parcelId) {
             }).catch(err => {
                 console.warn('[FLY_TO_PARCEL] No se pudo cargar layers.js:', err);
             });
+
+            // 🔔 Cargar alertas agronómicas de la parcela
+            if (window.AgroAlerts && typeof window.AgroAlerts.loadForParcel === 'function') {
+                window.AgroAlerts.loadForParcel(parcelId);
+            }
         })
         .catch(error => {
             console.error("Error al centrar en la parcela:", error);
-            alert("Hubo un error al centrar el mapa en la parcela.\n" + (error.message || JSON.stringify(error)));
+            const status = error.response?.status;
+            if (status === 404) {
+                // La parcela fue eliminada — refrescar la tabla para limpiarla
+                if (typeof showInfoToast === 'function') {
+                    showInfoToast('Esta parcela ya no existe. Actualizando lista...');
+                }
+                loadParcels();
+                // Limpiar panel de datos
+                const parcelNameCell = document.getElementById("parcelNameCell");
+                if (parcelNameCell) parcelNameCell.textContent = 'Selecciona una parcela';
+                const parcelAreaCell = document.getElementById("parcelAreaCell");
+                if (parcelAreaCell) parcelAreaCell.textContent = '-';
+                const parcelDateCell = document.getElementById("parcelDateCell");
+                if (parcelDateCell) parcelDateCell.textContent = '-';
+                // Limpiar resaltados
+                if (window.selectedParcelLayer) {
+                    map.removeLayer(window.selectedParcelLayer);
+                    window.selectedParcelLayer = null;
+                }
+            } else if (error.message !== 'session_expired') {
+                if (typeof showErrorToast === 'function') {
+                    showErrorToast('No se pudo cargar la parcela. Intenta de nuevo.');
+                }
+            }
         });
 }
 
@@ -984,6 +1145,11 @@ function flyToParcel(parcelId) {
 function saveEditedParcel() {    
     const form = document.getElementById("editParcelForm");
     const parcelId = form.getAttribute("data-parcel-id");
+
+    if (!parcelId) {
+        alert("No se pudo identificar la parcela a editar.");
+        return;
+    }
 
     // Obtener los valores del formulario
     const name = document.getElementById("editParcelName").value.trim();
@@ -998,27 +1164,79 @@ function saveEditedParcel() {
         return;
     }
 
-    // Enviar los datos al backend
-    axiosInstance.put(`/parcel/${parcelId}/`, {
-        name: name,
-        description: description,
+    const payload = {
+        name,
+        description,
         field_type: fieldType,
         soil_type: soilType,
-        topography: topography
-    })
-    .then(response => {
-        alert("Parcela actualizada con éxito.");
-        closeEditModal(); // Cerrar el modal
-        loadParcels(); // Recargar la tabla
-    })
-    .catch(error => {
-        console.error("Error al actualizar la parcela:", error);
-        alert("Hubo un error al actualizar la parcela. Revisa la consola para más detalles.");
-    });
+        topography
+    };
+
+    axiosInstance.patch(`parcel/${parcelId}/`, payload)
+        .then(response => {
+            alert("Parcela actualizada con éxito.");
+            closeEditModal();
+            loadParcels();
+        })
+        .catch(error => {
+            console.error("Error al actualizar la parcela:", error);
+            const msg = error.response?.data?.error || error.response?.data?.detail || "Error desconocido";
+            alert("Hubo un error al actualizar la parcela: " + msg);
+        });
 }
+
+// ═══ Abrir modal de edición con datos de la parcela ═══
+function editParcel(parcelId) {
+    const modal = document.getElementById("editParcelModal");
+    const form = document.getElementById("editParcelForm");
+    if (!modal || !form) return;
+
+    // Mostrar loading en el modal
+    modal.style.display = "block";
+    document.getElementById("editParcelName").value = "Cargando...";
+    document.getElementById("editParcelDescription").value = "";
+    document.getElementById("editParcelFieldType").value = "";
+    document.getElementById("editParcelSoilType").value = "";
+    document.getElementById("editParcelTopography").value = "";
+
+    // Cargar datos de la parcela
+    axiosInstance.get(`parcel/${parcelId}/`)
+        .then(response => {
+            const parcel = response.data;
+            form.setAttribute("data-parcel-id", parcel.id);
+            document.getElementById("editParcelName").value = parcel.name || "";
+            document.getElementById("editParcelDescription").value = parcel.description || "";
+            document.getElementById("editParcelFieldType").value = parcel.field_type || "";
+            document.getElementById("editParcelSoilType").value = parcel.soil_type || "";
+            document.getElementById("editParcelTopography").value = parcel.topography || "";
+        })
+        .catch(error => {
+            console.error("Error al cargar parcela para editar:", error);
+            if (error.response?.status === 404) {
+                alert("Esta parcela ya no existe. Actualizando lista...");
+                closeEditModal();
+                loadParcels();
+            } else {
+                alert("No se pudo cargar la parcela para editar.");
+                closeEditModal();
+            }
+        });
+}
+
+// ═══ Cerrar modal de edición ═══
+function closeEditModal() {
+    const modal = document.getElementById("editParcelModal");
+    const form = document.getElementById("editParcelForm");
+    if (modal) modal.style.display = "none";
+    if (form) {
+        form.reset();
+        form.removeAttribute("data-parcel-id");
+    }
+}
+
 function deleteParcel(parcelId) {
     if (confirm("¿Estás seguro de que deseas eliminar esta parcela?")) {
-        axiosInstance.delete(`/parcel/${parcelId}/`)
+        axiosInstance.delete(`parcel/${parcelId}/`)
             .then(response => {
                 alert("Parcela eliminada con éxito.");
                 loadParcels(); // Recargar la tabla
@@ -1036,6 +1254,8 @@ function deleteParcel(parcelId) {
 window.flyToParcel = flyToParcel;
 window.savePolygon = savePolygon;
 window.saveEditedParcel = saveEditedParcel;
+window.editParcel = editParcel;
+window.closeEditModal = closeEditModal;
 window.deleteParcel = deleteParcel; 
 
 // Ejecutar al cargar la página
@@ -1221,7 +1441,7 @@ async function buscarEscenasPorRango(parcelId, startDate, endDate) {
     }
     try {
         showSpinner();
-        const resp = await axiosInstance.get(`/parcel/${parcelId}/scenes/?start_date=${startDate}&end_date=${endDate}`);
+        const resp = await axiosInstance.get(`parcel/${parcelId}/scenes/?start_date=${startDate}&end_date=${endDate}`);
         hideSpinner();
         const scenes = resp.data.scenes || [];
         window.EOSDA_SCENES_CACHE[cacheKey] = scenes;
@@ -1360,215 +1580,100 @@ async function showSceneSelectionTable(scenes) {
         const filteredCount = uniqueScenes.length - lowCloudScenes.length;
         const finalScenes = lowCloudScenes.length > 0 ? lowCloudScenes : uniqueScenes.slice(0, 5); // Fallback: mostrar las 5 mejores
 
-        // Crear modal con estilo neomórfico mejorado
+        // Crear modal profesional — clean white, no emojis, outline buttons
         const modal = document.createElement("div");
         modal.id = "sceneSelectionModal";
         modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: fadeIn 0.2s ease;
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+            z-index: 9999; display: flex; align-items: center; justify-content: center;
         `;
 
-        // Contenido del modal con diseño profesional
         const content = document.createElement("div");
         content.style.cssText = `
-            background: linear-gradient(145deg, #ffffff, #f5f7fa);
-            padding: 0;
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.1);
-            max-width: 750px;
-            width: 95%;
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            background: #fff; padding: 0; border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+            max-width: 780px; width: 95%; max-height: 85vh;
+            display: flex; flex-direction: column; overflow: hidden;
         `;
 
-        // Header del modal
+        // Header
         const header = document.createElement("div");
         header.style.cssText = `
-            background: linear-gradient(135deg, #2E7D32, #4CAF50);
-            padding: 20px 28px;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 20px 28px; display: flex; justify-content: space-between;
+            align-items: center; border-bottom: 1px solid rgba(0,0,0,0.06);
         `;
         header.innerHTML = `
             <div>
-                <h4 style="margin:0;font-weight:700;font-size:18px;">�️ Imágenes Satelitales Disponibles</h4>
-                <p style="margin:5px 0 0;font-size:13px;opacity:0.9;">${finalScenes.length} escenas encontradas</p>
+                <h4 style="margin:0;font-weight:600;font-size:18px;color:#1D1D1F;">Imagenes Satelitales Disponibles</h4>
+                <p style="margin:4px 0 0;font-size:13px;color:#86868B;">${finalScenes.length} escenas encontradas</p>
             </div>
-            <button id="closeSceneModal" style="background:rgba(255,255,255,0.2);border:none;color:white;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;">
-                <i class="fas fa-times"></i>
-            </button>
+            <button id="closeSceneModal" style="background:none;border:1px solid rgba(0,0,0,0.1);color:#86868B;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;">x</button>
         `;
         content.appendChild(header);
 
-        // Cuerpo con scroll
+        // Body
         const body = document.createElement("div");
-        body.style.cssText = `
-            padding: 20px 28px;
-            overflow-y: auto;
-            flex: 1;
-            max-height: calc(85vh - 140px);
-        `;
+        body.style.cssText = `padding: 20px 28px; overflow-y: auto; flex:1;`;
 
-        // Mensaje informativo sobre nubosidad
-        const infoBox = document.createElement("div");
-        infoBox.style.cssText = `
-            margin-bottom: 16px;
-            padding: 14px 16px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
-            border-left: 4px solid #2196F3;
-            font-size: 13px;
-            line-height: 1.5;
-        `;
-        infoBox.innerHTML = `
-            <strong>💡 Sobre la nubosidad:</strong> Las imágenes con <span style="color:#28a745;font-weight:600;">menos del 30% de nubes</span> 
-            proporcionan análisis más precisos. Las marcadas en rojo tienen alta nubosidad.
-        `;
-        body.appendChild(infoBox);
-
-        // Mensaje informativo sobre filtrado
+        // Info sobre nubosidad
         if (filteredCount > 0) {
-            const filterMessage = document.createElement("div");
-            filterMessage.style.cssText = `
-                margin-bottom: 16px;
-                padding: 12px 16px;
-                border-radius: 12px;
-                font-size: 13px;
-                ${lowCloudScenes.length > 0 
-                    ? 'background: #d1ecf1; color: #0c5460; border-left: 4px solid #17a2b8;' 
-                    : 'background: #fff3cd; color: #856404; border-left: 4px solid #ffc107;'}
-            `;
-            filterMessage.innerHTML = lowCloudScenes.length > 0
-                ? `<i class="fas fa-filter"></i> Se ocultaron ${filteredCount} imagen(es) con más del 75% de nubes.`
-                : `<i class="fas fa-exclamation-triangle"></i> <strong>Atención:</strong> Todas las imágenes tienen alta nubosidad. Considera otro rango de fechas.`;
-            body.appendChild(filterMessage);
+            const filterMsg = document.createElement("div");
+            filterMsg.style.cssText = `margin-bottom:14px;padding:10px 14px;border-radius:10px;font-size:13px;color:#6E6E73;background:#F5F5F7;`;
+            filterMsg.textContent = `${filteredCount} escenas con mas del 75% de nubes ocultas.`;
+            body.appendChild(filterMsg);
         }
 
-        // Tabla con diseño glassmorphism mejorado
-        const tableContainer = document.createElement("div");
-        tableContainer.style.cssText = `
-            border-radius: 16px;
-            overflow: hidden;
-            background: rgba(255,255,255,0.6);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05),
-                        inset 0 1px 1px rgba(255,255,255,0.8);
-            border: 1px solid rgba(255,255,255,0.5);
-        `;
-        
+        // Tabla
         const table = document.createElement("table");
-        table.style.cssText = `
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        `;
+        table.style.cssText = `width:100%;border-collapse:collapse;font-size:13px;`;
         table.innerHTML = `
             <thead>
-                <tr style="background: linear-gradient(135deg, rgba(46,125,50,0.1), rgba(76,175,80,0.05));">
-                    <th style="padding:16px 14px;text-align:left;font-weight:700;color:#2E7D32;border-bottom:2px solid rgba(46,125,50,0.2);font-size:13px;">📅 Fecha</th>
-                    <th style="padding:16px 14px;text-align:center;font-weight:700;color:#2E7D32;border-bottom:2px solid rgba(46,125,50,0.2);font-size:13px;">☁️ Nubes</th>
-                    <th style="padding:16px 14px;text-align:center;font-weight:700;color:#2E7D32;border-bottom:2px solid rgba(46,125,50,0.2);font-size:13px;">🌱 NDVI</th>
-                    <th style="padding:16px 14px;text-align:center;font-weight:700;color:#2E7D32;border-bottom:2px solid rgba(46,125,50,0.2);font-size:13px;">💧 NDMI</th>
-                    <th style="padding:16px 14px;text-align:center;font-weight:700;color:#2E7D32;border-bottom:2px solid rgba(46,125,50,0.2);font-size:13px;">🌿 SAVI</th>
-                    <th style="padding:16px 14px;text-align:center;font-weight:700;color:#2E7D32;border-bottom:2px solid rgba(46,125,50,0.2);font-size:13px;">📊 Stats</th>
+                <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
+                    <th style="padding:10px 12px;text-align:left;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Fecha</th>
+                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Nubes</th>
+                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">NDVI</th>
+                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">NDMI</th>
+                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">SAVI</th>
+                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">NDRE</th>
+                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Stats</th>
                 </tr>
             </thead>
             <tbody>
-                ${finalScenes.map((scene, idx) => {
+                ${finalScenes.map((scene) => {
                     let cloud = scene.cloudCoverage ?? scene.cloud ?? scene.nubosidad;
-                    let cloudText = (typeof cloud === 'number') ? cloud.toFixed(1) : (cloud ? cloud : '-');
-                    
-                    // Badge y estilo por nivel de nubosidad
-                    let cloudBadge = '', rowBg = '';
-                    if (typeof cloud === 'number') {
-                        if (cloud <= 30) {
-                            cloudBadge = '<span style="background:linear-gradient(135deg,#28a745,#20c997);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;box-shadow:0 2px 8px rgba(40,167,69,0.3);">✓ Óptima</span>';
-                            rowBg = 'background:rgba(240,255,244,0.7);';
-                        } else if (cloud <= 50) {
-                            cloudBadge = '<span style="background:linear-gradient(135deg,#ffc107,#ffca2c);color:#000;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;box-shadow:0 2px 8px rgba(255,193,7,0.3);">⚠ Aceptable</span>';
-                            rowBg = 'background:rgba(255,251,240,0.7);';
-                        } else {
-                            cloudBadge = '<span style="background:linear-gradient(135deg,#dc3545,#c82333);color:#fff;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:600;box-shadow:0 2px 8px rgba(220,53,69,0.3);">✗ No recomendada</span>';
-                            rowBg = 'background:rgba(255,245,245,0.7);';
-                        }
-                    }
+                    let cloudPct = (typeof cloud === 'number') ? cloud.toFixed(0) : '-';
+                    let cloudColor = typeof cloud === 'number' ? (cloud <= 30 ? '#2FB344' : cloud <= 50 ? '#F59E0B' : '#EF4444') : '#86868B';
                     
                     const dateFormatted = scene.date ? new Date(scene.date).toLocaleDateString('es-ES', { 
-                        weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' 
+                        weekday: 'short', month: 'short', day: 'numeric' 
                     }) : '-';
                     
-                    return `
-                        <tr style="${rowBg} transition: all 0.3s ease;" 
-                            onmouseover="this.style.background='rgba(232,245,233,0.9)';this.style.transform='scale(1.01)'" 
-                            onmouseout="this.style.background='${rowBg.replace('background:', '').replace(';', '') || 'transparent'}';this.style.transform='scale(1)'">
-                            <td style="padding:14px;border-bottom:1px solid rgba(0,0,0,0.05);font-weight:600;color:#333;">${dateFormatted}</td>
-                            <td style="padding:14px;border-bottom:1px solid rgba(0,0,0,0.05);text-align:center;">
-                                <div style="font-weight:600;color:#555;">${cloudText}%</div>
-                                <div style="margin-top:6px;">${cloudBadge}</div>
-                            </td>
-                            <td style="padding:14px;border-bottom:1px solid rgba(0,0,0,0.05);text-align:center;">
-                                <button class="btn btn-sm" data-ndvi-idx="${idx}" style="background:linear-gradient(135deg,#4CAF50,#2E7D32);color:white;border:none;padding:10px 18px;border-radius:12px;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(76,175,80,0.3);transition:all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(76,175,80,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(76,175,80,0.3)'">
-                                    <i class="fas fa-leaf"></i> Ver
-                                </button>
-                            </td>
-                            <td style="padding:14px;border-bottom:1px solid rgba(0,0,0,0.05);text-align:center;">
-                                <button class="btn btn-sm" data-ndmi-idx="${idx}" style="background:linear-gradient(135deg,#2196F3,#1565C0);color:white;border:none;padding:10px 18px;border-radius:12px;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(33,150,243,0.3);transition:all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(33,150,243,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(33,150,243,0.3)'">
-                                    <i class="fas fa-tint"></i> Ver
-                                </button>
-                            </td>
-                            <td style="padding:14px;border-bottom:1px solid rgba(0,0,0,0.05);text-align:center;">
-                                <button class="btn btn-sm" data-savi-idx="${idx}" style="background:linear-gradient(135deg,#8B4513,#228B22);color:white;border:none;padding:10px 18px;border-radius:12px;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(139,69,19,0.3);transition:all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(139,69,19,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(139,69,19,0.3)'">
-                                    <i class="fas fa-seedling"></i> Ver
-                                </button>
-                            </td>
-                            <td style="padding:14px;border-bottom:1px solid rgba(0,0,0,0.05);text-align:center;">
-                                <button class="btn btn-sm" onclick="obtenerAnalyticsEscena('${scene.view_id}', '${scene.date}')" style="background:linear-gradient(135deg,#FF9800,#F57C00);color:white;border:none;padding:10px 18px;border-radius:12px;font-weight:600;cursor:pointer;box-shadow:0 4px 15px rgba(255,152,0,0.3);transition:all 0.3s ease;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(255,152,0,0.4)'" onmouseout="this.style.transform='translateY(0)';this.style.boxShadow='0 4px 15px rgba(255,152,0,0.3)'">
-                                    <i class="fas fa-chart-bar"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    `;
+                    return `<tr style="border-bottom:1px solid rgba(0,0,0,0.03);" 
+                        onmouseover="this.style.background='#F5F5F7'" onmouseout="this.style.background=''">
+                        <td style="padding:10px 12px;font-weight:500;color:#1D1D1F;">${dateFormatted}</td>
+                        <td style="padding:10px 12px;text-align:center;color:${cloudColor};font-weight:500;">${cloudPct}%</td>
+                        <td style="padding:8px 12px;text-align:center;">
+                            <button class="btn btn-sm btn-outline-success" onclick="procesarImagenEOSDA('${scene.view_id}','ndvi',this,'${scene.date}')">NDVI</button>
+                        </td>
+                        <td style="padding:8px 12px;text-align:center;">
+                            <button class="btn btn-sm btn-outline-info" onclick="procesarImagenEOSDA('${scene.view_id}','ndmi',this,'${scene.date}')">NDMI</button>
+                        </td>
+                        <td style="padding:8px 12px;text-align:center;">
+                            <button class="btn btn-sm btn-outline-warning" onclick="procesarImagenEOSDA('${scene.view_id}','savi',this,'${scene.date}')">SAVI</button>
+                        </td>
+                        <td style="padding:8px 12px;text-align:center;">
+                            <button class="btn btn-sm btn-outline-primary" onclick="procesarImagenEOSDA('${scene.view_id}','ndre',this,'${scene.date}')">NDRE</button>
+                        </td>
+                        <td style="padding:8px 12px;text-align:center;">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="obtenerAnalyticsEscena('${scene.view_id}','${scene.date}')">Stats</button>
+                        </td>
+                    </tr>`;
                 }).join('')}
             </tbody>
         `;
-        tableContainer.appendChild(table);
-        body.appendChild(tableContainer);
-
+        body.appendChild(table);
         content.appendChild(body);
-
-        // Footer
-        const footer = document.createElement("div");
-        footer.style.cssText = `
-            padding: 16px 28px;
-            background: #f8f9fa;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        `;
-        footer.innerHTML = `
-            <span style="font-size:12px;color:#666;">
-                <i class="fas fa-info-circle"></i> Los datos provienen de satélites Sentinel-2 via EOSDA
-            </span>
-            <button id="closeSceneModalFooter" class="btn" style="background:#6c757d;color:white;border:none;padding:10px 24px;border-radius:8px;font-weight:500;cursor:pointer;">
-                Cerrar
-            </button>
-        `;
-        content.appendChild(footer);
 
         modal.appendChild(content);
         document.body.appendChild(modal);
@@ -1593,7 +1698,7 @@ async function showSceneSelectionTable(scenes) {
                 // Deshabilitar todos los botones del modal durante procesamiento
                 const modalButtons = modal.querySelectorAll('button');
                 modalButtons.forEach(b => b.disabled = true);
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+                btn.innerHTML = 'Cargando...';
                 
                 try {
                     const result = await window.verImagenEscenaEOSDA(scene.view_id || scene.id, 'ndvi', scene.date);
@@ -1607,11 +1712,11 @@ async function showSceneSelectionTable(scenes) {
                         modalButtons.forEach(b => {
                             b.disabled = false;
                             if (b.getAttribute('data-ndvi-idx')) {
-                                b.innerHTML = '<i class="fas fa-leaf"></i> Ver';
+                                b.innerHTML = 'NDVI';
                             } else if (b.getAttribute('data-ndmi-idx')) {
-                                b.innerHTML = '<i class="fas fa-tint"></i> Ver';
+                                b.innerHTML = 'NDMI';
                             } else if (b.getAttribute('data-savi-idx')) {
-                                b.innerHTML = '<i class="fas fa-seedling"></i> Ver';
+                                b.innerHTML = 'SAVI';
                             }
                         });
                     }
@@ -1627,7 +1732,7 @@ async function showSceneSelectionTable(scenes) {
                 // Deshabilitar todos los botones del modal durante procesamiento
                 const modalButtons = modal.querySelectorAll('button');
                 modalButtons.forEach(b => b.disabled = true);
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+                btn.innerHTML = 'Cargando...';
                 
                 try {
                     const result = await window.verImagenEscenaEOSDA(scene.view_id || scene.id, 'ndmi', scene.date);
@@ -1641,11 +1746,11 @@ async function showSceneSelectionTable(scenes) {
                         modalButtons.forEach(b => {
                             b.disabled = false;
                             if (b.getAttribute('data-ndvi-idx')) {
-                                b.innerHTML = '<i class="fas fa-leaf"></i> Ver';
+                                b.innerHTML = 'NDVI';
                             } else if (b.getAttribute('data-ndmi-idx')) {
-                                b.innerHTML = '<i class="fas fa-tint"></i> Ver';
+                                b.innerHTML = 'NDMI';
                             } else if (b.getAttribute('data-savi-idx')) {
-                                b.innerHTML = '<i class="fas fa-seedling"></i> Ver';
+                                b.innerHTML = 'SAVI';
                             }
                         });
                     }
@@ -1662,7 +1767,7 @@ async function showSceneSelectionTable(scenes) {
                 // Deshabilitar todos los botones del modal durante procesamiento
                 const modalButtons = modal.querySelectorAll('button');
                 modalButtons.forEach(b => b.disabled = true);
-                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+                btn.innerHTML = 'Cargando...';
                 
                 try {
                     const result = await window.verImagenEscenaEOSDA(scene.view_id || scene.id, 'savi', scene.date);
@@ -1676,11 +1781,11 @@ async function showSceneSelectionTable(scenes) {
                         modalButtons.forEach(b => {
                             b.disabled = false;
                             if (b.getAttribute('data-ndvi-idx')) {
-                                b.innerHTML = '<i class="fas fa-leaf"></i> Ver';
+                                b.innerHTML = 'NDVI';
                             } else if (b.getAttribute('data-ndmi-idx')) {
-                                b.innerHTML = '<i class="fas fa-tint"></i> Ver';
+                                b.innerHTML = 'NDMI';
                             } else if (b.getAttribute('data-savi-idx')) {
-                                b.innerHTML = '<i class="fas fa-seedling"></i> Ver';
+                                b.innerHTML = 'SAVI';
                             }
                         });
                     }
@@ -1881,7 +1986,7 @@ window.showSpinner = showSpinner;
 window.hideSpinner = hideSpinner;
 
 // Función wrapper para manejar botones durante procesamiento de imágenes
-window.procesarImagenEOSDA = async function(viewId, tipo, buttonElement = null) {
+window.procesarImagenEOSDA = async function(viewId, tipo, buttonElement = null, sceneDate = null) {
     // Deshabilitar el botón específico y todos los botones de imágenes para evitar clics múltiples
     const allImageButtons = document.querySelectorAll('button[onclick*="verImagenEscenaEOSDA"], button[onclick*="procesarImagenEOSDA"]');
     const originalTexts = new Map();
@@ -1889,12 +1994,14 @@ window.procesarImagenEOSDA = async function(viewId, tipo, buttonElement = null) 
     allImageButtons.forEach(btn => {
         originalTexts.set(btn, btn.innerHTML);
         btn.disabled = true;
-        if (btn.innerHTML.includes('Ver NDVI')) {
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-        } else if (btn.innerHTML.includes('Ver NDMI')) {
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
-        } else if (btn.innerHTML.includes('Ver SAVI')) {
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Procesando...';
+        if (btn.innerHTML.includes('NDVI')) {
+            btn.innerHTML = 'Cargando...';
+        } else if (btn.innerHTML.includes('NDMI')) {
+            btn.innerHTML = 'Cargando...';
+        } else if (btn.innerHTML.includes('SAVI')) {
+            btn.innerHTML = 'Cargando...';
+        } else if (btn.innerHTML.includes('NDRE')) {
+            btn.innerHTML = 'Cargando...';
         }
     });
     
@@ -1918,7 +2025,7 @@ window.verImagenEscenaEOSDA = async function(viewId, tipo, sceneDate = null) {
     const parcelId = window.AGROTECH_STATE.selectedParcelId;
     
     if (!fieldId) {
-        alert("No se encontró el field_id de EOSDA para la parcela seleccionada.");
+        alert("No se encontró el identificador satelital de la parcela seleccionada.");
         return { success: false };
     }
     
@@ -1927,7 +2034,7 @@ window.verImagenEscenaEOSDA = async function(viewId, tipo, sceneDate = null) {
     if (window.EOSDA_IMAGE_CACHE[cacheKey]) {
         console.log('[CACHE HIT] Imagen encontrada en cache frontend');
         // Obtener el polígono de la parcela seleccionada
-        const parcelResp = await axiosInstance.get(`/parcel/${parcelId}/`);
+        const parcelResp = await axiosInstance.get(`parcel/${parcelId}/`);
         let coords = [];
         if (parcelResp.data.geometry && parcelResp.data.geometry.coordinates) {
             coords = parcelResp.data.geometry.coordinates[0];
@@ -1953,6 +2060,7 @@ window.verImagenEscenaEOSDA = async function(viewId, tipo, sceneDate = null) {
         }
         
         showInfoToast(`Imagen ${tipo.toUpperCase()} cargada desde cache con análisis.`);
+        saveToSceneHistory(viewId, sceneDate, tipo, null);
         return { success: true };
     }
     
@@ -2016,7 +2124,7 @@ window.verImagenEscenaEOSDA = async function(viewId, tipo, sceneDate = null) {
         
         while (attempts < maxAttempts) {
             try {
-                const imgResp = await fetch(`${BASE_URL}/eosda-image-result/?field_id=${fieldId}&request_id=${requestId}`, {
+                const imgResp = await fetch(`${BASE_URL}/eosda-image-result/?field_id=${fieldId}&request_id=${requestId}&type=${tipo}&view_id=${viewId}`, {
                     method: "GET",
                     headers: {
                         "Authorization": `Bearer ${token}`
@@ -2030,7 +2138,7 @@ window.verImagenEscenaEOSDA = async function(viewId, tipo, sceneDate = null) {
                     hideSpinner();
                     
                     // Obtener el polígono de la parcela seleccionada
-                    const parcelResp = await axiosInstance.get(`/parcel/${parcelId}/`);
+                    const parcelResp = await axiosInstance.get(`parcel/${parcelId}/`);
                     let coords = [];
                     if (parcelResp.data.geometry && parcelResp.data.geometry.coordinates) {
                         coords = parcelResp.data.geometry.coordinates[0];
@@ -2947,3 +3055,213 @@ window.changeMapProvider = changeMapProvider;
 window.switchMapProvider = switchMapProvider;
 window.reinitializeCesium = reinitializeCesium;
 window.getCurrentMapProvider = getCurrentMapProvider;
+
+// ============================================================
+// MONITOREO CONTINUO Fase 3 — Badge de salud del cultivo
+// ============================================================
+async function loadCropHealth(parcelId) {
+    try {
+        const response = await window.axiosInstance.get(`parcel/${parcelId}/health/`);
+        const badge = health.status.badge;
+
+        const badgeEl = document.getElementById('crop-health-badge');
+        if (badgeEl) {
+            badgeEl.innerHTML = `<span style="font-size:1.5em">${badge.emoji}</span> 
+                <span style="color:${badge.color};font-weight:bold">${badge.label}</span>`;
+        }
+
+        const msgEl = document.getElementById('crop-health-message');
+        if (msgEl) msgEl.textContent = health.status.message;
+
+        if (health.indices.ndvi) {
+            const ndviEl = document.getElementById('crop-ndvi-value');
+            if (ndviEl) ndviEl.textContent = health.indices.ndvi.toFixed(2);
+        }
+
+        // Actualizar actividad reciente
+        const activityEl = document.getElementById('crop-activity-list');
+        if (activityEl && health.recent_activity) {
+            activityEl.innerHTML = health.recent_activity.map(a =>
+                `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:0.85em;border-bottom:1px solid #eee">
+                    <span>${a.icon}</span>
+                    <span style="flex:1">${a.title}</span>
+                    <span style="color:#999;font-size:0.8em">${a.time_ago}</span>
+                </div>`
+            ).join('');
+        }
+    } catch (e) {
+        console.warn('[HEALTH] No se pudo cargar estado de salud:', e.message);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const parcelId = window.currentParcelId || (window.selectedParcel && window.selectedParcel.id);
+    if (parcelId) loadCropHealth(parcelId);
+});
+
+// ============================================================
+// REPORTE PDF EJECUTIVO (planes Pro+) — botón en la UI
+// ============================================================
+async function downloadCropReport() {
+    const parcelId = window.currentParcelId || (window.selectedParcel && window.selectedParcel.id)
+        || (window.AGROTECH_STATE && window.AGROTECH_STATE.selectedParcelId);
+    if (!parcelId) {
+        alert('Primero selecciona una parcela en el mapa o en la lista.');
+        return;
+    }
+    try {
+        const response = await window.axiosInstance.get(`/parcel/${parcelId}/report/`, {
+            responseType: 'blob'
+        });
+        const blob = response.data;
+        const disposition = response.headers['content-disposition'] || '';
+        let filename = 'reporte_cultivo.pdf';
+        const match = disposition.match(/filename="?([^";]+)"?/);
+        if (match) filename = match[1];
+
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (e) {
+        if (e.response && e.response.status === 403) {
+            alert('El reporte PDF está disponible en los planes Empresarial y Corporativo. Mejora tu plan para descargarlo.');
+        } else if (e.response && e.response.status === 402) {
+            alert('Necesitas una suscripción activa para descargar el reporte.');
+        } else {
+            console.error('[REPORT] Error descargando reporte:', e);
+            alert('No se pudo generar el reporte. Intenta de nuevo.');
+        }
+    }
+}
+
+window.loadCropHealth = loadCropHealth;
+window.downloadCropReport = downloadCropReport;
+
+/**
+ * Carga el monitoreo radar (Sentinel-1) para la parcela seleccionada.
+ * Muestra la última observación, cambios detectados y nivel de atención.
+ */
+async function loadRadarMonitoring(parcelId) {
+    const panel = document.getElementById('radarMonitoringPanel');
+    if (!panel) return;
+
+    const setText = (id, text) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+    };
+
+    try {
+        const response = await window.axiosInstance.get(`parcel/${parcelId}/radar/`);
+        const data = response.data;
+
+        panel.style.display = 'block';
+
+        if (!data.available) {
+            setText('radarLastObservation', 'No disponible');
+            setText('radarAttentionLevel', '—');
+            setText('radarChangeDetail', 'Datos radar no disponibles para esta fecha.');
+            setText('radarInterpretation', '');
+            setText('radarSectors', '');
+            return;
+        }
+
+        const last = data.last_observation;
+        if (last) {
+            const d = last.date ? new Date(last.date + 'T00:00:00').toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+            setText('radarLastObservation', d);
+        }
+
+        const change = data.change || {};
+        const levelMap = { moderate: 'Moderado', high: 'Alto', none: 'Sin cambios' };
+        const level = levelMap[data.attention_level] || (change.change_detected ? 'Moderado' : 'Sin cambios');
+        const levelEl = document.getElementById('radarAttentionLevel');
+        if (levelEl) {
+            levelEl.textContent = level;
+            levelEl.style.color = change.change_detected ? '#e67e22' : '#6c757d';
+        }
+
+        if (change.change_detected) {
+            const types = (change.change_types || []).map(t => `• ${t}`).join('<br>');
+            const detailEl = document.getElementById('radarChangeDetail');
+            if (detailEl) {
+                detailEl.innerHTML = `Cambio detectado (${change.magnitude} dB) entre ${change.from_date} y ${change.to_date}.<br>${types}`;
+            }
+            setText('radarInterpretation', change.interpretation || '');
+        } else {
+            setText('radarChangeDetail', 'Sin cambios significativos detectados por radar.');
+            setText('radarInterpretation', '');
+        }
+    } catch (e) {
+        // 403 = feature no incluida en el plan; no romper el flujo.
+        panel.style.display = 'block';
+        setText('radarLastObservation', 'No disponible');
+        setText('radarAttentionLevel', '—');
+        setText('radarChangeDetail', e.response && e.response.status === 403
+            ? 'El monitoreo radar está disponible en planes superiores.'
+            : 'No se pudo obtener el monitoreo radar.');
+        setText('radarInterpretation', '');
+        console.error('[RADAR] Error:', e);
+    }
+
+    // Superponer capas visuales (RVI + cambio) en el mapa.
+    if (typeof loadRadarLayers === 'function') {
+        loadRadarLayers(parcelId);
+    }
+}
+window.loadRadarMonitoring = loadRadarMonitoring;
+
+// Overlay de las capas radar (RVI y cambio) sobre el mapa Leaflet.
+let radarOverlayLayers = [];
+
+function clearRadarOverlays() {
+    radarOverlayLayers.forEach(l => { try { if (typeof map !== 'undefined' && map) map.removeLayer(l); } catch (e) {} });
+    radarOverlayLayers = [];
+}
+
+function overlayRadarImage(base64, bounds) {
+    // bounds: [west, south, east, north]
+    if (!base64 || !bounds || typeof map === 'undefined' || !map) return;
+    const imageUrl = `data:image/png;base64,${base64}`;
+    const leafletBounds = [[bounds[1], bounds[0]], [bounds[3], bounds[2]]];
+    const layer = L.imageOverlay(imageUrl, leafletBounds, { opacity: 0.72, interactive: false });
+    layer.addTo(map);
+    radarOverlayLayers.push(layer);
+}
+
+async function loadRadarLayers(parcelId) {
+    clearRadarOverlays();
+    const summaryEl = document.getElementById('radarChangeSummary');
+    try {
+        const resp = await window.axiosInstance.get(`parcel/${parcelId}/radar-layers/`);
+        const data = resp.data;
+        if (!data.available || !data.layers) {
+            if (summaryEl) summaryEl.textContent = '';
+            return;
+        }
+        // Capa RVI (índice de vegetación radar) por defecto.
+        if (data.layers.rvi && data.layers.rvi.image_base64) {
+            overlayRadarImage(data.layers.rvi.image_base64, data.layers.rvi.bounds);
+        }
+        // Heatmap de cambio (celdas que cambiaron → requieren revisión).
+        if (data.change && data.change.change_detected && data.change.change_heatmap) {
+            overlayRadarImage(data.change.change_heatmap, data.change.bounds);
+        }
+        // Resumen visual: % de la parcela con cambio.
+        if (summaryEl) {
+            if (data.change && data.change.change_detected) {
+                summaryEl.textContent = `⚠️ ${data.change.changed_percent}% de la parcela muestra cambios (celdas en rojo). Revisar.`;
+            } else {
+                summaryEl.textContent = '';
+            }
+        }
+    } catch (e) {
+        if (summaryEl) summaryEl.textContent = '';
+        console.error('[RADAR_LAYERS] Error:', e);
+    }
+}
+window.loadRadarLayers = loadRadarLayers;

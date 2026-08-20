@@ -1,60 +1,52 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Meta Pixel Code -->
-    <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '1521929183273863');
-    fbq('track', 'PageView');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=1521929183273863&ev=PageView&noscript=1"
-    /></noscript>
-    <!-- End Meta Pixel Code -->
-
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - AgroTech Digital</title>
     
     <!-- Favicon -->
     <link rel="shortcut icon" href="../images/agrotech solo negro.png">
-    <link rel="apple-touch-icon" href="../images/agrotech solo negro.png">
-    
-    <!-- Theme color for mobile browsers -->
-    <meta name="theme-color" content="#0B0F14">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <!-- Liquid Glass Design System -->
     <link rel="stylesheet" href="../css/liquid-glass-system.css">
     
-    <!-- Dashboard Mobile V2 -->
-    <link rel="stylesheet" href="../css/dashboard-mobile-v2.css">
-    
-    <!-- 🌍 Configuración global (debe cargarse primero) -->
+    <!-- 🌍 Configuración global -->
     <script src="../js/config.js"></script>
-    <script src="../js/auth-global.js"></script>
+    
+    <!-- 🔐 Verificación de autenticación y tenant_id -->
+    <script>
+        (function() {
+            var t = localStorage.getItem('accessToken') || sessionStorage.getItem('accessToken');
+            if (!t) {
+                var cp = window.location.pathname + window.location.search;
+                if (cp && cp.indexOf('auth-login') === -1) {
+                    window.location.href = '/login?next=' + encodeURIComponent(cp);
+                }
+                return;
+            }
+            // Validar que el token incluya tenant_id
+            try {
+                var p = JSON.parse(atob(t.split('.')[1]));
+                if (!p.tenant_id) {
+                    document.body.innerHTML = '';
+                    window.stop();
+                    localStorage.clear();
+                    location.replace('/login?next=' + encodeURIComponent(location.pathname));
+                }
+            } catch(e) {
+                document.body.innerHTML = '';
+                window.stop();
+                localStorage.clear();
+                location.replace('/login');
+            }
+        })();
+    </script>
     
     <!-- Tabler Icons -->
     <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
     
-    <!-- Google Fonts - Inter -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    
     <style>
-        * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "SF Pro Display", system-ui, sans-serif;
-        }
-        
         body {
             margin: 0;
             overflow-x: hidden;
@@ -189,41 +181,31 @@
             margin-bottom: var(--space-lg);
         }
         
-        /* ═══ Hamburger Menu Button ═══ */
-        .mobile-menu-btn {
-            display: none;
-            position: fixed;
-            top: 16px;
-            left: 16px;
-            z-index: 200;
-            width: 44px;
-            height: 44px;
-            border-radius: 12px;
-            border: 1px solid rgba(53, 184, 53, 0.2);
-            background: rgba(15, 20, 25, 0.9);
-            backdrop-filter: blur(20px);
-            color: #35B835;
-            font-size: 1.4rem;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--glass-border);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: var(--space-lg);
+            }
+            
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-md);
+            }
         }
-        .mobile-menu-btn:active {
-            transform: scale(0.92);
-        }
-        
-        /* ═══ Sidebar Overlay ═══ */
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 99;
-            backdrop-filter: blur(4px);
-        }
-        .sidebar-overlay.show { display: block; }
         
         /* Loading Skeleton */
         .skeleton {
@@ -267,40 +249,115 @@
             background: linear-gradient(135deg, rgba(0, 122, 255, 0.15) 0%, rgba(0, 122, 255, 0.05) 100%);
             color: #0A7AFF;
         }
-        
-        /* Logout button style */
-        .sidebar-logout {
-            margin-top: auto;
-            padding-top: var(--space-lg);
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
+
+        /* Dev Mode Toggle */
+        .devmode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            white-space: nowrap;
         }
-        
-        .nav-item-glass.logout-btn {
-            color: rgba(255, 100, 100, 0.8) !important;
+        .devmode-toggle.devmode-on {
+            background: rgba(245, 158, 11, 0.15);
+            color: #b45309;
+            box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.3);
         }
-        
-        .nav-item-glass.logout-btn:hover {
-            background: rgba(255, 59, 48, 0.1) !important;
-            color: #FF3B30 !important;
+        .devmode-toggle.devmode-on:hover {
+            background: rgba(245, 158, 11, 0.25);
+        }
+        .devmode-toggle.devmode-off {
+            background: rgba(148, 163, 184, 0.12);
+            color: #64748b;
+            box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.2);
+        }
+        .devmode-toggle.devmode-off:hover {
+            background: rgba(148, 163, 184, 0.22);
+        }
+        .devmode-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        .devmode-on .devmode-dot {
+            background: #f59e0b;
+            animation: devmode-pulse 1.5s ease-in-out infinite;
+        }
+        .devmode-off .devmode-dot {
+            background: #94a3b8;
+        }
+        @keyframes devmode-pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* 🔐 Modal para PIN de desarrollador */
+        .devmode-modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        .devmode-modal {
+            background: var(--glass-white, #fff);
+            border-radius: 16px;
+            padding: 24px;
+            width: 360px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .devmode-modal h3 {
+            margin: 0 0 12px;
+            font-size: 1.1rem;
+        }
+        .devmode-modal input {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            font-size: 1rem;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+        }
+        .devmode-modal-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+        .devmode-modal-actions button {
+            padding: 8px 18px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        .devmode-modal-actions .btn-cancel {
+            background: #f1f5f9;
+            color: #475569;
+        }
+        .devmode-modal-actions .btn-confirm {
+            background: var(--agrotech-primary, #2FB344);
+            color: #fff;
         }
     </style>
+    <link href="../css/mobile-nav.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
-    <!-- Pull to refresh indicator -->
-    <div class="pull-refresh-indicator" id="pullRefreshIndicator">
-        <i class="ti ti-refresh"></i>
-    </div>
-    
-    <!-- Hamburger menu para mobile -->
-    <button class="mobile-menu-btn" id="mobileMenuBtn" onclick="toggleSidebar()" aria-label="Abrir menú">
-        <i class="ti ti-menu-2"></i>
-    </button>
-    <!-- Overlay para cerrar sidebar -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-    
     <div class="dashboard-layout">
         <!-- Sidebar -->
-        <aside class="sidebar" id="sidebarNav">
+        <aside class="sidebar">
             <div class="logo-container">
                 <img src="../images/agrotech solo negro.png" alt="AgroTech">
                 <div class="brand-name">AgroTech</div>
@@ -309,39 +366,55 @@
             <nav>
                 <div class="nav-section">
                     <div class="nav-section-title">Principal</div>
-                    <a href="dashboard.html" class="nav-item-glass active">
+                    <a href="/templates/dashboard.html" class="nav-item-glass active">
                         <i class="ti ti-home"></i>
                         <span>Dashboard</span>
                     </a>
-                    <a href="parcels/parcels-dashboard.html" class="nav-item-glass">
+                    <a href="/templates/parcels/parcels-dashboard.html" class="nav-item-glass">
                         <i class="ti ti-map"></i>
                         <span>Parcelas</span>
                     </a>
-                    <a href="crop/crop_list.html" class="nav-item-glass">
+                    <a href="/templates/crop/crop_list.html" class="nav-item-glass">
                         <i class="ti ti-plant"></i>
                         <span>Cultivos</span>
                     </a>
                 </div>
-
+                
                 <div class="nav-section">
-                    <div class="nav-section-title">Operaciones</div>
-                    <a href="labores/labores-dashboard.html" class="nav-item-glass">
-                        <i class="ti ti-list-check"></i>
+                    <div class="nav-section-title">Gestión</div>
+                    <a href="/templates/inventory/inventario-dashboard.html" class="nav-item-glass">
+                        <i class="ti ti-box"></i>
+                        <span>Inventario</span>
+                    </a>
+                    <a href="/templates/employees/RRHH-dashboard.html" class="nav-item-glass">
+                        <i class="ti ti-users"></i>
+                        <span>Empleados</span>
+                    </a>
+                    <a href="/templates/labores/labores-dashboard.html" class="nav-item-glass">
+                        <i class="ti ti-checkbox"></i>
                         <span>Labores</span>
                     </a>
                 </div>
-
+                
+                <div class="nav-section">
+                    <div class="nav-section-title">Suscripción</div>
+                    <a href="/templates/billing.html" class="nav-item-glass">
+                        <i class="ti ti-credit-card"></i>
+                        <span>Facturacion</span>
+                    </a>
+                    <a href="/templates/billing.html" class="nav-item-glass">
+                        <i class="ti ti-chart-bar"></i>
+                        <span>Uso & Limites</span>
+                    </a>
+                </div>
+                
                 <div class="nav-section">
                     <div class="nav-section-title">Cuenta</div>
-                    <a href="billing/pricing.html" class="nav-item-glass">
-                        <i class="ti ti-credit-card"></i>
-                        <span>Facturación</span>
-                    </a>
                     <a href="pages/profile.html" class="nav-item-glass">
-                        <i class="ti ti-user-circle"></i>
-                        <span>Mi Perfil</span>
+                        <i class="ti ti-settings"></i>
+                        <span>Configuración</span>
                     </a>
-                    <a href="#" class="nav-item-glass logout-btn" onclick="logout(); return false;">
+                    <a href="#" class="nav-item-glass" onclick="if(confirm('Cerrar sesion?')){localStorage.clear();sessionStorage.clear();window.location.href='/login';}return false;">
                         <i class="ti ti-logout"></i>
                         <span>Cerrar Sesión</span>
                     </a>
@@ -349,17 +422,21 @@
             </nav>
         </aside>
         
-        <!-- Main Content -->
+        <!-- Contenido Principal -->
         <main class="main-content">
-            <!-- Header -->
+            <!-- Encabezado -->
             <header class="header">
                 <div class="header-title">
                     <h1>Bienvenido de nuevo 👋</h1>
                     <p class="header-subtitle">Aquí está el resumen de tu operación agrícola</p>
                 </div>
                 <div class="header-actions">
-                    <button class="btn-glass" onclick="refreshDashboard()" title="Actualizar datos">
-                        <i class="ti ti-refresh"></i>
+                    <button id="devModeToggle" class="devmode-toggle devmode-off" style="display:none" title="Modo Desarrollador">
+                        <span class="devmode-dot"></span>
+                        <span class="devmode-label">DEV OFF</span>
+                    </button>
+                    <button class="btn-glass">
+                        <i class="ti ti-bell"></i>
                     </button>
                     <div class="user-profile" id="userProfile">
                         <div class="user-avatar">U</div>
@@ -368,7 +445,7 @@
                 </div>
             </header>
             
-            <!-- Stats Grid -->
+            <!-- Estadísticas -->
             <div class="stats-grid">
                 <div class="stat-card">
                     <div class="icon-circle green">
@@ -388,10 +465,10 @@
                 
                 <div class="stat-card">
                     <div class="icon-circle orange">
-                        <i class="ti ti-list-check"></i>
+                        <i class="ti ti-users"></i>
                     </div>
-                    <div class="stat-value" id="laboresCount">--</div>
-                    <div class="stat-label">Labores</div>
+                    <div class="stat-value" id="employeeCount">--</div>
+                    <div class="stat-label">Empleados</div>
                 </div>
                 
                 <div class="stat-card">
@@ -399,169 +476,89 @@
                         <i class="ti ti-satellite"></i>
                     </div>
                     <div class="stat-value" id="eosdaUsage">--</div>
-                    <div class="stat-label">Análisis EOSDA</div>
+                    <div class="stat-label">Analisis Satelital</div>
                 </div>
             </div>
             
-            <!-- Content Grid -->
+            <!-- Panel de Suscripción + Acciones -->
             <div class="content-grid">
-                <!-- Subscription Status -->
+                <!-- Estado de Suscripción -->
                 <div class="glass-card">
                     <h2 style="margin-bottom: var(--space-lg); font-size: 1.25rem;">Estado de Suscripción</h2>
                     <div id="subscriptionInfo">
-                        <div class="skeleton" style="height: 100px; margin-bottom: var(--space-md);"></div>
-                        <div class="skeleton" style="height: 60px;"></div>
+                        <div style="display: flex; align-items: center; gap: 16px; padding: 16px 0;">
+                            <div style="font-size: 2.5rem;">
+                                <i class="ti ti-credit-card" style="color: var(--agrotech-primary);"></i>
+                            </div>
+                            <div>
+                                <p id="subPlanName" style="font-weight: 600; font-size: 1.1rem; margin: 0;">Plan Básico</p>
+                                <p id="subStatus" style="color: var(--text-secondary); margin: 4px 0 0 0; font-size: 0.9rem;">Activo</p>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <button class="btn-glass" style="width: 100%; justify-content: center;" onclick="window.location.href='/templates/billing.html'">
+                                <i class="ti ti-arrow-right"></i>
+                                <span>Gestionar Suscripción</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 
-                <!-- Quick Actions -->
+                <!-- Acciones Rápidas -->
                 <div class="glass-card">
                     <h2 style="margin-bottom: var(--space-lg); font-size: 1.25rem;">Acciones Rápidas</h2>
                     <div style="display: flex; flex-direction: column; gap: var(--space-sm);">
-                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='parcels/parcels-dashboard.html'">
-                            <i class="ti ti-map"></i>
-                            <span>Ver Parcelas</span>
+                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='/templates/parcels/parcels-dashboard.html'">
+                            <i class="ti ti-plus"></i>
+                            <span>Nueva Parcela</span>
                         </button>
-                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='crop/crop_list.html'">
+                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='/templates/crop/crop_list.html'">
                             <i class="ti ti-plant"></i>
-                            <span>Ver Cultivos</span>
+                            <span>Registrar Cultivo</span>
                         </button>
-                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="refreshDashboard()">
-                            <i class="ti ti-refresh"></i>
-                            <span>Actualizar Datos</span>
+                        <button class="btn-glass" style="justify-content: flex-start; width: 100%;" onclick="location.href='/billing'">
+                            <i class="ti ti-file-invoice"></i>
+                            <span>Ver Facturación</span>
                         </button>
                     </div>
                 </div>
             </div>
             
-            <!-- Recent Activity -->
+            <!-- Actividad Reciente -->
             <div class="glass-card">
                 <h2 style="margin-bottom: var(--space-lg); font-size: 1.25rem;">Actividad Reciente</h2>
                 <div id="recentActivity">
-                    <p style="color: var(--text-secondary); text-align: center; padding: var(--space-xl);">
-                        <i class="ti ti-loader" style="font-size: 1.5rem; display: block; margin-bottom: 8px;"></i>
-                        Cargando actividad...
-                    </p>
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div style="display: flex; align-items: center; gap: 14px; padding: 12px; background: rgba(47, 179, 68, 0.05); border-radius: 12px;">
+                            <div style="font-size: 1.5rem;">🌾</div>
+                            <div style="flex: 1;">
+                                <p style="font-weight: 600; margin: 0; font-size: 0.95rem;" id="activityText1">Sin actividad reciente</p>
+                                <p style="color: var(--text-tertiary); margin: 2px 0 0 0; font-size: 0.8rem;" id="activityDate1">--</p>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 14px; padding: 12px; background: rgba(47, 179, 68, 0.03); border-radius: 12px;">
+                            <div style="font-size: 1.5rem;">📋</div>
+                            <div style="flex: 1;">
+                                <p style="font-weight: 600; margin: 0; font-size: 0.95rem;" id="activityText2">Explora las herramientas disponibles</p>
+                                <p style="color: var(--text-tertiary); margin: 2px 0 0 0; font-size: 0.8rem;" id="activityDate2">--</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </main>
     </div>
     
-    <!-- Bottom Navigation Bar (Mobile) -->
-    <nav class="mobile-bottom-nav" id="mobileBottomNav">
-        <a href="dashboard.html" class="bottom-nav-item active">
-            <i class="ti ti-home"></i>
-            <span>Inicio</span>
-        </a>
-        <a href="parcels/parcels-dashboard.html" class="bottom-nav-item">
-            <i class="ti ti-map"></i>
-            <span>Parcelas</span>
-        </a>
-        <a href="crop/crop_list.html" class="bottom-nav-item">
-            <i class="ti ti-plant"></i>
-            <span>Cultivos</span>
-        </a>
-        <a href="#" class="bottom-nav-item" onclick="toggleSidebar(); return false;">
-            <i class="ti ti-menu-2"></i>
-            <span>Menú</span>
-        </a>
-    </nav>
-    
     <!-- Scripts -->
+    <script src="../js/utils/api-utils.js"></script>
     <script src="../js/dashboard-liquid.js"></script>
-    <script>
-        // ═══ Sidebar Toggle ═══
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebarNav');
-            const overlay = document.getElementById('sidebarOverlay');
-            const btn = document.getElementById('mobileMenuBtn');
-            const isOpen = sidebar.classList.contains('open');
-            
-            sidebar.classList.toggle('open');
-            overlay.classList.toggle('show');
-            btn.innerHTML = isOpen 
-                ? '<i class="ti ti-menu-2"></i>' 
-                : '<i class="ti ti-x"></i>';
-            
-            // Prevent body scroll when sidebar is open
-            document.body.style.overflow = isOpen ? '' : 'hidden';
-        }
-        
-        // Cerrar sidebar al hacer click en un link (mobile)
-        document.querySelectorAll('.sidebar .nav-item-glass').forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    const sidebar = document.getElementById('sidebarNav');
-                    if (sidebar.classList.contains('open')) {
-                        toggleSidebar();
-                    }
-                }
-            });
-        });
-        
-        // ═══ Refresh Dashboard ═══
-        function refreshDashboard() {
-            const indicator = document.getElementById('pullRefreshIndicator');
-            if (indicator) {
-                indicator.classList.add('active');
-            }
-            
-            // Reload stats
-            if (typeof loadDashboardStats === 'function') {
-                loadDashboardStats().then(() => {
-                    if (indicator) {
-                        setTimeout(() => indicator.classList.remove('active'), 500);
-                    }
-                });
-            } else {
-                location.reload();
-            }
-        }
-        
-        // ═══ Close sidebar on resize to desktop ═══
-        window.addEventListener('resize', () => {
-            if (window.innerWidth > 768) {
-                const sidebar = document.getElementById('sidebarNav');
-                const overlay = document.getElementById('sidebarOverlay');
-                if (sidebar.classList.contains('open')) {
-                    sidebar.classList.remove('open');
-                    overlay.classList.remove('show');
-                    document.body.style.overflow = '';
-                }
-            }
-        });
-        
-        // ═══ Swipe to open sidebar ═══
-        let touchStartX = 0;
-        let touchStartY = 0;
-        
-        document.addEventListener('touchstart', (e) => {
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-        }, { passive: true });
-        
-        document.addEventListener('touchend', (e) => {
-            const touchEndX = e.changedTouches[0].clientX;
-            const touchEndY = e.changedTouches[0].clientY;
-            const deltaX = touchEndX - touchStartX;
-            const deltaY = Math.abs(touchEndY - touchStartY);
-            
-            // Swipe right from left edge to open sidebar
-            if (touchStartX < 30 && deltaX > 80 && deltaY < 50) {
-                const sidebar = document.getElementById('sidebarNav');
-                if (!sidebar.classList.contains('open')) {
-                    toggleSidebar();
-                }
-            }
-            
-            // Swipe left to close sidebar
-            if (deltaX < -80 && deltaY < 50) {
-                const sidebar = document.getElementById('sidebarNav');
-                if (sidebar.classList.contains('open')) {
-                    toggleSidebar();
-                }
-            }
-        }, { passive: true });
-    </script>
+    <!-- Barra de navegación inferior (móvil) -->
+    <nav class="mobile-bottom-nav">
+        <a href="/templates/dashboard.html" class="active"><i>📊</i><span>Dashboard</span></a>
+        <a href="/templates/parcels/parcels-dashboard.html"><i>🗺️</i><span>Parcelas</span></a>
+        <a href="/templates/crop/crop_list.html"><i>🌱</i><span>Cultivos</span></a>
+        <a href="/templates/billing.html"><i>💳</i><span>Facturacion</span></a>
+        <a href="/templates/pages/profile.html"><i>👤</i><span>Perfil</span></a>
+    </nav>
 </body>
 </html>

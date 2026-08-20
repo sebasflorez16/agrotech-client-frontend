@@ -82,9 +82,9 @@ function displayMetrics(data) {
     const resources = ['eosda_requests', 'parcels', 'hectares', 'users'];
     
     const labels = {
-        eosda_requests: 'Análisis EOSDA',
+        eosda_requests: 'Analisis Satelitales',
         parcels: 'Parcelas',
-        hectares: 'Hectáreas',
+        hectares: 'Hectareas',
         users: 'Usuarios'
     };
     
@@ -184,7 +184,7 @@ function displayUsageChart(data) {
         data: {
             labels: labels,
             datasets: [{
-                label: 'Análisis EOSDA',
+                label: 'Analisis Satelitales',
                 data: eosdaData,
                 borderColor: '#2FB344',
                 backgroundColor: 'rgba(47, 179, 68, 0.1)',
@@ -305,18 +305,94 @@ function displayInvoice(invoice) {
     }
 }
 
-// Procesar pago
-function processPayment() {
-    alert('🚧 Integración de pago en desarrollo\n\nPróximamente: MercadoPago');
+// Procesar pago (Wompi Colombia)
+async function processPayment() {
+    const planTier = window._selectedPlanTier || document.querySelector('.plan-card.selected')?.dataset?.tier;
+    const email = localStorage.getItem('userEmail') || '';
+    if (!planTier || planTier === 'free') {
+        alert('Selecciona un plan pago (Agricultor, Empresarial o Corporativo).');
+        return;
+    }
+    if (!email) {
+        alert('No se pudo identificar tu correo. Inicia sesion nuevamente.');
+        return;
+    }
+    try {
+        const btn = event?.target || document.querySelector('button[onclick*="processPayment"]');
+        if (btn) { btn.disabled = true; btn.textContent = 'Redirigiendo a Wompi...'; }
+        const token = localStorage.getItem('accessToken');
+        const headers = { 'Content-Type': 'application/json' };
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        const resp = await fetch(API_BASE_URL + '/billing/api/create-checkout/', {
+            method: 'POST', headers,
+            body: JSON.stringify({ plan_tier: planTier, gateway: 'wompi', payer_email: email }),
+        });
+        const data = await resp.json();
+        if (!resp.ok || !data.success) {
+            alert('Error: ' + (data.error || 'No se pudo iniciar el pago.'));
+            if (btn) { btn.disabled = false; btn.textContent = 'Pagar Ahora'; }
+            return;
+        }
+        if (data.checkout_url) {
+            window.location.href = data.checkout_url;
+        } else {
+            alert('Enlace de pago no disponible.');
+            if (btn) { btn.disabled = false; btn.textContent = 'Pagar Ahora'; }
+        }
+    } catch (e) {
+        console.error('[PAGO] Error:', e);
+        alert('Error de conexion al iniciar el pago. Intenta de nuevo.');
+        const btn = document.querySelector('button[onclick*="processPayment"]');
+        if (btn) { btn.disabled = false; btn.textContent = 'Pagar Ahora'; }
+    }
 }
 
 // Logout
 function logout() {
-    if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
+    if (confirm('Estas seguro que deseas cerrar sesion?')) {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         window.location.href = '../authentication/login.html';
     }
+}
+
+// Cargar plan actual
+async function loadCurrentPlan() {
+    try {
+        var r = await fetchWithAuth(API_BASE_URL + '/billing/api/plans/');
+        if (!r || !r.ok) return;
+        var plans = await r.json();
+        var usageR = await fetchWithAuth(API_BASE_URL + '/billing/api/usage/dashboard/');
+        var usage = {};
+        if (usageR && usageR.ok) {
+            var usageData = await usageR.json();
+            usage = usageData.current_usage || {};
+        }
+
+        // Determinar plan actual basado en limites
+        var satUsed = (usage.eosda_requests && usage.eosda_requests.used) || 0;
+        var satLimit = (usage.eosda_requests && usage.eosda_requests.limit) || 15;
+        
+        var planName = 'Plan Libre';
+        var planTier = 'free';
+        var planColor = '#86868B';
+        var plansArr = Array.isArray(plans) ? plans : (plans.results || plans.plans || []);
+        
+        if (satLimit <= 15) { planName = 'Explorador'; planTier = 'free'; planColor = '#86868B'; }
+        else if (satLimit <= 150) { planName = 'Agricultor'; planTier = 'basic'; planColor = '#2FB344'; }
+        else if (satLimit <= 300) { planName = 'Empresarial'; planTier = 'pro'; planColor = '#007AFF'; }
+        else { planName = 'Corporativo'; planTier = 'enterprise'; planColor = '#FF9F0A'; }
+
+        var nameEl = document.getElementById('currentPlanName');
+        var badgeEl = document.getElementById('planBadge');
+        if (nameEl) nameEl.textContent = planName + ' - ' + satUsed + '/' + satLimit + ' analisis usados';
+        if (badgeEl) {
+            badgeEl.textContent = planName;
+            badgeEl.style.background = planColor + '20';
+            badgeEl.style.color = planColor;
+            badgeEl.style.border = '1px solid ' + planColor + '40';
+        }
+    } catch(e) {}
 }
 
 // Cambio de período en el select
@@ -342,6 +418,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadUsageMetrics();
     await loadUsageHistory(6);
     await loadCurrentInvoice();
+    await loadCurrentPlan();
     
     console.log('✅ Billing cargado correctamente');
 });

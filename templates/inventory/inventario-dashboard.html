@@ -3,262 +3,538 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0B0F14">
+    <meta name="theme-color" content="#F5F5F7">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Dashboard Inventario | Agrotech</title>
+    <title>Inventario | AgroTech Digital</title>
+    <link rel="shortcut icon" href="../../images/agrotech solo negro.png">
+    <script src="../../js/config.js"></script>
+    <script src="../../js/auth-global.js"></script>
+    <link rel="stylesheet" href="../../css/liquid-glass-system.css">
+    <link rel="stylesheet" href="../../css/global-mobile-responsive.css">
+    <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
     <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="/static/css/icons.min.css" rel="stylesheet" type="text/css" />
-    <link href="/static/css/app.min.css" rel="stylesheet" type="text/css" />
-    <!-- Global Mobile Responsive -->
-    <link href="../../css/global-mobile-responsive.css" rel="stylesheet" type="text/css" />
     <style>
-        body { background: #fff; }
-        .table thead th { background: #e9ecef; }
-        #main-content {
-            margin-top: 110px !important;
+        :root {
+            --bg-gradient: linear-gradient(135deg, #F5F5F7 0%, #E8E8ED 100%);
         }
-        /* Cards dashboard modernas */
-        .dashboard-card {
-            background: #fff;
-            border: none;
-            box-shadow: 0 2px 12px rgba(44,62,80,0.07);
-            border-radius: 18px;
-            transition: box-shadow 0.2s, transform 0.2s;
-            padding: 1.2rem 1rem 1.2rem 1rem;
+        body {
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
-        .dashboard-card:hover {
-            box-shadow: 0 6px 24px rgba(44,62,80,0.13);
-            transform: translateY(-2px) scale(1.02);
-        }
-        .dashboard-card .icon-circle {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: #f3f6fa;
-            margin-bottom: 10px;
-            font-size: 1.7rem;
-        }
-        .dashboard-card .icon-warehouse { color: #3b82f6; background: #e8f0fe; }
-        .dashboard-card .icon-supply { color: #22c55e; background: #e7fbe9; }
-        .dashboard-card .icon-movement { color: #f59e42; background: #fff4e6; }
-        .dashboard-card .icon-machinery { color: #0ea5e9; background: #e0f7fa; }
-        .dashboard-card .card-title {
-            color: #2d3748;
-            font-weight: 600;
-            font-size: 1.1rem;
-            margin-bottom: 0.2rem;
-        }
-        .dashboard-card .card-text {
-            font-size: 2.3rem;
-            color: #1a202c;
-            font-weight: 700;
-        }
-        .dashboard-nav-btn2 {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 8px;
-            background: #f7fafd;
-            color: #253445;
-            font-weight: 600;
-            font-size: 0.93rem;
-            border: none;
-            box-shadow: 0 1px 4px rgba(44,62,80,0.06);
-            transition: background 0.18s, color 0.18s, box-shadow 0.18s;
-            text-decoration: none;
-            min-width: 70px;
-            justify-content: flex-start;
-        }
-        .dashboard-nav-btn2:hover, .dashboard-nav-btn2:focus {
-            background: #e8f0fe;
-            color: #1a237e;
-            box-shadow: 0 4px 16px rgba(44,62,80,0.13);
-            text-decoration: none;
-        }
-        .dashboard-nav-btn2 .icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: #e3e6f0;
-            font-size: 1em;
-            margin-right: 2px;
-            color: #253445;
-            box-shadow: 0 1px 4px rgba(44,62,80,0.07);
-        }
-        .dashboard-nav-btn2 .icon.bg-blue { background: #2563eb; color: #fff; }
-        .dashboard-nav-btn2 .icon.bg-green { background: #16a34a; color: #fff; }
-        .dashboard-nav-btn2 .icon.bg-orange { background: #ea580c; color: #fff; }
-        .dashboard-nav-btn2 .icon.bg-cyan { background: #0891b2; color: #fff; }
-        .dashboard-nav-btn2 .icon.bg-purple { background: #7c3aed; color: #fff; }
-        .dashboard-nav-btn2 .icon.bg-dark { background: #253445; color: #fff; }
-        @media (max-width: 991px) {
-            .dashboard-nav-btn2 {
-                min-width: 60px;
-                font-size: 0.89rem;
-                padding: 4px 4px;
-            }
-            .dashboard-nav-btn2 .icon {
-                width: 16px;
-                height: 16px;
-                font-size: 0.8em;
-            }
-        }
-        @media (max-width: 991px) {
-            .dashboard-card { margin-bottom: 1.2rem; }
+        .page-wrap { max-width: 1300px; margin: 0 auto; padding: 100px 28px 60px 28px; }
+        .page-hdr { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+        .page-hdr h1 { font-size: clamp(24px, 4vw, 36px); font-weight: 800; letter-spacing: -0.03em; background: linear-gradient(135deg, #1D1D1F 0%, #2FB344 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: flex; align-items: center; gap: 12px; }
+        .page-hdr h1 i { font-size: 28px; color: #2FB344; background: rgba(47,179,68,0.1); padding: 10px; border-radius: 14px; -webkit-text-fill-color: #2FB344; }
+
+        /* Buttons */
+        .btn-g { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; color: #1D1D1F; text-decoration: none; }
+        .btn-g:hover { background: rgba(255,255,255,0.95); box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
+        .btn-g.primary { background: rgba(47,179,68,0.1); border-color: rgba(47,179,68,0.2); color: #1E7A2E; }
+        .btn-g.primary:hover { background: #2FB344; color: #fff; border-color: #2FB344; }
+        .btn-g.danger { color: #DC2626; }
+        .btn-g.danger:hover { background: rgba(220,38,38,0.1); }
+        .btn-g.sm { padding: 6px 14px; font-size: 12px; }
+
+        /* Stats */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 28px; }
+        .stat { background: rgba(255,255,255,0.7); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.5); border-radius: 18px; padding: 22px 18px; transition: all 0.3s; }
+        .stat:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(31,38,135,0.08); }
+        .stat .s-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+        .stat .s-label { font-size: 12px; font-weight: 600; color: #86868B; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat .s-val { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: #1D1D1F; }
+        .s-blue { background: rgba(59,130,246,0.1); color: #3b82f6; }
+        .s-green { background: rgba(34,197,94,0.1); color: #22c55e; }
+        .s-orange { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .s-cyan { background: rgba(6,182,212,0.1); color: #06b6d4; }
+        .s-red { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 4px; }
+        .tab { padding: 10px 20px; border-radius: 9999px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.25s; border: none; background: rgba(255,255,255,0.4); color: #86868B; font-family: inherit; }
+        .tab:hover { background: rgba(255,255,255,0.7); color: #1D1D1F; }
+        .tab.active { background: #1D1D1F; color: #fff; }
+
+        /* Panel */
+        .panel { background: rgba(255,255,255,0.7); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.5); border-radius: 22px; padding: 24px; box-shadow: 0 8px 32px rgba(31,38,135,0.06); }
+        .panel-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+        .panel-title { font-size: 17px; font-weight: 700; color: #1D1D1F; }
+
+        /* Table */
+        .gt-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .gt { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+        .gt th { background: rgba(47,179,68,0.05); color: #1E7A2E; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 14px; text-align: left; border-bottom: 2px solid rgba(47,179,68,0.12); white-space: nowrap; }
+        .gt th:first-child { border-radius: 10px 0 0 0; }
+        .gt th:last-child { border-radius: 0 10px 0 0; }
+        .gt td { padding: 12px 14px; border-bottom: 1px solid rgba(0,0,0,0.03); color: #1D1D1F; white-space: nowrap; }
+        .gt tr:hover td { background: rgba(47,179,68,0.02); }
+        .gt .actions { display: flex; gap: 4px; }
+        .gt .actions button { background: none; border: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; color: #86868B; font-size: 16px; transition: all 0.2s; }
+        .gt .actions button:hover { background: rgba(0,0,0,0.05); color: #1D1D1F; }
+        .gt .actions button.del:hover { background: rgba(239,68,68,0.1); color: #DC2626; }
+
+        /* Badge */
+        .badge-stock { display: inline-block; padding: 3px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; letter-spacing: 0.02em; }
+        .badge-stock.low { background: rgba(239,68,68,0.1); color: #DC2626; }
+        .badge-stock.ok { background: rgba(34,197,94,0.1); color: #16a34a; }
+        .badge-stock.warn { background: rgba(245,158,11,0.1); color: #d97706; }
+        .badge-type.in { background: rgba(34,197,94,0.1); color: #16a34a; }
+        .badge-type.out { background: rgba(239,68,68,0.1); color: #DC2626; }
+
+        /* Modal */
+        .modal-content { border-radius: 22px; border: none; background: rgba(255,255,255,0.97); backdrop-filter: blur(20px); }
+        .modal-header { border-bottom: 1px solid rgba(0,0,0,0.06); padding: 22px 26px; }
+        .modal-title { font-weight: 800; font-size: 18px; }
+        .modal-body { padding: 26px; }
+        .modal-footer { border-top: 1px solid rgba(0,0,0,0.06); padding: 16px 26px; display: flex; gap: 8px; justify-content: flex-end; }
+        .fld { margin-bottom: 16px; }
+        .fld label { display: block; font-weight: 600; font-size: 12px; color: #1D1D1F; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .fld input, .fld select, .fld textarea { width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.02); font-family: inherit; font-size: 14px; color: #1D1D1F; outline: none; transition: border 0.2s; box-sizing: border-box; }
+        .fld input:focus, .fld select:focus, .fld textarea:focus { border-color: #2FB344; box-shadow: 0 0 0 3px rgba(47,179,68,0.08); }
+        .fld-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #AEAEB2; }
+        .empty-state i { font-size: 40px; margin-bottom: 10px; opacity: 0.4; }
+        .empty-state p { font-size: 14px; }
+
+        @media (max-width: 768px) {
+            .page-wrap { padding: 84px 16px 40px 16px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .fld-row { grid-template-columns: 1fr; }
+            .panel { border-radius: 16px; padding: 18px; }
         }
     </style>
 </head>
 <body>
-    <!-- Botón hamburguesa solo visible en móvil -->
-    <div id="topbar-container" style="display:none;"></div>
     <div id="left-sidebar"></div>
-    <!-- Modales de empresa y proveedor -->
-    <div id="modals-supplier-company">
-      <!-- Modales para empresa y proveedor -->
-      <!-- supplier_company_modals.html -->
-      <!-- Puedes copiar el contenido o usar un include si tu motor lo soporta -->
+    <div id="topbar-container" style="display:none;"></div>
+
+    <div class="page-wrap">
+        <div class="page-hdr">
+            <h1><i class="ti ti-package"></i> Inventario</h1>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="/templates/dashboard.html" class="btn-g"><i class="ti ti-arrow-left"></i> Dashboard</a>
+                <button class="btn-g primary" onclick="abrirModal('warehouse')"><i class="ti ti-plus"></i> Nuevo Almacen</button>
+                <button class="btn-g primary" onclick="abrirModal('supply')"><i class="ti ti-plus"></i> Nuevo Insumo</button>
+            </div>
+        </div>
+
+        <div class="stats-row" id="statsRow">
+            <div class="stat"><div class="s-icon s-blue"><i class="ti ti-building-warehouse"></i></div><div class="s-label">Almacenes</div><div class="s-val" id="stWarehouse">-</div></div>
+            <div class="stat"><div class="s-icon s-green"><i class="ti ti-box"></i></div><div class="s-label">Insumos</div><div class="s-val" id="stSupply">-</div></div>
+            <div class="stat"><div class="s-icon s-orange"><i class="ti ti-arrows-exchange"></i></div><div class="s-label">Movimientos</div><div class="s-val" id="stMovement">-</div></div>
+            <div class="stat"><div class="s-icon s-cyan"><i class="ti ti-tractor"></i></div><div class="s-label">Maquinaria</div><div class="s-val" id="stMachinery">-</div></div>
+            <div class="stat"><div class="s-icon s-red"><i class="ti ti-alert-triangle"></i></div><div class="s-label">Stock Bajo</div><div class="s-val" id="stLowStock">-</div></div>
+        </div>
+
+        <div class="tabs" id="tabNav">
+            <button class="tab active" data-tab="general">Resumen</button>
+            <button class="tab" data-tab="warehouses">Almacenes</button>
+            <button class="tab" data-tab="supplies">Insumos</button>
+            <button class="tab" data-tab="movements">Movimientos</button>
+            <button class="tab" data-tab="machinery">Maquinaria</button>
+            <button class="tab" data-tab="contacts">Contactos</button>
+        </div>
+
+        <div class="panel" id="panelContent"></div>
     </div>
-    <button id="mobileToggle" aria-label="Abrir menú lateral" style="position:fixed;top:18px;left:18px;z-index:1100;background:#2C3E50;border:none;border-radius:8px;padding:10px 12px;display:none;box-shadow:0 2px 8px rgba(44,62,80,0.10);color:#fff;">
-        <span style="display:block;width:24px;height:3px;background:#fff;margin:4px 0;border-radius:2px;"></span>
-        <span style="display:block;width:24px;height:3px;background:#fff;margin:4px 0;border-radius:2px;"></span>
-        <span style="display:block;width:24px;height:3px;background:#fff;margin:4px 0;border-radius:2px;"></span>
-    </button>
-    <div id="main-content" class="container mt-5" style="margin-top: 90px;">
-        <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4">
-            <h2 class="mb-3 mb-md-0" style="font-size:2rem;font-weight:700;color:#253445;display:flex;align-items:center;gap:10px;">
-                <i class="fa fa-warehouse"></i> Dashboard de Inventario
-            </h2>
-            <a href="/templates/dashboard.html" class="dashboard-nav-btn2 dashboard-nav-btn2-back" style="margin-bottom: 0;">
-                <span class="icon"><i class="fa fa-arrow-left"></i></span>
-                <span>Volver al Dashboard</span>
-            </a>
-        </div>
-        <div class="mb-4 d-flex flex-wrap gap-2 justify-content-start align-items-center" style="gap: 12px !important;">
-            <a href="/templates/inventory/inventario-dashboard.html" class="dashboard-nav-btn2">
-                <span class="icon bg-blue"><i class="fa fa-warehouse"></i></span>
-                <span>Almacenes</span>
-            </a>
-            <a href="/templates/inventory/inventario-dashboard.html" class="dashboard-nav-btn2">
-                <span class="icon bg-green"><i class="fa fa-boxes"></i></span>
-                <span>Insumos</span>
-            </a>
-            <a href="/templates/inventory/inventario-dashboard.html" class="dashboard-nav-btn2">
-                <span class="icon bg-orange"><i class="fa fa-exchange-alt"></i></span>
-                <span>Movimientos</span>
-            </a>
-            <a href="/templates/inventory/inventario-dashboard.html" class="dashboard-nav-btn2">
-                <span class="icon bg-cyan"><i class="fa fa-tractor"></i></span>
-                <span>Maquinaria</span>
-            </a>
-            <a href="/templates/inventory/inventario-dashboard.html" class="dashboard-nav-btn2">
-                <span class="icon bg-purple"><i class="fa fa-tags"></i></span>
-                <span>Categorías</span>
-            </a>
-            <a href="/templates/inventory/inventario-dashboard.html" class="dashboard-nav-btn2">
-                <span class="icon bg-dark"><i class="fa fa-address-book"></i></span>
-                <span>Directorio</span>
-            </a>
-        </div>
-        <div class="row">
-            <div class="col-md-3">
-                <div class="card dashboard-card mb-3 text-center">
-                    <div class="icon-circle icon-warehouse mb-2"><i class="fa fa-warehouse"></i></div>
-                    <div class="card-body p-0">
-                        <div class="card-title">Almacenes</div>
-                        <div class="card-text" id="dashboardWarehouseCount">-</div>
-                    </div>
+
+    <!-- Modal CRUD -->
+    <div class="modal fade" id="crudModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="crudModalTitle">Formulario</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card dashboard-card mb-3 text-center">
-                    <div class="icon-circle icon-supply mb-2"><i class="fa fa-boxes"></i></div>
-                    <div class="card-body p-0">
-                        <div class="card-title">Insumos</div>
-                        <div class="card-text" id="dashboardSupplyCount">-</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card dashboard-card mb-3 text-center">
-                    <div class="icon-circle icon-movement mb-2"><i class="fa fa-exchange-alt"></i></div>
-                    <div class="card-body p-0">
-                        <div class="card-title">Movimientos</div>
-                        <div class="card-text" id="dashboardMovementCount">-</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card dashboard-card mb-3 text-center">
-                    <div class="icon-circle icon-machinery mb-2"><i class="fa fa-tractor"></i></div>
-                    <div class="card-body p-0">
-                        <div class="card-title">Maquinaria</div>
-                        <div class="card-text" id="dashboardMachineryCount">-</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="row mt-4">
-            <div class="col">
-                <h4>Resumen de Stock por Almacén</h4>
-                <div id="dashboardStockTableWrapper">
-                    <table class="table table-striped" id="dashboardStockTable">
-                        <thead>
-                            <tr>
-                                <th>Almacén</th>
-                                <th>Insumo</th>
-                                <th>Cantidad</th>
-                                <th>Unidad</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Datos dinámicos -->
-                        </tbody>
-                    </table>
+                <div class="modal-body" id="crudModalBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-g" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn-g primary" id="crudModalSave">Guardar</button>
                 </div>
             </div>
         </div>
     </div>
-    <div id="footer-container"></div>
-    <div id="righsidebar"></div>
-    <div id="vendorjs"></div>
+
     <script src="/static/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/inventario/dashboard-inventario.js"></script>
-    <script src="/static/js/inventario/supplier_company.js"></script>
+    <script src="../../js/utils/api-utils.js"></script>
+
     <script>
-    // Mostrar/ocultar topbar y botón hamburguesa según tamaño
-    function handleResponsiveNav() {
-        const topbar = document.getElementById('topbar-container');
-        const mobileToggle = document.getElementById('mobileToggle');
-        if (window.innerWidth <= 991) {
-            if (topbar) topbar.style.display = 'none';
-            if (mobileToggle) mobileToggle.style.display = 'block';
-        } else {
-            if (topbar) topbar.style.display = 'block';
-            if (mobileToggle) mobileToggle.style.display = 'none';
+    var API = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'http://localhost:8000';
+    var INV = API + '/api/inventario/';
+    var currentTab = 'general';
+    var editId = null;
+    var editType = null;
+
+    function token() { return localStorage.getItem('accessToken') || ''; }
+    function hdrs() { return { 'Authorization': 'Bearer ' + token(), 'Content-Type': 'application/json' }; }
+
+    // ========== TABS ==========
+    document.getElementById('tabNav').addEventListener('click', function(e) {
+        if (e.target.classList.contains('tab')) {
+            document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
+            e.target.classList.add('active');
+            currentTab = e.target.dataset.tab;
+            renderTab(currentTab);
         }
+    });
+
+    // ========== RENDER ==========
+    async function renderTab(tab) {
+        var panel = document.getElementById('panelContent');
+        switch (tab) {
+            case 'general': panel.innerHTML = '<div class="empty-state"><i class="ti ti-loader"></i><p>Cargando resumen...</p></div>'; await loadGeneral(); break;
+            case 'warehouses': panel.innerHTML = renderTableTemplate('Almacenes', 'warehouse'); await loadTable('warehouses'); break;
+            case 'supplies': panel.innerHTML = renderTableTemplate('Insumos', 'supply'); await loadTable('supplies'); break;
+            case 'movements': panel.innerHTML = renderTableTemplate('Movimientos', 'movement'); await loadTable('inventory-movements'); break;
+            case 'machinery': panel.innerHTML = renderTableTemplate('Maquinaria', 'machinery'); await loadTable('machinery'); break;
+            case 'contacts': panel.innerHTML = renderContactsTemplate(); await loadContacts(); break;
+        }
+    }
+
+    function renderTableTemplate(title, type) {
+        return '<div class="panel-hdr"><div class="panel-title">' + title + '</div><button class="btn-g primary sm" onclick="abrirModal(\'' + type + '\')"><i class="ti ti-plus"></i> Nuevo</button></div><div class="gt-wrap"><table class="gt" id="dataTable"><thead id="dataHead"></thead><tbody id="dataBody"><tr><td colspan="10" style="text-align:center;padding:30px">Cargando...</td></tr></tbody></table></div>';
+    }
+
+    function renderContactsTemplate() {
+        return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">' +
+            '<div class="panel"><div class="panel-hdr"><div class="panel-title"><i class="ti ti-building"></i> Empresas</div><button class="btn-g primary sm" onclick="abrirModal(\'company\')"><i class="ti ti-plus"></i> Nueva</button></div><div class="gt-wrap"><table class="gt"><thead><tr><th>Nombre</th><th>NIT</th><th>Email</th><th>Telefono</th><th></th></tr></thead><tbody id="companyBody"><tr><td colspan="5" style="text-align:center;padding:20px">Cargando...</td></tr></tbody></table></div></div>' +
+            '<div class="panel"><div class="panel-hdr"><div class="panel-title"><i class="ti ti-truck-delivery"></i> Proveedores</div><button class="btn-g primary sm" onclick="abrirModal(\'supplier\')"><i class="ti ti-plus"></i> Nuevo</button></div><div class="gt-wrap"><table class="gt"><thead><tr><th>Nombre</th><th>Email</th><th>Telefono</th><th></th></tr></thead><tbody id="supplierBody"><tr><td colspan="4" style="text-align:center;padding:20px">Cargando...</td></tr></tbody></table></div></div>' +
+            '</div>';
+    }
+
+    // ========== LOAD DATA ==========
+    async function loadStats() {
+        var eps = [
+            {url:'warehouses/',el:'stWarehouse'},
+            {url:'supplies/',el:'stSupply'},
+            {url:'inventory-movements/',el:'stMovement'},
+            {url:'machinery/',el:'stMachinery'}
+        ];
+        for (var i=0; i<eps.length; i++) {
+            try {
+                var r = await fetch(INV + eps[i].url, {headers:hdrs()});
+                var d = await r.json();
+                document.getElementById(eps[i].el).textContent = Array.isArray(d) ? d.length : (d.count || 0);
+            } catch(e) { document.getElementById(eps[i].el).textContent = '-'; }
+        }
+    }
+
+    async function loadGeneral() {
+        await loadStats();
+        var panel = document.getElementById('panelContent');
+        try {
+            var r = await fetch(INV + 'supplies/', {headers:hdrs()});
+            var supplies = await r.json();
+            var lowStock = supplies.filter(function(s) { return (s.quantity || 0) < (s.minimum_stock || 5); });
+            document.getElementById('stLowStock').textContent = lowStock.length;
+
+            var html = '<div class="panel-hdr"><div class="panel-title"><i class="ti ti-alert-triangle" style="color:#ef4444"></i> Alertas de Stock Bajo</div></div>';
+            if (lowStock.length === 0) {
+                html += '<div class="empty-state"><i class="ti ti-circle-check" style="color:#22c55e"></i><p>Todos los insumos tienen stock suficiente.</p></div>';
+            } else {
+                html += '<div class="gt-wrap"><table class="gt"><thead><tr><th>Insumo</th><th>Stock</th><th>Minimo</th><th>Almacen</th><th>Unidad</th></tr></thead><tbody>';
+                lowStock.forEach(function(s) {
+                    html += '<tr><td><strong>' + (s.name || '-') + '</strong></td><td><span class="badge-stock low">' + (s.quantity || 0) + '</span></td><td>' + (s.minimum_stock || 5) + '</td><td>' + (s.warehouse_name || '-') + '</td><td>' + (s.unit || '-') + '</td></tr>';
+                });
+                html += '</tbody></table></div>';
+            }
+            html += '<div class="panel-hdr" style="margin-top:24px"><div class="panel-title"><i class="ti ti-clock"></i> Movimientos Recientes</div></div>';
+            var mr = await fetch(INV + 'inventory-movements/', {headers:hdrs()});
+            var movements = await mr.json();
+            if (movements.length === 0) {
+                html += '<div class="empty-state"><i class="ti ti-box"></i><p>No hay movimientos registrados.</p></div>';
+            } else {
+                html += '<div class="gt-wrap"><table class="gt"><thead><tr><th>Insumo</th><th>Tipo</th><th>Cantidad</th><th>Almacen</th><th>Fecha</th></tr></thead><tbody>';
+                movements.slice(-8).reverse().forEach(function(m) {
+                    var badgeCls = (m.movement_type === 'in' || m.movement_type === 'entrada') ? 'in' : 'out';
+                    html += '<tr><td>' + (m.supply_name || m.supply || '-') + '</td><td><span class="badge-type ' + badgeCls + '">' + (m.movement_type || '-') + '</span></td><td>' + (m.quantity || 0) + '</td><td>' + (m.warehouse_name || '-') + '</td><td>' + (m.date || m.created_at || '-') + '</td></tr>';
+                });
+                html += '</tbody></table></div>';
+            }
+            panel.innerHTML = html;
+        } catch(e) {
+            panel.innerHTML = '<div class="empty-state"><i class="ti ti-alert-circle"></i><p>Error al cargar el resumen.</p></div>';
+        }
+    }
+
+    async function loadTable(endpoint) {
+        try {
+            var r = await fetch(INV + endpoint + '/', {headers:hdrs()});
+            var data = await r.json();
+            var list = Array.isArray(data) ? data : (data.results || []);
+            var head = document.getElementById('dataHead');
+            var body = document.getElementById('dataBody');
+
+            switch (endpoint) {
+                case 'warehouses':
+                    head.innerHTML = '<tr><th>Nombre</th><th>Ubicacion</th><th>Capacidad</th><th>Estado</th><th></th></tr>';
+                    if (list.length === 0) { body.innerHTML = '<tr><td colspan="5"><div class="empty-state"><p>No hay almacenes. Crea el primero.</p></div></td></tr>'; return; }
+                    body.innerHTML = list.map(function(w) {
+                        return '<tr><td><strong>' + (w.name || '-') + '</strong></td><td>' + (w.location || '-') + '</td><td>' + (w.capacity || '-') + '</td><td>' + (w.is_active ? '<span class="badge-stock ok">Activo</span>' : '<span class="badge-stock low">Inactivo</span>') + '</td><td><div class="actions"><button onclick="editar(\'warehouse\',' + w.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'warehouses\',' + w.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                    }).join('');
+                    break;
+
+                case 'supplies':
+                    head.innerHTML = '<tr><th>Nombre</th><th>Stock</th><th>Minimo</th><th>Unidad</th><th>Almacen</th><th>Categoria</th><th></th></tr>';
+                    if (list.length === 0) { body.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>No hay insumos registrados.</p></div></td></tr>'; return; }
+                    body.innerHTML = list.map(function(s) {
+                        var stockBadge = (s.quantity || 0) <= (s.minimum_stock || 5) ? 'low' : ((s.quantity || 0) <= (s.minimum_stock || 5) * 2 ? 'warn' : 'ok');
+                        return '<tr><td><strong>' + (s.name || '-') + '</strong></td><td><span class="badge-stock ' + stockBadge + '">' + (s.quantity || 0) + '</span></td><td>' + (s.minimum_stock || 5) + '</td><td>' + (s.unit || s.measure_unit || '-') + '</td><td>' + (s.warehouse_name || s.warehouse_name_display || '-') + '</td><td>' + (s.category_name || '-') + '</td><td><div class="actions"><button onclick="editar(\'supply\',' + s.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'supplies\',' + s.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                    }).join('');
+                    break;
+
+                case 'inventory-movements':
+                    head.innerHTML = '<tr><th>Insumo</th><th>Tipo</th><th>Cantidad</th><th>Almacen</th><th>Fecha</th><th>Notas</th><th></th></tr>';
+                    if (list.length === 0) { body.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>No hay movimientos registrados.</p></div></td></tr>'; return; }
+                    body.innerHTML = list.map(function(m) {
+                        var badgeCls = (m.movement_type === 'in' || m.movement_type === 'entrada') ? 'in' : 'out';
+                        return '<tr><td><strong>' + (m.supply_name || m.supply || '-') + '</strong></td><td><span class="badge-type ' + badgeCls + '">' + (m.movement_type || '-') + '</span></td><td>' + (m.quantity || 0) + '</td><td>' + (m.warehouse_name || '-') + '</td><td>' + (m.date || m.movement_date || m.created_at || '-') + '</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">' + (m.notes || '-') + '</td><td><div class="actions"><button onclick="editar(\'movement\',' + m.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'inventory-movements\',' + m.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                    }).join('');
+                    break;
+
+                case 'machinery':
+                    head.innerHTML = '<tr><th>Nombre</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Estado</th><th></th></tr>';
+                    if (list.length === 0) { body.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>No hay maquinaria registrada.</p></div></td></tr>'; return; }
+                    body.innerHTML = list.map(function(m) {
+                        return '<tr><td><strong>' + (m.name || '-') + '</strong></td><td>' + (m.machinery_type || m.type || '-') + '</td><td>' + (m.brand || '-') + '</td><td>' + (m.model || '-') + '</td><td><span class="badge-stock ok">' + (m.status || 'Activo') + '</span></td><td><div class="actions"><button onclick="editar(\'machinery\',' + m.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'machinery\',' + m.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                    }).join('');
+                    break;
+            }
+        } catch(e) {
+            document.getElementById('dataBody').innerHTML = '<tr><td colspan="10" style="text-align:center;padding:20px;color:#DC2626">Error al cargar datos.</td></tr>';
+        }
+    }
+
+    async function loadContacts() {
+        try {
+            var cr = await fetch(INV + 'companies/', {headers:hdrs()});
+            var companies = await cr.json();
+            var clist = Array.isArray(companies) ? companies : (companies.results || []);
+            var cb = document.getElementById('companyBody');
+            if (clist.length === 0) {
+                cb.innerHTML = '<tr><td colspan="5"><div class="empty-state"><p>No hay empresas registradas.</p></div></td></tr>';
+            } else {
+                cb.innerHTML = clist.map(function(c) {
+                    return '<tr><td><strong>' + (c.name || '-') + '</strong></td><td>' + (c.nit || c.tax_id || '-') + '</td><td>' + (c.email || c.contact_email || '-') + '</td><td>' + (c.phone || '-') + '</td><td><div class="actions"><button onclick="editar(\'company\',' + c.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'companies\',' + c.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                }).join('');
+            }
+        } catch(e) { document.getElementById('companyBody').innerHTML = '<tr><td colspan="5" style="color:#DC2626">Error</td></tr>'; }
+
+        try {
+            var sr = await fetch(INV + 'suppliers/', {headers:hdrs()});
+            var suppliers = await sr.json();
+            var slist = Array.isArray(suppliers) ? suppliers : (suppliers.results || []);
+            var sb = document.getElementById('supplierBody');
+            if (slist.length === 0) {
+                sb.innerHTML = '<tr><td colspan="4"><div class="empty-state"><p>No hay proveedores registrados.</p></div></td></tr>';
+            } else {
+                sb.innerHTML = slist.map(function(s) {
+                    return '<tr><td><strong>' + (s.name || '-') + '</strong></td><td>' + (s.email || '-') + '</td><td>' + (s.phone || '-') + '</td><td><div class="actions"><button onclick="editar(\'supplier\',' + s.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'suppliers\',' + s.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                }).join('');
+            }
+        } catch(e) { document.getElementById('supplierBody').innerHTML = '<tr><td colspan="4" style="color:#DC2626">Error</td></tr>'; }
+    }
+
+    // ========== MODAL ==========
+    function abrirModal(type, id) {
+        editId = id || null;
+        editType = type;
+        var title = '', body = '';
+
+        switch(type) {
+            case 'warehouse':
+                title = (id ? 'Editar' : 'Nuevo') + ' Almacen';
+                body = '<div class="fld"><label>Nombre</label><input id="mf_name" placeholder="Ej: Bodega Principal"></div>' +
+                       '<div class="fld"><label>Ubicacion</label><input id="mf_location" placeholder="Ej: Sector Norte"></div>' +
+                       '<div class="fld"><label>Capacidad</label><input id="mf_capacity" type="number" placeholder="Ej: 1000"></div>';
+                break;
+            case 'supply':
+                title = (id ? 'Editar' : 'Nuevo') + ' Insumo';
+                body = '<div class="fld"><label>Nombre</label><input id="mf_name" placeholder="Ej: Fertilizante NPK"></div>' +
+                       '<div class="fld-row"><div class="fld"><label>Cantidad</label><input id="mf_quantity" type="number" placeholder="0"></div><div class="fld"><label>Stock Minimo</label><input id="mf_minimum_stock" type="number" placeholder="5"></div></div>' +
+                       '<div class="fld"><label>Unidad</label><input id="mf_unit" placeholder="Ej: kg, L, unidad"></div>' +
+                       '<div class="fld"><label>Almacen</label><select id="mf_warehouse"><option value="">Seleccionar...</option></select></div>' +
+                       '<div class="fld"><label>Categoria</label><select id="mf_category"><option value="">Seleccionar...</option></select></div>';
+                break;
+            case 'movement':
+                title = (id ? 'Editar' : 'Nuevo') + ' Movimiento';
+                body = '<div class="fld"><label>Tipo</label><select id="mf_movement_type"><option value="entrada">Entrada</option><option value="salida">Salida</option></select></div>' +
+                       '<div class="fld"><label>Insumo</label><select id="mf_supply"><option value="">Seleccionar...</option></select></div>' +
+                       '<div class="fld-row"><div class="fld"><label>Cantidad</label><input id="mf_quantity" type="number" placeholder="0"></div><div class="fld"><label>Fecha</label><input id="mf_date" type="date"></div></div>' +
+                       '<div class="fld"><label>Almacen</label><select id="mf_warehouse"><option value="">Seleccionar...</option></select></div>' +
+                       '<div class="fld"><label>Notas</label><textarea id="mf_notes" rows="2" placeholder="Motivo del movimiento..."></textarea></div>';
+                break;
+            case 'machinery':
+                title = (id ? 'Editar' : 'Nueva') + ' Maquina';
+                body = '<div class="fld"><label>Nombre</label><input id="mf_name" placeholder="Ej: Tractor John Deere"></div>' +
+                       '<div class="fld-row"><div class="fld"><label>Tipo</label><input id="mf_type" placeholder="Ej: Tractor"></div><div class="fld"><label>Marca</label><input id="mf_brand" placeholder="Ej: John Deere"></div></div>' +
+                       '<div class="fld-row"><div class="fld"><label>Modelo</label><input id="mf_model" placeholder="Ej: 5075E"></div><div class="fld"><label>Ano</label><input id="mf_year" type="number" placeholder="2023"></div></div>' +
+                       '<div class="fld"><label>Estado</label><select id="mf_status"><option value="operativa">Operativa</option><option value="mantenimiento">En Mantenimiento</option><option value="fuera_servicio">Fuera de Servicio</option></select></div>';
+                break;
+            case 'company':
+                title = (id ? 'Editar' : 'Nueva') + ' Empresa';
+                body = '<div class="fld"><label>Nombre</label><input id="mf_name" placeholder="Ej: AgroInsumos S.A."></div>' +
+                       '<div class="fld"><label>NIT</label><input id="mf_nit" placeholder="Ej: 900123456-7"></div>' +
+                       '<div class="fld-row"><div class="fld"><label>Email</label><input id="mf_email" type="email" placeholder="contacto@empresa.com"></div><div class="fld"><label>Telefono</label><input id="mf_phone" placeholder="+57 300 123 4567"></div></div>' +
+                       '<div class="fld"><label>Direccion</label><input id="mf_address" placeholder="Calle 123, Bogota"></div>';
+                break;
+            case 'supplier':
+                title = (id ? 'Editar' : 'Nuevo') + ' Proveedor';
+                body = '<div class="fld"><label>Nombre</label><input id="mf_name" placeholder="Ej: Distribuidora Agricola"></div>' +
+                       '<div class="fld-row"><div class="fld"><label>Email</label><input id="mf_email" type="email" placeholder="ventas@proveedor.com"></div><div class="fld"><label>Telefono</label><input id="mf_phone" placeholder="+57 310 456 7890"></div></div>';
+                break;
+        }
+
+        document.getElementById('crudModalTitle').textContent = title;
+        document.getElementById('crudModalBody').innerHTML = body;
+        var modal = new bootstrap.Modal(document.getElementById('crudModal'));
+        modal.show();
+
+        if (type === 'supply' || type === 'movement') cargarSelectsModal(type);
+
+        if (id) cargarDatosEdicion(type, id);
+    }
+
+    async function cargarSelectsModal(type) {
+        try {
+            var wr = await fetch(INV + 'warehouses/', {headers:hdrs()});
+            var warehouses = await wr.json();
+            var wlist = Array.isArray(warehouses) ? warehouses : (warehouses.results || []);
+            var wsel = document.getElementById('mf_warehouse');
+            if (wsel) wsel.innerHTML = '<option value="">Seleccionar...</option>' + wlist.map(function(w) { return '<option value="' + w.id + '">' + w.name + '</option>'; }).join('');
+        } catch(e) {}
+
+        if (type === 'supply') {
+            try {
+                var cr = await fetch(INV + 'categories/', {headers:hdrs()});
+                var cats = await cr.json();
+                var clist = Array.isArray(cats) ? cats : (cats.results || []);
+                var csel = document.getElementById('mf_category');
+                if (csel) csel.innerHTML = '<option value="">Seleccionar...</option>' + clist.map(function(c) { return '<option value="' + c.id + '">' + c.name + '</option>'; }).join('');
+            } catch(e) {}
+        }
+
+        if (type === 'movement') {
+            try {
+                var sr = await fetch(INV + 'supplies/', {headers:hdrs()});
+                var supplies = await sr.json();
+                var slist = Array.isArray(supplies) ? supplies : (supplies.results || []);
+                var ssel = document.getElementById('mf_supply');
+                if (ssel) ssel.innerHTML = '<option value="">Seleccionar...</option>' + slist.map(function(s) { return '<option value="' + s.id + '">' + s.name + '</option>'; }).join('');
+            } catch(e) {}
+        }
+    }
+
+    async function cargarDatosEdicion(type, id) {
+        var endpointMap = {
+            'warehouse': 'warehouses', 'supply': 'supplies', 'movement': 'inventory-movements',
+            'machinery': 'machinery', 'company': 'companies', 'supplier': 'suppliers'
+        };
+        try {
+            var r = await fetch(INV + endpointMap[type] + '/' + id + '/', {headers:hdrs()});
+            var d = await r.json();
+            setVal('mf_name', d.name);
+            setVal('mf_location', d.location);
+            setVal('mf_capacity', d.capacity);
+            setVal('mf_quantity', d.quantity);
+            setVal('mf_minimum_stock', d.minimum_stock);
+            setVal('mf_unit', d.unit || d.measure_unit);
+            setVal('mf_movement_type', d.movement_type);
+            setVal('mf_date', d.date || d.movement_date);
+            setVal('mf_notes', d.notes);
+            setVal('mf_type', d.machinery_type || d.type);
+            setVal('mf_brand', d.brand);
+            setVal('mf_model', d.model);
+            setVal('mf_year', d.year);
+            setVal('mf_status', d.status);
+            setVal('mf_nit', d.nit || d.tax_id);
+            setVal('mf_email', d.email || d.contact_email);
+            setVal('mf_phone', d.phone);
+            setVal('mf_address', d.address);
+            if (d.warehouse) setVal('mf_warehouse', d.warehouse.id || d.warehouse);
+            if (d.supply) setVal('mf_supply', d.supply.id || d.supply);
+            if (d.category) setVal('mf_category', d.category.id || d.category);
+        } catch(e) {}
+    }
+
+    function setVal(id, val) {
+        var el = document.getElementById(id);
+        if (el && val !== undefined && val !== null) el.value = val;
+    }
+
+    function getVal(id) {
+        var el = document.getElementById(id);
+        return el ? el.value : '';
+    }
+
+    // ========== SAVE ==========
+    document.getElementById('crudModalSave').addEventListener('click', async function() {
+        var endpointMap = {
+            'warehouse': 'warehouses/', 'supply': 'supplies/', 'movement': 'inventory-movements/',
+            'machinery': 'machinery/', 'company': 'companies/', 'supplier': 'suppliers/'
+        };
+        var payload = {};
+        switch (editType) {
+            case 'warehouse': payload = {name:getVal('mf_name'), location:getVal('mf_location'), capacity:parseInt(getVal('mf_capacity'))||0}; break;
+            case 'supply': payload = {name:getVal('mf_name'), quantity:parseInt(getVal('mf_quantity'))||0, minimum_stock:parseInt(getVal('mf_minimum_stock'))||5, unit:getVal('mf_unit'), warehouse:getVal('mf_warehouse')||null, category:getVal('mf_category')||null}; break;
+            case 'movement': payload = {movement_type:getVal('mf_movement_type')||'entrada', quantity:parseInt(getVal('mf_quantity'))||0, supply:getVal('mf_supply')||null, warehouse:getVal('mf_warehouse')||null, notes:getVal('mf_notes'), date:getVal('mf_date')}; break;
+            case 'machinery': payload = {name:getVal('mf_name'), type:getVal('mf_type'), brand:getVal('mf_brand'), model:getVal('mf_model'), year:parseInt(getVal('mf_year'))||null, status:getVal('mf_status')||'operativa'}; break;
+            case 'company': payload = {name:getVal('mf_name'), nit:getVal('mf_nit'), email:getVal('mf_email'), phone:getVal('mf_phone'), address:getVal('mf_address')}; break;
+            case 'supplier': payload = {name:getVal('mf_name'), email:getVal('mf_email'), phone:getVal('mf_phone')}; break;
+        }
+
+        var url = INV + endpointMap[editType];
+        var method = 'POST';
+        if (editId) { url += editId + '/'; method = 'PUT'; }
+
+        try {
+            var r = await fetch(url, {method:method, headers:hdrs(), body:JSON.stringify(payload)});
+            if (r.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('crudModal')).hide();
+                renderTab(currentTab);
+                loadStats();
+            } else {
+                var err = await r.json();
+                alert('Error al guardar: ' + JSON.stringify(err));
+            }
+        } catch(e) { alert('Error de conexion al guardar'); }
+    });
+
+    function editar(type, id) { abrirModal(type, id); }
+
+    async function eliminar(endpoint, id) {
+        if (!confirm('Eliminar este registro? Esta accion no se puede deshacer.')) return;
+        try {
+            var r = await fetch(INV + endpoint + '/' + id + '/', {method:'DELETE', headers:hdrs()});
+            if (r.ok) { renderTab(currentTab); loadStats(); }
+            else alert('Error al eliminar');
+        } catch(e) { alert('Error de conexion'); }
+    }
+
+    // ========== INIT ==========
+    document.addEventListener('DOMContentLoaded', function() {
+        renderTab('general');
+    });
+
+    function handleResponsiveNav() {
+        var topbar = document.getElementById('topbar-container');
+        if (topbar) topbar.style.display = window.innerWidth <= 991 ? 'none' : 'block';
     }
     window.addEventListener('resize', handleResponsiveNav);
     window.addEventListener('DOMContentLoaded', handleResponsiveNav);
     </script>
+
     <script type="module">
         import { loadLayoutComponents } from '/static/js/load_components.js';
-        const components = {
-            // El topbar se carga pero se oculta en móvil
-            "topbar-container": "/templates/partials/horizontal-nav.html",
-            "footer-container": "/templates/partials/footer.html",
+        loadLayoutComponents({
             "left-sidebar": "/templates/partials/left-sidebar.html",
-            "righsidebar": "/templates/partials/right-sidebar.html",
-            "vendorjs": "/templates/partials/vendorjs.html"
-        };
-        loadLayoutComponents(components);
+            "topbar-container": "/templates/partials/horizontal-nav.html",
+        });
     </script>
+
+    <script src="/static/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

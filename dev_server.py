@@ -35,11 +35,8 @@ BACKEND = "http://localhost:8000"
 FRONTEND_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ROUTE_MAP = {
-    "/dashboard": "templates/dashboard.html",
-    "/billing":   "templates/billing.html",
     "/login":     "templates/authentication/login.html",
     "/register":  "templates/authentication/register.html",
-    "/staff":     "templates/staff-dashboard.html",
 }
 
 PROXY_PREFIXES = (
@@ -47,6 +44,7 @@ PROXY_PREFIXES = (
     "/billing/",
     "/staff/api/",
     "/health/",
+    "/static/",
 )
 
 

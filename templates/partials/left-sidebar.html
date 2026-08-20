@@ -145,15 +145,21 @@
     <ul class="nav-menu" id="sidebar-nav">
         <li class="nav-section">Principal</li>
         <li><a href="/templates/dashboard.html" data-page="dashboard"><i class="ti ti-home"></i> Dashboard</a></li>
-        
-        <li class="nav-section">Operaciones</li>
         <li><a href="/templates/parcels/parcels-dashboard.html" data-page="parcels"><i class="ti ti-map-2"></i> Parcelas</a></li>
         <li><a href="/templates/crop/crop_list.html" data-page="crop"><i class="ti ti-plant"></i> Cultivos</a></li>
-        <li><a href="/templates/labores/labores-dashboard.html" data-page="labores"><i class="ti ti-list-check"></i> Labores</a></li>
-        
+
+        <li class="nav-section">Gestion</li>
+        <li><a href="/templates/inventory/inventario-dashboard.html" data-page="inventory"><i class="ti ti-box"></i> Inventario</a></li>
+        <li><a href="/templates/employees/RRHH-dashboard.html" data-page="employees"><i class="ti ti-users"></i> Empleados</a></li>
+        <li><a href="/templates/labores/labores-dashboard.html" data-page="labores"><i class="ti ti-checkbox"></i> Labores</a></li>
+
+        <li class="nav-section">Suscripcion</li>
+        <li><a href="/templates/billing.html" data-page="billing"><i class="ti ti-credit-card"></i> Facturacion</a></li>
+        <li><a href="/templates/billing.html" data-page="billing-usage"><i class="ti ti-chart-bar"></i> Uso & Limites</a></li>
+
         <li class="nav-section">Cuenta</li>
-        <li><a href="/templates/billing/pricing.html" data-page="billing"><i class="ti ti-credit-card"></i> Facturación</a></li>
-        <li><a href="/templates/pages/profile.html" data-page="profile"><i class="ti ti-user-circle"></i> Mi Perfil</a></li>
+        <li><a href="/templates/pages/profile.html" data-page="profile"><i class="ti ti-user-circle"></i> Perfil</a></li>
+        <li><a href="#" data-page="logout" onclick="if(confirm('Cerrar sesion?')){localStorage.clear();sessionStorage.clear();window.location.href='/login';}return false;"><i class="ti ti-logout"></i> Cerrar Sesion</a></li>
     </ul>
     <!-- Footer -->
     <div class="sidebar-footer">
@@ -178,7 +184,10 @@ document.addEventListener('DOMContentLoaded', function() {
             (page === 'parcels' && currentPath.includes('parcels')) ||
             (page === 'crop' && currentPath.includes('crop')) ||
             (page === 'labores' && currentPath.includes('labores')) ||
+            (page === 'inventory' && currentPath.includes('inventory')) ||
+            (page === 'employees' && currentPath.includes('employees') || currentPath.includes('RRHH')) ||
             (page === 'billing' && currentPath.includes('billing')) ||
+            (page === 'billing-usage' && currentPath.includes('billing')) ||
             (page === 'profile' && currentPath.includes('profile')) ||
             (page === 'dashboard' && (currentPath.includes('dashboard.html') || currentPath === '/' || currentPath === '/templates/'))
         ) {

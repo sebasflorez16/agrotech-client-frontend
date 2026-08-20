@@ -121,7 +121,7 @@
         <section class="faq-section">
             <h2>Preguntas frecuentes</h2>
             <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Puedo cambiar de plan después? <span class="arrow">▼</span></div><div class="faq-a">Sí, puedes upgrade o downgrade en cualquier momento. Los cambios se aplican de forma inmediata y se prorratea el monto.</div></div>
-            <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Qué métodos de pago aceptan? <span class="arrow">▼</span></div><div class="faq-a">Aceptamos tarjetas de crédito, débito, PSE, Nequi, Daviplata y más a través de MercadoPago.</div></div>
+            <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">Que metodos de pago aceptan? <span class="arrow">&#x25BC;</span></div><div class="faq-a">Aceptamos tarjetas de credito, debito, PSE, Nequi, Daviplata y mas a traves de Wompi.</div></div>
             <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Los análisis satelitales son en tiempo real? <span class="arrow">▼</span></div><div class="faq-a">Utilizamos imágenes de los satélites Sentinel-2 y Landsat con una frecuencia de 3-5 días, procesadas mediante análisis satelital avanzado.</div></div>
             <div class="faq-item"><div class="faq-q" onclick="this.parentElement.classList.toggle('open')">¿Puedo cancelar en cualquier momento? <span class="arrow">▼</span></div><div class="faq-a">Sí, puedes cancelar tu suscripción en cualquier momento sin penalizaciones. Tu acceso continuará hasta el final del periodo facturado.</div></div>
         </section>
@@ -186,21 +186,21 @@
             },
             {
                 tier: 'basic', name: 'Agricultor', description: 'Plan profesional',
-                price_cop: '89000.00', price_usd: '21.00', frequency: 1,
-                limits: { users: 3, parcels: 5, hectares: 100, eosda_requests: 60 },
+                price_cop: '79000.00', price_usd: '19.00', frequency: 1,
+                limits: { users: 3, parcels: 10, hectares: 250, eosda_requests: 150 },
                 features_included: ['ndvi', 'savi', 'weather_basic'],
                 features_excluded: ['ndmi', 'evi', 'weather_full'],
                 is_custom: false, trial_days: 14,
-                yearly_discount: { yearly_price_cop: 854400, savings_cop: 213600, yearly_price_usd: 202, savings_usd: 50, discount_percent: 20 }
+                yearly_discount: { yearly_price_cop: 790000, savings_cop: 158000, yearly_price_usd: 182, savings_usd: 46, discount_percent: 20 }
             },
             {
                 tier: 'pro', name: 'Empresarial', description: 'Plan empresarial',
-                price_cop: '259000.00', price_usd: '62.00', frequency: 1,
+                price_cop: '179000.00', price_usd: '43.00', frequency: 1,
                 limits: { users: 5, parcels: 20, hectares: 500, eosda_requests: 300 },
                 features_included: ['ndvi', 'savi', 'ndmi', 'evi', 'weather_full'],
                 features_excluded: [],
                 is_custom: false, trial_days: 14,
-                yearly_discount: { yearly_price_cop: 2486400, savings_cop: 621600, yearly_price_usd: 595, savings_usd: 149, discount_percent: 20 }
+                yearly_discount: { yearly_price_cop: 1790000, savings_cop: 358000, yearly_price_usd: 413, savings_usd: 103, discount_percent: 20 }
             }
         ];
 
@@ -256,7 +256,7 @@
 
                 var items = [
                     '<li><span class="check">✓</span> Hasta ' + p.limits.hectares + ' hectáreas <span class="limit-tag">' + p.limits.hectares + ' ha</span></li>',
-                    '<li><span class="check">✓</span> ' + p.limits.eosda_requests + ' análisis/mes <span class="limit-tag">' + p.limits.eosda_requests + '</span></li>',
+                    '<li><span class="check">✓</span> ' + p.limits.eosda_requests + ' analisis satelitales/mes <span class="limit-tag">' + p.limits.eosda_requests + '</span></li>',
                     '<li><span class="check">✓</span> ' + p.limits.users + ' usuario' + (p.limits.users > 1 ? 's' : '') + '</li>',
                     '<li><span class="check">✓</span> ' + p.limits.parcels + ' parcela' + (p.limits.parcels > 1 ? 's' : '') + '</li>'
                 ];

@@ -264,6 +264,29 @@ registerForm.addEventListener('submit', async (e) => {
         }
         
         // Success!
+        if (data.requires_email_verification) {
+            // Verificacion de email requerida → mostrar mensaje y no redirigir
+            registerForm.style.display = 'none';
+            document.querySelector('.steps').style.display = 'none';
+            document.querySelector('.subtitle').style.display = 'none';
+            document.querySelector('.login-link').style.display = 'none';
+            
+            document.getElementById('successMessage').innerHTML = `
+                <h3>🌱 Cuenta creada!</h3>
+                <p>Te hemos enviado un correo de verificacion a <strong>${document.getElementById('email').value}</strong>.</p>
+                <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary);">
+                    Revisa tu bandeja de entrada (y spam) y haz clic en el enlace para activar tu cuenta.
+                </p>
+                <a href="login.html" style="display: inline-block; margin-top: 16px; background: var(--agrotech-primary); color: white; padding: 10px 24px; border-radius: 100px; text-decoration: none; font-weight: 600;">
+                    Ir a iniciar sesion
+                </a>
+            `;
+            successMessage.classList.add('show');
+            setLoading(false);
+            return;
+        }
+        
+        // Flujo legacy: si el backend devuelve tokens (sin verificacion)
         if (data.data && data.data.tokens) {
             localStorage.setItem('accessToken', data.data.tokens.access);
             localStorage.setItem('refreshToken', data.data.tokens.refresh);

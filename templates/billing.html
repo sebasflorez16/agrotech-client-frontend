@@ -1,24 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Meta Pixel Code -->
-    <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '1521929183273863');
-    fbq('track', 'PageView');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=1521929183273863&ev=PageView&noscript=1"
-    /></noscript>
-    <!-- End Meta Pixel Code -->
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facturación - AgroTech Digital</title>
@@ -31,7 +13,6 @@
     
     <!-- 🌍 Configuración global (debe cargarse primero) -->
     <script src="../js/config.js"></script>
-    <script src="../js/auth-global.js"></script>
     
     <!-- Tabler Icons -->
     <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
@@ -216,19 +197,61 @@
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .sidebar {
-                display: none;
+                display: flex;
+                position: fixed;
+                left: -280px;
+                top: 0;
+                bottom: 0;
+                width: 260px;
+                z-index: 1050;
+                transition: left 0.25s ease;
+                box-shadow: 0 0 40px rgba(0,0,0,0.35);
             }
-            
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .sidebar-backdrop {
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.5);
+                z-index: 1040;
+            }
+
+            .sidebar-backdrop.show {
+                display: block;
+            }
+
             .main-content {
                 margin-left: 0;
                 padding: var(--space-lg);
             }
-            
+
             .metrics-grid {
                 grid-template-columns: 1fr;
             }
+
+            .nav-toggle {
+                display: inline-flex !important;
+            }
+        }
+
+        .nav-toggle {
+            display: none;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--glass-dark);
+            color: var(--text-primary, #fff);
+            border-radius: var(--radius-md);
+            padding: 8px 12px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-right: 12px;
+            line-height: 1;
         }
     </style>
+    <link href="../css/mobile-nav.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
     <div class="dashboard-layout">
@@ -242,51 +265,51 @@
             <nav>
                 <div class="nav-section">
                     <div class="nav-section-title">Principal</div>
-                    <a href="dashboard.html" class="nav-item-glass">
+                    <a href="/templates/dashboard.html" class="nav-item-glass">
                         <i class="ti ti-home"></i>
                         <span>Dashboard</span>
                     </a>
-                    <a href="parcels/parcels-dashboard.html" class="nav-item-glass">
+                    <a href="/templates/parcels/parcels-dashboard.html" class="nav-item-glass">
                         <i class="ti ti-map"></i>
                         <span>Parcelas</span>
                     </a>
-                    <a href="crop/crop_list.html" class="nav-item-glass">
+                    <a href="/templates/crop/crop_list.html" class="nav-item-glass">
                         <i class="ti ti-plant"></i>
                         <span>Cultivos</span>
                     </a>
                 </div>
                 
                 <div class="nav-section">
-                    <div class="nav-section-title">Gestión</div>
-                    <a href="inventory/inventario-dashboard.html" class="nav-item-glass">
+                    <div class="nav-section-title">Gestion</div>
+                    <a href="/templates/inventory/inventario-dashboard.html" class="nav-item-glass">
                         <i class="ti ti-box"></i>
                         <span>Inventario</span>
                     </a>
-                    <a href="employees/RRHH-dashboard.html" class="nav-item-glass">
+                    <a href="/templates/employees/RRHH-dashboard.html" class="nav-item-glass">
                         <i class="ti ti-users"></i>
                         <span>Empleados</span>
                     </a>
-                    <a href="labores/labores-dashboard.html" class="nav-item-glass">
+                    <a href="/templates/labores/labores-dashboard.html" class="nav-item-glass">
                         <i class="ti ti-checkbox"></i>
                         <span>Labores</span>
                     </a>
                 </div>
                 
                 <div class="nav-section">
-                    <div class="nav-section-title">Suscripción</div>
-                    <a href="billing.html" class="nav-item-glass active">
+                    <div class="nav-section-title">Suscripcion</div>
+                    <a href="/templates/billing.html" class="nav-item-glass active">
                         <i class="ti ti-credit-card"></i>
-                        <span>Facturación</span>
+                        <span>Facturacion</span>
                     </a>
-                    <a href="billing.html" class="nav-item-glass">
+                    <a href="/templates/billing.html" class="nav-item-glass">
                         <i class="ti ti-chart-bar"></i>
-                        <span>Uso & Límites</span>
+                        <span>Uso & Limites</span>
                     </a>
                 </div>
                 
                 <div class="nav-section">
                     <div class="nav-section-title">Cuenta</div>
-                    <a href="pages/profile.html" class="nav-item-glass">
+                    <a href="/templates/pages/profile.html" class="nav-item-glass">
                         <i class="ti ti-settings"></i>
                         <span>Configuración</span>
                     </a>
@@ -297,13 +320,23 @@
                 </div>
             </nav>
         </aside>
+
+        <!-- Backdrop móvil para cerrar el menú -->
+        <div class="sidebar-backdrop" onclick="document.querySelector('.sidebar').classList.remove('open');this.classList.remove('show');"></div>
         
         <!-- Main Content -->
         <main class="main-content">
             <!-- Page Header -->
             <div class="page-header">
-                <h1>Facturación y Uso</h1>
-                <p class="page-subtitle">Monitorea tu consumo y gestiona tu suscripción</p>
+                <div style="display:flex;align-items:center;">
+                    <button class="nav-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open');document.querySelector('.sidebar-backdrop').classList.toggle('show');" aria-label="Abrir menú">
+                        ☰
+                    </button>
+                    <div>
+                        <h1>Facturación y Uso</h1>
+                        <p class="page-subtitle">Monitorea tu consumo y gestiona tu suscripción</p>
+                    </div>
+                </div>
             </div>
             
             <!-- Usage Metrics -->
@@ -314,14 +347,37 @@
             <!-- Usage History Chart -->
             <div class="chart-container">
                 <div class="chart-header">
-                    <h2>Historial de Uso - Análisis Satelital</h2>
+                    <h2>Historial de Uso</h2>
                     <select class="input-glass" style="width: auto;" id="monthsSelect">
                         <option value="3">Últimos 3 meses</option>
                         <option value="6" selected>Últimos 6 meses</option>
                         <option value="12">Últimos 12 meses</option>
                     </select>
                 </div>
-                <canvas id="usageChart" height="100"></canvas>
+                <div style="position: relative; min-height: 300px;">
+                    <canvas id="usageChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Plan y Upgrade -->
+            <div class="invoice-card" id="planCard" style="margin-bottom: 24px;">
+                <div class="invoice-header" style="display: flex; align-items: center; justify-content: space-between;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; margin-bottom: var(--space-xs);">Tu Plan Actual</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.875rem;" id="currentPlanName">Cargando...</p>
+                    </div>
+                    <span class="plan-badge" id="planBadge" style="padding: 6px 18px; border-radius: 9999px; font-weight: 700; font-size: 0.8rem;"></span>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 16px;">
+                    <a href="/templates/billing/pricing.html" class="btn-glass-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px;">
+                        <i class="ti ti-arrow-up-circle"></i> Mejorar Plan
+                    </a>
+                    <a href="https://wa.me/573223088873?text=Hola%20AgroTech,%20necesito%20un%20plan%20personalizado%20con%20mas%20recursos" 
+                       target="_blank" rel="noopener"
+                       style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; background: #25D366; color: #fff; border-radius: 9999px; text-decoration: none; font-weight: 600; font-size: 14px;">
+                        <i class="ti ti-brand-whatsapp" style="font-size: 18px;"></i> Plan Personalizado
+                    </a>
+                </div>
             </div>
             
             <!-- Current Invoice -->
@@ -352,6 +408,14 @@
     </div>
     
     <!-- Scripts -->
+    <script src="../js/utils/api-utils.js"></script>
     <script src="../js/billing-liquid.js"></script>
+    <nav class="mobile-bottom-nav">
+        <a href="/templates/dashboard.html"><i>📊</i><span>Dashboard</span></a>
+        <a href="/templates/parcels/parcels-dashboard.html"><i>🗺️</i><span>Parcelas</span></a>
+        <a href="/templates/crop/crop_list.html"><i>🌱</i><span>Cultivos</span></a>
+        <a href="/templates/billing.html" class="active"><i>💳</i><span>Facturacion</span></a>
+        <a href="/templates/pages/profile.html"><i>👤</i><span>Perfil</span></a>
+    </nav>
 </body>
 </html>

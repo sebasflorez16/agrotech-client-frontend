@@ -3,136 +3,433 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0B0F14">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Gestión de Labores | Agrotech</title>
+    <meta name="theme-color" content="#F5F5F7">
+    <title>Labores | AgroTech Digital</title>
+    <link rel="shortcut icon" href="../../images/agrotech solo negro.png">
+    <script src="../../js/config.js"></script>
+    <script src="../../js/auth-global.js"></script>
+    <link rel="stylesheet" href="../../css/liquid-glass-system.css">
+    <link rel="stylesheet" href="../../css/global-mobile-responsive.css">
+    <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
     <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
-    <link href="/static/css/icons.min.css" rel="stylesheet" type="text/css" />
-    <link href="/static/css/app.min.css" rel="stylesheet" type="text/css" />
-    <!-- Global Mobile Responsive -->
-    <link href="../../css/global-mobile-responsive.css" rel="stylesheet" type="text/css" />
     <style>
-        body { background: #f8fafc; }
-        .table thead th { background: #e9ecef; }
+        :root { --bg-gradient: linear-gradient(135deg, #F5F5F7 0%, #E8E8ED 100%); }
+        body { background: var(--bg-gradient); background-attachment: fixed; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", system-ui, sans-serif; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+        .page-wrap { max-width: 1300px; margin: 0 auto; padding: 100px 28px 60px; }
+        .page-hdr { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+        .page-hdr h1 { font-size: clamp(24px,4vw,36px); font-weight: 800; letter-spacing: -0.03em; background: linear-gradient(135deg,#1D1D1F 0%,#2FB344 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; display: flex; align-items: center; gap: 12px; }
+        .page-hdr h1 i { font-size: 28px; color: #2FB344; background: rgba(47,179,68,0.1); padding: 10px; border-radius: 14px; -webkit-text-fill-color: #2FB344; }
+        .btn-g { display: inline-flex; align-items: center; gap: 8px; padding: 10px 22px; border-radius: 9999px; border: 1px solid rgba(0,0,0,0.08); background: rgba(255,255,255,0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); font-family: inherit; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; color: #1D1D1F; text-decoration: none; }
+        .btn-g:hover { background: rgba(255,255,255,0.95); box-shadow: 0 4px 16px rgba(0,0,0,0.08); transform: translateY(-1px); }
+        .btn-g.primary { background: rgba(47,179,68,0.1); border-color: rgba(47,179,68,0.2); color: #1E7A2E; }
+        .btn-g.primary:hover { background: #2FB344; color: #fff; border-color: #2FB344; }
+        .btn-g.sm { padding: 6px 14px; font-size: 12px; }
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 28px; }
+        .stat { background: rgba(255,255,255,0.7); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.5); border-radius: 18px; padding: 22px 18px; transition: all 0.3s; }
+        .stat:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(31,38,135,0.08); }
+        .stat .s-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 10px; }
+        .stat .s-label { font-size: 12px; font-weight: 600; color: #86868B; text-transform: uppercase; letter-spacing: 0.05em; }
+        .stat .s-val { font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: #1D1D1F; }
+        .s-blue { background: rgba(59,130,246,0.1); color: #3b82f6; }
+        .s-green { background: rgba(34,197,94,0.1); color: #22c55e; }
+        .s-orange { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .s-red { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+        .tabs { display: flex; gap: 4px; margin-bottom: 24px; overflow-x: auto; padding-bottom: 4px; }
+        .tab { padding: 10px 20px; border-radius: 9999px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.25s; border: none; background: rgba(255,255,255,0.4); color: #86868B; font-family: inherit; }
+        .tab:hover { background: rgba(255,255,255,0.7); color: #1D1D1F; }
+        .tab.active { background: #1D1D1F; color: #fff; }
+
+        .panel { background: rgba(255,255,255,0.7); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.5); border-radius: 22px; padding: 24px; box-shadow: 0 8px 32px rgba(31,38,135,0.06); }
+        .panel-hdr { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; flex-wrap: wrap; }
+        .panel-title { font-size: 17px; font-weight: 700; color: #1D1D1F; }
+
+        .gt-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .gt { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+        .gt th { background: rgba(47,179,68,0.05); color: #1E7A2E; font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; padding: 12px 14px; text-align: left; border-bottom: 2px solid rgba(47,179,68,0.12); white-space: nowrap; }
+        .gt th:first-child { border-radius: 10px 0 0 0; }
+        .gt th:last-child { border-radius: 0 10px 0 0; }
+        .gt td { padding: 12px 14px; border-bottom: 1px solid rgba(0,0,0,0.03); color: #1D1D1F; white-space: nowrap; }
+        .gt tr:hover td { background: rgba(47,179,68,0.02); }
+        .gt .actions { display: flex; gap: 4px; }
+        .gt .actions button { background: none; border: none; padding: 6px 8px; border-radius: 6px; cursor: pointer; color: #86868B; font-size: 16px; transition: all 0.2s; }
+        .gt .actions button:hover { background: rgba(0,0,0,0.05); color: #1D1D1F; }
+        .gt .actions button.del:hover { background: rgba(239,68,68,0.1); color: #DC2626; }
+
+        .badge-st { display: inline-block; padding: 3px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; }
+        .badge-st.pendiente { background: rgba(245,158,11,0.1); color: #d97706; }
+        .badge-st.en_progreso { background: rgba(59,130,246,0.1); color: #2563eb; }
+        .badge-st.completada { background: rgba(34,197,94,0.1); color: #16a34a; }
+        .badge-st.cancelada { background: rgba(239,68,68,0.1); color: #dc2626; }
+
+        .modal-content { border-radius: 22px; border: none; background: rgba(255,255,255,0.97); backdrop-filter: blur(20px); }
+        .modal-header { border-bottom: 1px solid rgba(0,0,0,0.06); padding: 22px 26px; }
+        .modal-title { font-weight: 800; font-size: 18px; }
+        .modal-body { padding: 26px; max-height: 70vh; overflow-y: auto; }
+        .modal-footer { border-top: 1px solid rgba(0,0,0,0.06); padding: 16px 26px; display: flex; gap: 8px; justify-content: flex-end; }
+        .fld { margin-bottom: 16px; }
+        .fld label { display: block; font-weight: 600; font-size: 12px; color: #1D1D1F; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .fld input, .fld select, .fld textarea { width: 100%; padding: 11px 14px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.1); background: rgba(0,0,0,0.02); font-family: inherit; font-size: 14px; color: #1D1D1F; outline: none; transition: border 0.2s; box-sizing: border-box; }
+        .fld input:focus, .fld select:focus, .fld textarea:focus { border-color: #2FB344; box-shadow: 0 0 0 3px rgba(47,179,68,0.08); }
+        .fld-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+        .empty-state { text-align: center; padding: 40px 20px; color: #AEAEB2; }
+        .empty-state i { font-size: 40px; margin-bottom: 10px; opacity: 0.4; }
+        .empty-state p { font-size: 14px; }
+
+        @media (max-width: 768px) {
+            .page-wrap { padding: 84px 16px 40px; }
+            .stats-row { grid-template-columns: repeat(2,1fr); }
+            .fld-row { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
-
     <div id="left-sidebar"></div>
-    <!-- Contenedor del topbar -->
-    <div id="topbar-container"></div>
+    <div id="topbar-container" style="display:none;"></div>
 
-    <div id="main-content" class="container mt-5" style="margin-top: 90px;">
-        <h2 class="mb-4"><i class="fa fa-tasks"></i> Labores Agrícolas</h2>
-        <div class="mb-3 text-end">
-            <button class="btn btn-primary" onclick="window.location.href='/templates/dashboard.html'">
-                <i class="fa fa-arrow-left"></i> Volver al Dashboard
-            </button>
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#laborModal" id="btnNuevaLabor">
-                <i class="fa fa-plus"></i> Nueva Labor
-            </button>
+    <div class="page-wrap">
+        <div class="page-hdr">
+            <h1><i class="ti ti-list-check"></i> Labores</h1>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="/templates/dashboard.html" class="btn-g"><i class="ti ti-arrow-left"></i> Dashboard</a>
+                <button class="btn-g primary" onclick="abrirModal('labor')"><i class="ti ti-plus"></i> Nueva Labor</button>
+            </div>
         </div>
-        <div class="card">
-            <div class="card-body">
-                <table class="table table-hover">
+
+        <div class="stats-row" id="statsRow">
+            <div class="stat"><div class="s-icon s-blue"><i class="ti ti-list-check"></i></div><div class="s-label">Total</div><div class="s-val" id="stTotal">-</div></div>
+            <div class="stat"><div class="s-icon s-orange"><i class="ti ti-clock"></i></div><div class="s-label">Pendientes</div><div class="s-val" id="stPendientes">-</div></div>
+            <div class="stat"><div class="s-icon s-blue"><i class="ti ti-progress"></i></div><div class="s-label">En Progreso</div><div class="s-val" id="stEnProgreso">-</div></div>
+            <div class="stat"><div class="s-icon s-green"><i class="ti ti-circle-check"></i></div><div class="s-label">Completadas</div><div class="s-val" id="stCompletadas">-</div></div>
+        </div>
+
+        <div class="tabs" id="tabNav">
+            <button class="tab active" data-tab="all">Todas</button>
+            <button class="tab" data-tab="pendiente">Pendientes</button>
+            <button class="tab" data-tab="en_progreso">En Progreso</button>
+            <button class="tab" data-tab="completada">Completadas</button>
+        </div>
+
+        <div class="panel">
+            <div class="panel-hdr">
+                <div class="panel-title" id="tableTitle">Lista de Labores</div>
+            </div>
+            <div class="gt-wrap">
+                <table class="gt">
                     <thead>
                         <tr>
                             <th>Nombre</th>
                             <th>Tipo</th>
                             <th>Estado</th>
-                            <th>Fecha Programada</th>
-                            <th>Fecha Realizada</th>
+                            <th>Progreso</th>
                             <th>Parcelas</th>
                             <th>Responsables</th>
-                            <th>Acciones</th>
+                            <th>F. Programada</th>
+                            <th></th>
                         </tr>
                     </thead>
-                    <tbody id="labores-tbody">
-                        <!-- Las labores se cargan aquí dinámicamente -->
+                    <tbody id="dataBody">
+                        <tr><td colspan="8" style="text-align:center;padding:30px">Cargando...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <!-- Modal para crear/editar labor -->
-    <div class="modal fade" id="laborModal" tabindex="-1" aria-labelledby="laborModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="laborModalLabel">Nueva Labor</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-          </div>
-          <div class="modal-body">
-            <form id="laborForm">
-              <input type="hidden" id="laborId">
-              <div class="mb-3">
-                <label for="nombreLabor" class="form-label">Nombre</label>
-                <input type="text" class="form-control" id="nombreLabor" required>
-              </div>
-              <div class="mb-3">
-                <label for="tipoLabor" class="form-label">Tipo</label>
-                <select class="form-select" id="tipoLabor" required>
-                  <option value="">Selecciona un tipo</option>
-                  <option value="siembra">Siembra</option>
-                  <option value="fertilizacion">Fertilización</option>
-                  <option value="riego">Riego</option>
-                  <option value="cosecha">Cosecha</option>
-                  <option value="aplicacion">Aplicación de fitosanitarios</option>
-                  <option value="otra">Otra</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="estadoLabor" class="form-label">Estado</label>
-                <select class="form-select" id="estadoLabor" required>
-                  <option value="pendiente">Pendiente</option>
-                  <option value="en_progreso">En progreso</option>
-                  <option value="completada">Completada</option>
-                  <option value="cancelada">Cancelada</option>
-                </select>
-              </div>
-              <div class="mb-3">
-                <label for="fechaProgramada" class="form-label">Fecha Programada</label>
-                <input type="date" class="form-control" id="fechaProgramada" required>
-              </div>
-              <div class="mb-3">
-                <label for="fechaRealizada" class="form-label">Fecha Realizada</label>
-                <input type="date" class="form-control" id="fechaRealizada">
-              </div>
-              <!-- Parcelas: ahora solo se asignan labores desde la vista de parcela, no desde aquí -->
-              <div class="mb-3">
-                <label for="responsablesLabor" class="form-label">Responsables (opcional)</label>
-                <select class="form-select" id="responsablesLabor" multiple></select>
-                <div class="form-text">Puedes dejar vacío si no deseas asignar encargado(s) ahora.</div>
-              </div>
-              <div class="text-end">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-success">Guardar</button>
-              </div>
-            </form>
-          </div>
+
+    <div class="modal fade" id="crudModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="crudModalTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body" id="crudModalBody"></div>
+                <div class="modal-footer"><button type="button" class="btn-g" data-bs-dismiss="modal">Cancelar</button><button type="button" class="btn-g primary" id="crudModalSave">Guardar</button></div>
+            </div>
         </div>
-      </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/qs/dist/qs.js"></script>
-    <script src="/static/js/app.js"></script>
+
     <script src="/static/js/bootstrap.bundle.min.js"></script>
-    <script src="/static/js/tasks/labores.js"></script>
-    <script src="/static/js/tasks/labores-modal.js"></script>
+    <script>
+    var API = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'http://localhost:8000';
+    var LAB = API + '/api/labores/';
+    var RRHH = API + '/api/RRHH/';
+    var currentFilter = 'all';
+    var editId = null;
+
+    function token() { return localStorage.getItem('accessToken') || ''; }
+    function hdrs() { return {'Authorization':'Bearer '+token(),'Content-Type':'application/json'}; }
+
+    document.getElementById('tabNav').addEventListener('click', function(e) {
+        if (e.target.classList.contains('tab')) {
+            document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active')});
+            e.target.classList.add('active');
+            currentFilter = e.target.dataset.tab;
+            document.getElementById('tableTitle').textContent = currentFilter==='all'?'Lista de Labores':(currentFilter.replace(/_/g,' ').replace(/\b\w/g,function(l){return l.toUpperCase()}));
+            loadLabores();
+        }
+    });
+
+    async function loadStats() {
+        try {
+            var r=await fetch(LAB+'labores/',{headers:hdrs()});
+            var list=await r.json();
+            var arr=Array.isArray(list)?list:(list.results||[]);
+            document.getElementById('stTotal').textContent=arr.length;
+            document.getElementById('stPendientes').textContent=arr.filter(function(l){return l.estado==='pendiente'}).length;
+            document.getElementById('stEnProgreso').textContent=arr.filter(function(l){return l.estado==='en_progreso'}).length;
+            document.getElementById('stCompletadas').textContent=arr.filter(function(l){return l.estado==='completada'}).length;
+        } catch(e) {}
+    }
+
+    async function loadLabores() {
+        try {
+            var r=await fetch(LAB+'labores/',{headers:hdrs()});
+            var list=await r.json();
+            var arr=Array.isArray(list)?list:(list.results||[]);
+            if (currentFilter!=='all') arr=arr.filter(function(l){return l.estado===currentFilter});
+            var b=document.getElementById('dataBody');
+            if (arr.length===0){b.innerHTML='<tr><td colspan="8"><div class="empty-state"><i class="ti ti-list-check"></i><p>No hay labores en este estado.</p></div></td></tr>';return;}
+
+            b.innerHTML=arr.map(function(l){
+                var estado=l.estado||'pendiente';
+                var prog=l.progreso||0;
+                var progColor=prog===100?'#16a34a':(prog>=50?'#2563eb':'#d97706');
+                var progBar='<div style="display:flex;align-items:center;gap:8px">'+
+                    '<div style="flex:1;min-width:60px;height:6px;background:rgba(0,0,0,0.06);border-radius:3px;overflow:hidden">'+
+                    '<div style="width:'+prog+'%;height:100%;background:'+progColor+';border-radius:3px;transition:width 0.5s"></div></div>'+
+                    '<span style="font-size:11px;font-weight:700;color:'+progColor+';min-width:32px">'+prog+'%</span></div>';
+                var parcelas=(l.parcelas||[]).map(function(p){return typeof p==='object'?p.name:p}).join(', ')||'-';
+                var resps=(l.responsables||[]).map(function(r){return typeof r==='object'?r.first_name+' '+r.last_name:r}).join(', ')||'-';
+                var tipo=l.tipo_nombre||l.tipo||(l.tipo_detail?l.tipo_detail.nombre:'')||(typeof l.tipo==='object'?l.tipo.nombre:l.tipo)||'-';
+                return '<tr><td><strong>'+(l.nombre||'-')+'</strong></td><td>'+tipo+'</td><td><span class="badge-st '+estado+'">'+estado.replace(/_/g,' ')+'</span></td><td>'+progBar+'</td><td>'+parcelas+'</td><td>'+resps+'</td><td>'+(l.fecha_programada||'-')+'</td><td><div class="actions"><button onclick="abrirModal(\'labor\','+l.id+')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar('+l.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
+            }).join('');
+        } catch(e) { document.getElementById('dataBody').innerHTML='<tr><td colspan="8" style="color:#DC2626;text-align:center">Error al cargar</td></tr>'; }
+    }
+
+    // ========== MODAL ==========
+    async function abrirModal(type, id) {
+        editId = id || null;
+        var title = (id?'Editar':'Nueva')+' Labor';
+
+        var deptoshtml='<option value="">Cargando...</option>';
+        var parcelashtml='<option value="">Cargando...</option>';
+        try {
+            var dr=await fetch(RRHH+'empleados/',{headers:hdrs()});
+            var deptos=await dr.json();
+            var dl=Array.isArray(deptos)?deptos:(deptos.results||[]);
+            deptoshtml=''+dl.map(function(d){return '<option value="'+d.id+'">'+d.first_name+' '+d.last_name+'</option>';}).join('');
+        } catch(e) {}
+
+        try {
+            var pr=await fetch(API+'/api/parcels/parcel/',{headers:hdrs()});
+            var parcels=await pr.json();
+            var pl=Array.isArray(parcels)?parcels:(parcels.results||[]);
+            parcelashtml=''+pl.map(function(p){return '<option value="'+p.id+'">'+p.name+'</option>';}).join('');
+        } catch(e) {}
+
+        var body='<div class="fld"><label>Nombre</label><input id="mf_nombre" placeholder="Ej: Siembra de maiz Lote 3"></div>'+
+            '<div class="fld"><label>Tipo</label><select id="mf_tipo" onchange="toggleOtroCampo(this,\'otroTipoContainer\')">'+
+            '<option value="">Seleccionar...</option>'+
+            '<option value="siembra">Siembra</option><option value="fertilizacion">Fertilizacion</option><option value="riego">Riego</option>'+
+            '<option value="cosecha">Cosecha</option><option value="aplicacion">Aplicacion de fitosanitarios</option>'+
+            '<option value="otra">Otra</option></select>'+
+            '<div id="otroTipoContainer" style="display:none;margin-top:8px"><label style="font-size:11px;text-transform:uppercase;font-weight:600;margin-bottom:4px;display:block">Especifica el tipo</label><input class="fld" id="mf_tipo_otro" placeholder="Ej: fumigacion, poda..." style="margin-bottom:0"></div></div>'+
+            '<div class="fld-row"><div class="fld"><label>Estado</label><select id="mf_estado">'+
+            '<option value="pendiente">Pendiente</option><option value="en_progreso">En Progreso</option><option value="completada">Completada</option><option value="cancelada">Cancelada</option></select></div>'+
+            '<div class="fld"><label>Duracion (horas)</label><input id="mf_duracion" type="number" step="0.5" placeholder="Ej: 4.5"></div></div>'+
+            '<div class="fld-row"><div class="fld"><label>Fecha Programada</label><input id="mf_fecha_programada" type="date"></div><div class="fld"><label>Fecha Realizada</label><input id="mf_fecha_realizada" type="date"></div></div>'+
+            '<div class="fld"><label>Parcelas</label><select id="mf_parcelas" multiple style="min-height:100px">'+parcelashtml+'</select><small style="color:#86868B;font-size:11px">Ctrl+Click para seleccionar varias</small></div>'+
+            '<div class="fld"><label>Responsables</label><select id="mf_responsables" multiple style="min-height:100px">'+deptoshtml+'</select><small style="color:#86868B;font-size:11px">Ctrl+Click para seleccionar varios</small></div>'+
+            '<div class="fld"><label>Observaciones</label><textarea id="mf_observaciones" rows="2" placeholder="Notas adicionales..."></textarea></div>'+
+            '<div class="fld" style="border-top:1px solid rgba(0,0,0,0.06);padding-top:16px;margin-top:8px">'+
+            '<label>Fases de la labor</label>'+
+            '<div id="fasesContainer" style="margin-top:8px"><p style="font-size:12px;color:#86868B">Agrega fases para hacer seguimiento del progreso.</p></div>'+
+            '<button type="button" class="btn-g sm" onclick="agregarFase()" style="margin-top:8px"><i class="ti ti-plus"></i> Agregar fase</button></div>';
+
+        document.getElementById('crudModalTitle').textContent=title;
+        document.getElementById('crudModalBody').innerHTML=body;
+        faseCounter = 0;
+        document.getElementById('fasesContainer').innerHTML = '<p style="font-size:12px;color:#86868B">Agrega fases para hacer seguimiento del progreso.</p>';
+        new bootstrap.Modal(document.getElementById('crudModal')).show();
+
+        if(id) { cargarEdicion(id); cargarFasesExistentes(id); }
+    }
+
+    async function cargarEdicion(id) {
+        try {
+            var r=await fetch(LAB+'labores/'+id+'/',{headers:hdrs()});
+            var d=await r.json();
+            setV('mf_nombre',d.nombre);
+            setV('mf_estado',d.estado);
+            setV('mf_duracion',d.duracion);
+            setV('mf_fecha_programada',d.fecha_programada);
+            setV('mf_fecha_realizada',d.fecha_realizada);
+            setV('mf_observaciones',d.observaciones);
+
+            var tipoVal = d.tipo_nombre || (d.tipo_detail?d.tipo_detail.nombre:'') || (typeof d.tipo==='object'?d.tipo.nombre:d.tipo);
+            if(tipoVal) {
+                var tipoSel=document.getElementById('mf_tipo');
+                for(var i=0;i<tipoSel.options.length;i++) {
+                    if(tipoSel.options[i].value===tipoVal||tipoSel.options[i].text===tipoVal) {
+                        tipoSel.value=tipoSel.options[i].value;break;
+                    }
+                }
+                if(tipoSel.value===tipoVal||tipoSel.value==='') {
+                    tipoSel.value='otra';
+                    document.getElementById('otroTipoContainer').style.display='block';
+                    setV('mf_tipo_otro',tipoVal);
+                }
+            }
+            if(d.parcelas) {
+                var pids=Array.isArray(d.parcelas)?d.parcelas.map(function(p){return typeof p==='object'?p.id:p}):[];
+                var ps=document.getElementById('mf_parcelas');
+                for(var i=0;i<ps.options.length;i++){ps.options[i].selected=pids.indexOf(parseInt(ps.options[i].value))>-1;}
+            }
+            if(d.responsables) {
+                var rids=Array.isArray(d.responsables)?d.responsables.map(function(r){return typeof r==='object'?r.id:r}):[];
+                var rs=document.getElementById('mf_responsables');
+                for(var i=0;i<rs.options.length;i++){rs.options[i].selected=rids.indexOf(parseInt(rs.options[i].value))>-1;}
+            }
+        } catch(e) {}
+    }
+
+    function setV(id,val){var el=document.getElementById(id);if(el&&val!==undefined&&val!==null)el.value=val;}
+    function getV(id){var el=document.getElementById(id);return el?el.value:'';}
+    function getMulti(id){var el=document.getElementById(id);if(!el)return[];return Array.from(el.selectedOptions).map(function(o){return parseInt(o.value)});}
+
+    document.getElementById('crudModalSave').addEventListener('click', async function() {
+        var tipo=getV('mf_tipo');
+        if(tipo==='otra') tipo=getV('mf_tipo_otro')||'otra';
+
+        var payload={
+            nombre:getV('mf_nombre'),
+            tipo:tipo,
+            estado:getV('mf_estado')||'pendiente',
+            duracion:parseFloat(getV('mf_duracion'))||null,
+            fecha_programada:getV('mf_fecha_programada')||null,
+            fecha_realizada:getV('mf_fecha_realizada')||null,
+            parcelas:getMulti('mf_parcelas'),
+            responsables:getMulti('mf_responsables'),
+            observaciones:getV('mf_observaciones')
+        };
+
+        var url=LAB+'labores/';
+        var method='POST';
+        if(editId){url+=editId+'/';method='PUT';}
+
+        try {
+            var r=await fetch(url,{method:method,headers:hdrs(),body:JSON.stringify(payload)});
+            var laborData = await r.json();
+
+            if(r.ok) {
+                // Guardar fases
+                await guardarFases(laborData.id);
+                bootstrap.Modal.getInstance(document.getElementById('crudModal')).hide();
+                loadLabores();loadStats();
+            } else { alert('Error: '+JSON.stringify(laborData)); }
+        } catch(e) { alert('Error de conexion'); }
+    });
+
+    async function eliminar(id) {
+        if(!confirm('Eliminar esta labor?'))return;
+        try {
+            var r=await fetch(LAB+'labores/'+id+'/',{method:'DELETE',headers:hdrs()});
+            if(r.ok){loadLabores();loadStats();}
+            else alert('Error al eliminar');
+        } catch(e) { alert('Error de conexion'); }
+    }
+
+    function toggleOtroCampo(sel, containerId) {
+        var c=document.getElementById(containerId);
+        c.style.display=(sel.value==='otra'||sel.value==='otro')?'block':'none';
+    }
+
+    var faseCounter = 0;
+    var fasesExistentes = [];
+
+    function agregarFase(data) {
+        data = data || {};
+        var idx = ++faseCounter;
+        var id = data.id || 'new_'+idx;
+        var html = '<div class="fase-row" data-id="'+id+'" style="display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:end;margin-bottom:8px;padding:10px;background:rgba(0,0,0,0.02);border-radius:10px">'+
+            '<div><input class="fase-nombre" placeholder="Nombre de la fase" value="'+(data.nombre||'')+'" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);font-size:13px"></div>'+
+            '<div><input type="date" class="fase-inicio" value="'+(data.fecha_inicio||'')+'" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);font-size:12px" title="Fecha inicio"></div>'+
+            '<div><input type="date" class="fase-fin" value="'+(data.fecha_fin||'')+'" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);font-size:12px" title="Fecha fin"></div>'+
+            '<div style="display:flex;gap:4px;align-items:center">'+
+            '<select class="fase-estado" style="padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);font-size:12px"><option value="pendiente"'+(data.estado==='pendiente'?' selected':'')+'>Pendiente</option><option value="en_progreso"'+(data.estado==='en_progreso'?' selected':'')+'>En progreso</option><option value="completada"'+(data.estado==='completada'?' selected':'')+'>Completada</option><option value="cancelada"'+(data.estado==='cancelada'?' selected':'')+'>Cancelada</option></select>'+
+            '<button onclick="this.closest(\'.fase-row\').remove()" style="background:rgba(239,68,68,0.1);border:none;border-radius:6px;padding:6px 8px;color:#DC2626;cursor:pointer;font-size:14px" title="Eliminar"><i class="ti ti-trash"></i></button></div></div>'+
+            '<div class="fase-notas" style="display:none;grid-column:1/-1;margin-top:4px"><textarea placeholder="Notas / Inconvenientes al completar..." style="width:100%;padding:8px;border-radius:8px;border:1px solid rgba(0,0,0,0.1);font-size:12px;resize:vertical" rows="2">'+(data.notas||'')+'</textarea></div></div>';
+        document.getElementById('fasesContainer').insertAdjacentHTML('beforeend', html);
+
+        // Mostrar/ocultar notas cuando cambia el estado
+        var row = document.getElementById('fasesContainer').lastElementChild;
+        var estadoSel = row.querySelector('.fase-estado');
+        var notasDiv = row.querySelector('.fase-notas');
+        if (data.estado === 'completada' && data.notas) notasDiv.style.display = 'block';
+        estadoSel.addEventListener('change', function() {
+            if (this.value === 'completada') notasDiv.style.display = 'block';
+            else notasDiv.style.display = 'none';
+        });
+    }
+
+    async function guardarFases(laborId) {
+        // Eliminar fases existentes que ya no estan
+        var oldIds = fasesExistentes.map(function(f){return f.id});
+        var currentIds = [];
+        var fases = document.querySelectorAll('.fase-row');
+        fases.forEach(function(row){
+            var id = row.dataset.id;
+            if (id && !String(id).startsWith('new_')) currentIds.push(parseInt(id));
+        });
+        var toDelete = oldIds.filter(function(id){return currentIds.indexOf(id)===-1});
+        for (var i=0; i<toDelete.length; i++) {
+            await fetch(LAB+'labor-fases/'+toDelete[i]+'/', {method:'DELETE', headers:hdrs()});
+        }
+
+        // Crear/actualizar
+        for (var i=0; i<fases.length; i++) {
+            var row = fases[i];
+            var id = row.dataset.id;
+            var payload = {
+                labor: laborId,
+                orden: i,
+                nombre: row.querySelector('.fase-nombre').value,
+                estado: row.querySelector('.fase-estado').value,
+                fecha_inicio: row.querySelector('.fase-inicio').value || null,
+                fecha_fin: row.querySelector('.fase-fin').value || null,
+                notas: row.querySelector('.fase-notas textarea') ? row.querySelector('.fase-notas textarea').value : ''
+            };
+            var url = LAB+'labor-fases/';
+            var method = 'POST';
+            if (id && !String(id).startsWith('new_')) { url += id + '/'; method = 'PUT'; }
+            await fetch(url, {method:method, headers:hdrs(), body:JSON.stringify(payload)});
+        }
+    }
+
+    async function cargarFasesExistentes(laborId) {
+        document.getElementById('fasesContainer').innerHTML = '<p style="font-size:12px;color:#86868B">Cargando fases...</p>';
+        try {
+            var r = await fetch(LAB+'labor-fases/?labor='+laborId, {headers:hdrs()});
+            var fases = await r.json();
+            var arr = Array.isArray(fases) ? fases : (fases.results||[]);
+            document.getElementById('fasesContainer').innerHTML = '';
+            arr.forEach(function(f) { agregarFase(f); });
+            fasesExistentes = arr;
+        } catch(e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', function() { loadLabores(); loadStats(); });
+
+    function handleResponsiveNav() {
+        var tb=document.getElementById('topbar-container');
+        if(tb)tb.style.display=window.innerWidth<=991?'none':'block';
+    }
+    window.addEventListener('resize',handleResponsiveNav);
+    window.addEventListener('DOMContentLoaded',handleResponsiveNav);
+    </script>
 
     <script type="module">
         import { loadLayoutComponents } from '/static/js/load_components.js';
-        const components = {
-            "topbar-container": "/templates/partials/horizontal-nav.html",
-            "footer-container": "/templates/partials/footer.html",
-            "left-sidebar": "/templates/partials/left-sidebar.html",
-            "righsidebar": "/templates/partials/right-sidebar.html",
-            "vendorjs": "/templates/partials/vendorjs.html"
-        };
-        loadLayoutComponents(components);
+        loadLayoutComponents({"left-sidebar":"/templates/partials/left-sidebar.html","topbar-container":"/templates/partials/horizontal-nav.html"});
     </script>
-
 </body>
 </html>

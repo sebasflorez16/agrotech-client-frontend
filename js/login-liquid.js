@@ -22,7 +22,7 @@ function checkExistingAuth() {
     const token = localStorage.getItem('accessToken');
     if (token && token !== 'null' && token !== 'undefined') {
         console.log('Usuario ya autenticado, redirigiendo...');
-        window.location.href = '../dashboard.html';
+        window.location.href = '/templates/dashboard.html';
     }
 }
 
@@ -123,7 +123,7 @@ loginForm.addEventListener('submit', async (e) => {
             
             // Redirigir al dashboard
             setTimeout(() => {
-                window.location.href = '../dashboard.html';
+        window.location.href = '/templates/dashboard.html';
             }, 500);
             
         } else {
