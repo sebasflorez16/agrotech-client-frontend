@@ -1,16 +1,9 @@
-<!-- Incluyendo los scripts necesarios directamente -->
-<script src="/static/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
-<script src="/static/js/app.js"></script>
-<script src="/static/js/user-profile.js"></script>
-
-<!-- Iconos necesarios para el menú -->
+<!-- Topbar único - AgroTech Digital (hamburguesa abre el sidebar lateral) -->
 <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
-
-<!-- Topbar profesional y responsive para móvil y desktop -->
 <div class="topbar-custom">
-    <button class="menu-toggle" aria-label="Abrir menú" onclick="toggleMobileSidebar()">
+    <button class="menu-toggle" aria-label="Abrir menú" onclick="toggleSidebar()">
         <i class="fas fa-bars"></i>
     </button>
     <div class="topbar-title">Agrotech Digital</div>
@@ -24,43 +17,18 @@
     </div>
 </div>
 
-<!-- Menú lateral móvil (drawer) -->
-<div id="mobile-sidebar" class="mobile-sidebar" style="display: none;">
-    <!-- Logo -->
-    <div class="brand" style="padding: 32px 0 18px 0; text-align: center;">
-        <a href="#" class="logo">
-            <span>
-                <img src="/static/images/agrotech solo blanco.png" alt="logo-small" class="logo-sm" style="max-width: 80px; margin: 0 auto; display: block;">
-            </span>
-        </a>
-    </div>
-    <!-- Menú con rutas reales -->
-    <ul class="menu" style="padding: 0 0 10px 0; margin: 0;">
-        <li><a href="/templates/dashboard.html" style="display: flex; align-items: center; gap: 10px; color: #fff; padding: 10px 22px; border-radius: 7px; transition: background 0.15s; font-size: 15px;"><i class="ti ti-home" style="font-size: 1.2em;"></i> Dashboard</a></li>
-        <li><a href="/templates/parcels/parcels-dashboard.html" style="display: flex; align-items: center; gap: 10px; color: #fff; padding: 10px 22px; border-radius: 7px; transition: background 0.15s; font-size: 15px;"><i class="ti ti-map" style="font-size: 1.2em;"></i> Parcelas</a></li>
-        <li><a href="/templates/crop/crop_list.html" style="display: flex; align-items: center; gap: 10px; color: #fff; padding: 10px 22px; border-radius: 7px; transition: background 0.15s; font-size: 15px;"><i class="ti ti-plant" style="font-size: 1.2em;"></i> Cultivos</a></li>
-        <li><a href="/templates/inventory/inventario-dashboard.html" style="display: flex; align-items: center; gap: 10px; color: #fff; padding: 10px 22px; border-radius: 7px; transition: background 0.15s; font-size: 15px;"><i class="ti ti-box" style="font-size: 1.2em;"></i> Inventario</a></li>
-        <li><a href="/templates/employees/RRHH-dashboard.html" style="display: flex; align-items: center; gap: 10px; color: #fff; padding: 10px 22px; border-radius: 7px; transition: background 0.15s; font-size: 15px;"><i class="ti ti-users" style="font-size: 1.2em;"></i> Empleados</a></li>
-        <li><a href="/templates/labores/labores-dashboard.html" style="display: flex; align-items: center; gap: 10px; color: #fff; padding: 10px 22px; border-radius: 7px; transition: background 0.15s; font-size: 15px;"><i class="ti ti-list-check" style="font-size: 1.2em;"></i> Labores</a></li>
-        <li><a href="/templates/billing.html" style="display: flex; align-items: center; gap: 10px; color: #fff; padding: 10px 22px; border-radius: 7px; transition: background 0.15s; font-size: 15px;"><i class="ti ti-credit-card" style="font-size: 1.2em;"></i> Facturacion</a></li>
-        <li><a href="/templates/pages/profile.html" style="display: flex; align-items: center; gap: 10px; color: #fff; padding: 10px 22px; border-radius: 7px; transition: background 0.15s; font-size: 15px;"><i class="ti ti-user-circle" style="font-size: 1.2em;"></i> Perfil</a></li>
-        <li><a href="#" style="display: flex; align-items: center; gap: 10px; color: #ff6b6b; padding: 10px 22px; border-radius: 7px; transition: background 0.15s; font-size: 15px;" onclick="localStorage.clear();sessionStorage.clear();window.location.href='/login';return false;"><i class="ti ti-logout" style="font-size: 1.2em;"></i> Cerrar Sesion</a></li>
-    </ul>
-</div>
-
-<!-- Overlay para cerrar el menú móvil -->
-<div id="sidebar-overlay" class="sidebar-overlay" style="display: none;"></div>
-
 <style>
 .topbar-custom {
     width: 100%;
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 2000;
-    background: #fff;
+    z-index: 2500;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     box-shadow: 0 2px 8px rgba(44,62,80,0.07);
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.6);
     height: 56px;
     display: flex;
     align-items: center;
@@ -73,15 +41,17 @@
     justify-content: center;
     background: none;
     border: none;
-    font-size: 28px;
-    color: #253445;
+    font-size: 22px;
+    color: #2C3E50;
     margin-right: 8px;
     cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 10px;
 }
 .topbar-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #253445;
+    color: #2C3E50;
     letter-spacing: 0.5px;
 }
 .topbar-actions {
@@ -91,87 +61,22 @@
 }
 .topbar-icon {
     font-size: 22px;
-    color: #253445;
+    color: #2C3E50;
     background: none;
     border: none;
     cursor: not-allowed;
     opacity: 0.6;
 }
-
-/* Mobile sidebar styles */
-.mobile-sidebar {
-    display: block;
-    position: fixed;
-    top: 56px;
-    left: 0;
-    width: 85vw;
-    max-width: 320px;
-    min-width: 220px;
-    height: calc(100vh - 56px);
-    background: #253445;
-    z-index: 4000;
-    box-shadow: 2px 0 12px rgba(44,62,80,0.12);
-    border-right: 1px solid #e9ecef;
-    transform: translateX(-100%);
-    transition: transform 0.3s ease;
-    overflow-y: auto;
-    padding-top: 18px;
-}
-
-.mobile-sidebar.show {
-    transform: translateX(0);
-}
-
-.mobile-sidebar .menu li a:hover {
-    background-color: rgba(255,255,255,0.1);
-}
-
-.sidebar-overlay {
-    display: block;
-    position: fixed;
-    top: 56px;
-    left: 0;
-    width: 100vw;
-    height: calc(100vh - 56px);
-    background: rgba(44,62,80,0.18);
-    z-index: 3999;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-.sidebar-overlay.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-@media (min-width: 768px) {
+@media (min-width: 992px) {
     .topbar-custom {
         height: 64px;
-        font-size: 1.2rem;
-        padding: 0 24px;
+        padding: 0 24px 0 262px; /* deja espacio para el sidebar fijo */
     }
     .menu-toggle {
-        display: none !important; /* Ocultar hamburguesa en desktop */
+        display: none !important;
     }
     .topbar-title {
         font-size: 1.2rem;
     }
-    .topbar-icon {
-        font-size: 26px;
-    }
-    .mobile-sidebar,
-    .sidebar-overlay {
-        display: none !important; /* Ocultar en desktop */
-    }
 }
 </style>
-
-<!-- Contenido existente de horizontal-nav.html -->
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        fetchAndRenderUserProfile(); // Llamar a la función después de que el contenido esté listo
-    });
-</script>
-
-

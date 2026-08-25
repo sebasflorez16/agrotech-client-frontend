@@ -8,8 +8,8 @@
     <link rel="shortcut icon" href="../../images/agrotech solo negro.png">
     <script src="../../js/config.js"></script>
     <script src="../../js/auth-global.js"></script>
+    <script src="../../js/sidebar-controller.js"></script>
     <link rel="stylesheet" href="../../css/liquid-glass-system.css">
-    <link rel="stylesheet" href="../../css/global-mobile-responsive.css">
     <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
     <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <style>
@@ -84,9 +84,9 @@
         }
     </style>
 </head>
-<body>
+<body class="neomorphic-theme">
     <div id="left-sidebar"></div>
-    <div id="topbar-container" style="display:none;"></div>
+    <div id="topbar-container"></div>
 
     <div class="page-wrap">
         <div class="page-hdr">
@@ -429,7 +429,7 @@
 
     <script type="module">
         import { loadLayoutComponents } from '/static/js/load_components.js';
-        loadLayoutComponents({"left-sidebar":"/templates/partials/left-sidebar.html","topbar-container":"/templates/partials/horizontal-nav.html"});
+        loadLayoutComponents({});
     </script>
 </body>
 </html>

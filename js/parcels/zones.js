@@ -20,13 +20,52 @@
         layer: null,
     };
 
-    const CATEGORY_COLORS = {
-        low: '#d73027',
-        mid_low: '#fc8d59',
-        mid: '#fee08b',
-        mid_high: '#91cf60',
-        high: '#1a9850',
+    // Colores por índice: NDVI/SAVI = vigor (rojo→verde), NDMI = humedad (seco→húmedo).
+    const INDEX_COLORS = {
+        ndvi: { low: '#d73027', mid_low: '#fc8d59', mid: '#fee08b', mid_high: '#91cf60', high: '#1a9850' },
+        savi: { low: '#d73027', mid_low: '#fc8d59', mid: '#fee08b', mid_high: '#91cf60', high: '#1a9850' },
+        ndre: { low: '#ffffcc', mid_low: '#addd8e', mid: '#78c679', mid_high: '#238443', high: '#004529' },
+        ndmi: { low: '#a63603', mid_low: '#e6550d', mid: '#fee391', mid_high: '#41b6c4', high: '#08519c' },
     };
+
+    const PRIORITY_COLORS = {
+        baja: '#27ae60',
+        media: '#f1c40f',
+        alta: '#e67e22',
+        critica: '#c0392b',
+    };
+
+    function colorsFor(indexBase) {
+        return INDEX_COLORS[indexBase] || INDEX_COLORS.ndvi;
+    }
+
+    function brechaLabel(indexBase) {
+        return indexBase === 'ndmi' ? 'brecha de humedad' : 'brecha de vigor';
+    }
+
+    const LEGEND_LABELS = {
+        ndvi: { low: 'Bajo vigor', mid_low: 'Medio-bajo', mid: 'Medio', mid_high: 'Medio-alto', high: 'Alto vigor' },
+        savi: { low: 'Bajo vigor', mid_low: 'Medio-bajo', mid: 'Medio', mid_high: 'Medio-alto', high: 'Alto vigor' },
+        ndre: { low: 'Muy bajo', mid_low: 'Bajo', mid: 'Medio', mid_high: 'Alto', high: 'Muy alto' },
+        ndmi: { low: 'Muy seco', mid_low: 'Seco', mid: 'Medio', mid_high: 'Húmedo', high: 'Muy húmedo' },
+    };
+
+    function renderLegend(indexBase) {
+        const el = document.getElementById('zonesLegend');
+        if (!el) return;
+        const palette = colorsFor(indexBase);
+        const labels = LEGEND_LABELS[indexBase] || LEGEND_LABELS.ndvi;
+        const order = ['low', 'mid_low', 'mid', 'mid_high', 'high'];
+        el.style.display = 'block';
+        el.innerHTML = `
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <span style="font-size:11px;font-weight:700;color:#555;">Leyenda:</span>
+                ${order.map(k => `
+                    <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:#555;">
+                        <span style="width:12px;height:12px;border-radius:3px;background:${palette[k]};display:inline-block;border:1px solid rgba(0,0,0,0.15);"></span>${labels[k]}
+                    </span>`).join('')}
+            </div>`;
+    }
 
     function apiBase() {
         if (typeof getBackendUrl === 'function') {
@@ -65,8 +104,8 @@
         const el = document.getElementById('zonesMap');
         if (!el) return null;
         state.map = L.map(el, { zoomControl: true }).setView([4.6, -74.1], 12);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap',
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Esri, Maxar, Earthstar Geographics',
             maxZoom: 19,
         }).addTo(state.map);
         return state.map;
@@ -85,22 +124,44 @@
         const zones = zonification?.zones || [];
         if (!zones.length) {
             container.innerHTML = '<div style="color:#888;font-style:italic;">Sin zonas todavía.</div>';
+            const leg = document.getElementById('zonesLegend');
+            if (leg) leg.style.display = 'none';
+            setExportButtonsEnabled(false);
             return;
         }
-        container.innerHTML = zones.map(z => {
-            const color = CATEGORY_COLORS[z.category] || '#666';
+        const indexBase = zonification.index_base || 'ndvi';
+        const palette = colorsFor(indexBase);
+        const field = { ndvi: ['ndvi_mean', 'NDVI'], ndmi: ['ndmi_mean', 'NDMI'], savi: ['savi_mean', 'SAVI'], ndre: ['ndre_mean', 'NDRE'] }[indexBase] || ['ndvi_mean', 'NDVI'];
+        const blabel = brechaLabel(indexBase);
+        const drainage = zones.find(z => z.drainage_direction)?.drainage_direction;
+        let header = '';
+        if (drainage) {
+            header = `<div style="background:#eaf2f8;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:13px;color:#21618c;">
+                💧 Drenaje dominante del lote: hacia el <strong>${drainage}</strong>
+            </div>`;
+        }
+        container.innerHTML = header + zones.map(z => {
+            const color = palette[z.category] || '#666';
+            const pcolor = PRIORITY_COLORS[z.priority] || '#666';
+            const brecha = z.brecha_pct != null ? `${z.brecha_pct >= 0 ? '+' : ''}${z.brecha_pct}%` : '';
+            const brechaColor = z.brecha_pct == null ? '#888' : (z.brecha_pct < 0 ? '#c0392b' : '#27ae60');
+            const priorityLabel = (z.priority_display || z.priority || 'media').toUpperCase();
             return `
             <div style="border-left:5px solid ${color};background:#fafafa;border-radius:8px;padding:10px 12px;margin-bottom:10px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;">
                     <strong style="color:${color};">${z.label}</strong>
                     <span style="font-size:12px;color:#555;">${(z.area_ha || 0).toFixed(2)} ha · ${z.pixel_count} px</span>
                 </div>
-                <div style="font-size:12px;color:#444;margin-top:4px;">
-                    NDVI ${z.ndvi_mean ?? '-'} · NDMI ${z.ndmi_mean ?? '-'} · SAVI ${z.savi_mean ?? '-'} · NDRE ${z.ndre_mean ?? '-'}
+                <div style="font-size:12px;color:#444;margin-top:4px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                    <span>${field[1]} <strong>${z[field[0]] ?? '-'}</strong></span>
+                    <span title="Comparación de esta zona vs el promedio del lote">${blabel} <strong style="color:${brechaColor};">${brecha || '-'}</strong></span>
+                    <span style="background:${pcolor}22;color:${pcolor};padding:1px 8px;border-radius:10px;font-weight:600;">${priorityLabel}</span>
                 </div>
                 <div style="font-size:12px;color:#333;margin-top:6px;">${z.recomendacion || ''}</div>
             </div>`;
         }).join('');
+        renderLegend(indexBase);
+        setExportButtonsEnabled(true);
     }
 
     function renderZonesOnMap(zonification) {
@@ -110,6 +171,10 @@
             map.removeLayer(state.layer);
             state.layer = null;
         }
+        const indexBase = zonification.index_base || 'ndvi';
+        const palette = colorsFor(indexBase);
+        const field = { ndvi: ['ndvi_mean', 'NDVI'], ndmi: ['ndmi_mean', 'NDMI'], savi: ['savi_mean', 'SAVI'], ndre: ['ndre_mean', 'NDRE'] }[indexBase] || ['ndvi_mean', 'NDVI'];
+        const blabel = brechaLabel(indexBase);
         const features = (zonification?.zones || [])
             .filter(z => z.geometry_geojson)
             .map(z => ({
@@ -118,9 +183,13 @@
                 properties: {
                     label: z.label,
                     category: z.category,
-                    ndvi_mean: z.ndvi_mean,
+                    index_label: field[1],
+                    index_value: z[field[0]],
                     area_ha: z.area_ha,
                     recomendacion: z.recomendacion,
+                    brecha_pct: z.brecha_pct,
+                    priority: z.priority,
+                    drainage_direction: z.drainage_direction,
                 },
             }));
         if (!features.length) return;
@@ -128,13 +197,18 @@
             style: f => ({
                 color: '#222',
                 weight: 1,
-                fillColor: CATEGORY_COLORS[f.properties.category] || '#888',
+                fillColor: palette[f.properties.category] || '#888',
                 fillOpacity: 0.65,
             }),
             onEachFeature: (f, lyr) => {
+                const brecha = f.properties.brecha_pct != null ? `${f.properties.brecha_pct >= 0 ? '+' : ''}${f.properties.brecha_pct}%` : '-';
+                const priority = (f.properties.priority || 'media').toUpperCase();
+                const drainage = f.properties.drainage_direction;
                 lyr.bindPopup(`
                     <strong>${f.properties.label}</strong><br/>
-                    NDVI: ${f.properties.ndvi_mean ?? '-'}<br/>
+                    ${f.properties.index_label}: ${f.properties.index_value ?? '-'} (${blabel} ${brecha})<br/>
+                    Prioridad: ${priority}<br/>
+                    ${drainage ? `Drenaje: hacia el ${drainage}<br/>` : ''}
                     Área: ${(f.properties.area_ha || 0).toFixed(2)} ha<br/>
                     <small>${f.properties.recomendacion || ''}</small>
                 `);
@@ -155,7 +229,7 @@
                 renderZonesList(latest);
                 renderZonesOnMap(latest);
                 setStatus(
-                    `Última zonificación: ${latest.scene_date} · ${latest.method_display || latest.method} · k=${latest.k_zones} · status=${latest.status_display || latest.status}`
+                    `Última zonificación: escena del ${latest.scene_date} (la más reciente disponible) · ${latest.method_display || latest.method} · k=${latest.k_zones}`
                 );
             } else {
                 setStatus('No hay zonificaciones aún. Haz clic en "Generar zonificación".');
@@ -164,6 +238,17 @@
         } catch (e) {
             setStatus(`Error cargando zonificaciones: ${e.message}`, '#c0392b');
         }
+    }
+
+    function showZonesSkeleton() {
+        const container = document.getElementById('zonesList');
+        if (!container) return;
+        container.innerHTML = Array.from({ length: 3 }).map(() => `
+            <div style="border-radius:8px;padding:12px;margin-bottom:10px;background:#f4f6f8;animation:zonesPulse 1.4s ease-in-out infinite;">
+                <div style="height:14px;width:50%;background:#e2e6ea;border-radius:6px;margin-bottom:8px;"></div>
+                <div style="height:10px;width:82%;background:#e2e6ea;border-radius:6px;margin-bottom:6px;"></div>
+                <div style="height:10px;width:64%;background:#e2e6ea;border-radius:6px;"></div>
+            </div>`).join('');
     }
 
     async function generateZonification() {
@@ -176,7 +261,8 @@
         const idx = document.getElementById('zonesIndexSelect').value || 'ndvi';
         const btn = document.getElementById('btnGenerateZones');
         if (btn) { btn.disabled = true; btn.textContent = 'Procesando…'; }
-        setStatus('Generando zonificación (K-means)…');
+        setStatus('<i class="fas fa-spinner fa-spin"></i> Generando zonificación… puede tardar unos segundos la primera vez.');
+        showZonesSkeleton();
         try {
             const data = await api('/api/parcels/parcel-zonifications/generate-for-parcel/', {
                 method: 'POST',
@@ -186,7 +272,7 @@
             renderZonesList(data);
             renderZonesOnMap(data);
             setStatus(
-                `✅ Zonificación lista · ${data.zones?.length || 0} zonas · ${data.total_pixels} pixeles · ${data.scene_date}`,
+                `✅ Zonificación lista · ${data.zones?.length || 0} zonas · ${data.total_pixels} pixeles · escena del ${data.scene_date} (la más reciente)`,
                 '#27ae60'
             );
         } catch (e) {
@@ -223,14 +309,125 @@
         };
     }
 
+    function buildFeatureCollection() {
+        const zon = state.currentZonification;
+        if (!zon || !zon.zones || !zon.zones.length) return null;
+        const features = zon.zones.filter(z => z.geometry_geojson).map(z => ({
+            type: 'Feature',
+            geometry: z.geometry_geojson,
+            properties: {
+                zona: z.label,
+                categoria: z.category,
+                area_ha: z.area_ha,
+                ndvi: z.ndvi_mean,
+                ndmi: z.ndmi_mean,
+                brecha_pct: z.brecha_pct,
+                prioridad: z.priority,
+                recomendacion: z.recomendacion,
+            },
+        }));
+        return { type: 'FeatureCollection', features };
+    }
+
+    function downloadFile(filename, content, mime) {
+        const blob = new Blob([content], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
+    function geojsonToKML(fc) {
+        const esc = s => String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        let kml = '<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n  <name>Prescripción de zonas de manejo</name>';
+        for (const f of fc.features) {
+            const p = f.properties || {};
+            const name = esc(p.zona || 'Zona');
+            const desc = esc(`NDVI ${p.ndvi ?? '-'} · brecha ${p.brecha_pct != null ? p.brecha_pct + '%' : '-'} · prioridad ${p.prioridad || '-'} · ${p.area_ha ?? 0} ha · ${p.recomendacion || ''}`);
+            kml += `\n  <Placemark>\n    <name>${name}</name>\n    <description>${desc}</description>`;
+            const g = f.geometry;
+            const polys = g && g.type === 'Polygon' ? [g.coordinates] : (g && g.type === 'MultiPolygon' ? g.coordinates : []);
+            for (const poly of polys) {
+                if (!poly || !poly[0]) continue;
+                kml += `\n    <Polygon>\n      <outerBoundaryIs>\n        <LinearRing>\n          <coordinates>${poly[0].map(c => `${c[0]},${c[1]},0`).join(' ')}</coordinates>\n        </LinearRing>\n      </outerBoundaryIs>`;
+                for (const hole of poly.slice(1)) {
+                    kml += `\n      <innerBoundaryIs>\n        <LinearRing>\n          <coordinates>${hole.map(c => `${c[0]},${c[1]},0`).join(' ')}</coordinates>\n        </LinearRing>\n      </innerBoundaryIs>`;
+                }
+                kml += '\n    </Polygon>';
+            }
+            kml += '\n  </Placemark>';
+        }
+        kml += '\n</Document>\n</kml>';
+        return kml;
+    }
+
+    function exportBaseName() {
+        const zon = state.currentZonification;
+        const name = (zon && zon.parcel_name) || (window.AGROTECH_STATE && window.AGROTECH_STATE.selectedParcelName) || 'parcela';
+        return String(name).replace(/\s+/g, '_');
+    }
+
+    function downloadGeoJSON() {
+        const fc = buildFeatureCollection();
+        if (!fc || !fc.features.length) { setStatus('No hay zonas para exportar. Genera primero la zonificación.', '#c0392b'); return; }
+        downloadFile(`prescripcion_${exportBaseName()}.geojson`, JSON.stringify(fc, null, 2), 'application/geo+json');
+        setStatus('✅ Prescripción descargada en GeoJSON.', '#27ae60');
+    }
+
+    function downloadKML() {
+        const fc = buildFeatureCollection();
+        if (!fc || !fc.features.length) { setStatus('No hay zonas para exportar. Genera primero la zonificación.', '#c0392b'); return; }
+        downloadFile(`prescripcion_${exportBaseName()}.kml`, geojsonToKML(fc), 'application/vnd.google-earth.kml+xml');
+        setStatus('✅ Prescripción descargada en KML.', '#27ae60');
+    }
+
+    function setExportButtonsEnabled(enabled) {
+        const geo = document.getElementById('btnDownloadGeoJSON');
+        const kml = document.getElementById('btnDownloadKML');
+        if (geo) geo.disabled = !enabled;
+        if (kml) kml.disabled = !enabled;
+    }
+
     function init() {
         const btn = document.getElementById('btnGenerateZones');
         if (btn) btn.addEventListener('click', generateZonification);
-        wireBanner();
-        // Si ya hay una parcela seleccionada al cargar el script
-        const id = window.AGROTECH_STATE && window.AGROTECH_STATE.selectedParcelId;
-        if (id) showPanelFor({ id });
+        window.downloadZonesGeoJSON = downloadGeoJSON;
+        window.downloadZonesKML = downloadKML;
+        setExportButtonsEnabled(false);
+        if (!document.getElementById('zones-skeleton-style')) {
+            const st = document.createElement('style');
+            st.id = 'zones-skeleton-style';
+            st.textContent = '@keyframes zonesPulse{0%,100%{opacity:1}50%{opacity:0.45}}';
+            document.head.appendChild(st);
+        }
     }
+
+    // Botón "Sectorizar parcela" → abre/cierra el panel de zonas.
+    window.toggleZonesPanel = function () {
+        const panel = document.getElementById('zonesPanel');
+        if (!panel) return;
+        const visible = panel.style.display && panel.style.display !== 'none';
+        if (visible) {
+            panel.style.display = 'none';
+            return;
+        }
+        panel.style.display = 'block';
+        const id = window.AGROTECH_STATE && window.AGROTECH_STATE.selectedParcelId;
+        if (!id) {
+            setStatus('Selecciona primero una parcela en el mapa.', '#c0392b');
+            return;
+        }
+        state.currentParcelId = id;
+        setTimeout(() => {
+            const m = ensureMap();
+            if (m) m.invalidateSize();
+            loadLatestZonification(id);
+        }, 120);
+    };
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);

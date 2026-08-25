@@ -21,8 +21,8 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgroTech Digital - Agricultura de Precisión con Análisis Satelital</title>
-    <meta name="description" content="Monitoreo satelital avanzado para tus cultivos. Análisis NDVI, estrés hídrico y datos climáticos en tiempo real.">
+    <title>AgroTech Digital - Monitoreo Continuo e Informes Satelitales para tu Cultivo</title>
+    <meta name="description" content="Monitoreo satelital continuo e informes históricos para tus cultivos. NDVI, estrés hídrico y datos climáticos para decidir con precisión en el campo.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -38,8 +38,9 @@
                     <span>AgroTech Digital</span>
                 </div>
                 <div class="nav-menu">
-                    <a href="#features">Características</a>
-                    <a href="#pricing">Planes</a>
+                    <a href="#servicios">Servicios</a>
+                    <a href="#features">Beneficios</a>
+                    <a href="#blog">Blog</a>
                     <a href="/templates/authentication/login.html" class="btn-primary-nav">Iniciar Sesión</a>
                 </div>
             </div>
@@ -50,7 +51,7 @@
     <section class="hero">
         <img src="images/hero-agrotech.png" alt="AgroTech Digital - Agricultura de Precisión" class="hero-image">
 
-        <!-- SVG Connector Lines - líneas desde la planta hacia las cards -->
+        <!-- SVG Connector Lines -->
         <svg class="hero-connectors" viewBox="0 0 1440 900" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <linearGradient id="lineGradLeft" x1="100%" y1="0%" x2="0%" y2="0%">
@@ -70,28 +71,24 @@
                 </filter>
             </defs>
 
-            <!-- Línea → Top-Left (Humedad del Suelo) - desde hoja izq superior -->
             <path d="M 650 280 Q 500 250, 310 220" class="connector-line line-left" />
             <circle cx="650" cy="280" r="5" class="connector-dot" filter="url(#glowDot)"/>
             <circle cx="650" cy="280" r="2.5" class="connector-dot-inner"/>
 
-            <!-- Línea → Top-Right (Tasa de Crecimiento) - desde mazorca -->
             <path d="M 780 235 Q 920 200, 1140 180" class="connector-line line-right" />
             <circle cx="780" cy="235" r="5" class="connector-dot" filter="url(#glowDot)"/>
             <circle cx="780" cy="235" r="2.5" class="connector-dot-inner"/>
 
-            <!-- Línea → Bottom-Left (Hidratación Hoja) - desde hoja izq inferior -->
             <path d="M 590 440 Q 430 445, 280 440" class="connector-line line-left" />
             <circle cx="590" cy="440" r="5" class="connector-dot" filter="url(#glowDot)"/>
             <circle cx="590" cy="440" r="2.5" class="connector-dot-inner"/>
 
-            <!-- Línea → Bottom-Right (Índice NDVI) - desde tallo -->
             <path d="M 810 415 Q 970 405, 1160 390" class="connector-line line-right" />
             <circle cx="810" cy="415" r="5" class="connector-dot" filter="url(#glowDot)"/>
             <circle cx="810" cy="415" r="2.5" class="connector-dot-inner"/>
         </svg>
 
-        <!-- Data Cards flotantes distribuidas alrededor de la planta -->
+        <!-- Data Cards flotantes -->
         <div class="data-card card-top-left">
             <div class="card-header">
                 <span class="card-dot" style="background: #34C759;"></span>
@@ -158,10 +155,49 @@
         </div>
     </section>
 
+    <!-- Servicios / Productos -->
+    <section id="servicios" class="products-section">
+        <div class="container">
+            <h2 class="section-title">Dos herramientas, un solo objetivo: <span class="gradient-text">rentabilidad</span></h2>
+            <p class="section-subtitle">Elige la solución que necesitas hoy. Ambas funcionan con datos satelitales reales de tu finca.</p>
+
+            <div class="product-grid">
+                <div class="product-card featured">
+                    <div class="product-icon">🌱</div>
+                    <span class="product-badge">En tiempo real</span>
+                    <h3 class="product-title">Monitoreo Continuo</h3>
+                    <p class="product-desc">Vigila tus cultivos semana a semana con NDVI, NDMI y alertas agronómicas. Detecta el estrés hídrico antes de que sea visible a simple vista.</p>
+                    <ul class="product-features">
+                        <li>✓ Índices NDVI, NDMI y SAVI</li>
+                        <li>✓ Alertas agronómicas automáticas</li>
+                        <li>✓ Mapa 3D interactivo de parcelas</li>
+                        <li>✓ Pronóstico meteorológico de 7 días</li>
+                    </ul>
+                    <a href="/register" class="btn-product btn-product-primary">Probar Monitoreo Continuo →</a>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-icon">📊</div>
+                    <span class="product-badge">Análisis histórico</span>
+                    <h3 class="product-title">Informes Satelitales</h3>
+                    <p class="product-desc">Analiza la historia de tu terreno: rendimientos, patrones de humedad y comportamiento de cada zona a lo largo de las temporadas.</p>
+                    <ul class="product-features">
+                        <li>✓ Informes históricos por parcela</li>
+                        <li>✓ Comparativas entre temporadas</li>
+                        <li>✓ Identificación de zonas problemáticas</li>
+                        <li>✓ Base para decidir siembra y fertilización</li>
+                    </ul>
+                    <a href="https://agrotechcolombia.netlify.app" class="btn-product btn-product-ghost">Ver Informes Satelitales →</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Features -->
     <section id="features" class="features">
         <div class="container">
             <h2 class="section-title">Tecnología de Vanguardia</h2>
+            <p class="section-subtitle">Todo lo que necesitas para conocer el estado real de tu cultivo.</p>
             <div class="features-grid">
                 <div class="feature-card">
                     <img src="https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=600&h=300&fit=crop&q=80" alt="Análisis Satelital">
@@ -191,8 +227,85 @@
                 <div class="feature-card">
                     <img src="https://images.unsplash.com/photo-1473163928189-364b2c4e1135?w=600&h=300&fit=crop&q=80" alt="Tecnología">
                     <h3>Análisis Avanzado</h3>
-                    <p>Procesamiento multiespec tral y mapas de calor para identificar patrones y tomar decisiones informadas.</p>
+                    <p>Procesamiento multiespectral y mapas de calor para identificar patrones y tomar decisiones informadas.</p>
                 </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog -->
+    <section id="blog" class="blog-section">
+        <div class="container">
+            <div class="section-header-blog">
+                <span class="description-eyebrow">Aprenda con nosotros</span>
+                <h2 class="section-title">Del Blog</h2>
+                <p class="section-subtitle">Artículos prácticos sobre agricultura satelital y tecnología para el campo colombiano.</p>
+            </div>
+
+            <div class="blog-grid">
+                <a href="https://agrotechcolombia.netlify.app/blog/siembra-arroz-primer-semestre-2026.html" class="blog-card">
+                    <div class="blog-card-image">
+                        <img src="images/blog/arroz-siembra.webp" alt="Siembra de Arroz 2026" loading="lazy">
+                    </div>
+                    <div class="blog-card-content">
+                        <span class="blog-date">30 de marzo de 2026</span>
+                        <h3 class="blog-title">Siembra de Arroz 2026-A: Lo que Todo Arrocero Colombiano Necesita Saber Antes de Sembrar</h3>
+                        <p class="blog-summary">Arrancó la siembra de arroz del primer semestre en Colombia. Con fertilizantes al alza y márgenes reducidos, los datos satelitales son la diferencia entre perder o ganar esta cosecha.</p>
+                        <span class="blog-link">Leer más →</span>
+                    </div>
+                </a>
+
+                <a href="https://agrotechcolombia.netlify.app/blog/tecnologia-satelital-aliado-agricultor.html" class="blog-card">
+                    <div class="blog-card-image">
+                        <img src="images/blog/satelite-aliado.webp" alt="El satélite como aliado del agricultor" loading="lazy">
+                    </div>
+                    <div class="blog-card-content">
+                        <span class="blog-date">4 de febrero de 2026</span>
+                        <h3 class="blog-title">Lo que sus ojos no ven: Por qué el satélite es el mejor aliado del agricultor moderno</h3>
+                        <p class="blog-summary">¿Realmente conoce su tierra tanto como cree? El clima ha cambiado y la experiencia ya no basta. Descubra por qué entender la historia de su terreno es la única forma de dejar de perder dinero hoy.</p>
+                        <span class="blog-link">Leer más →</span>
+                    </div>
+                </a>
+
+                <a href="https://agrotechcolombia.netlify.app/blog/decisiones-agricolas-datos.html" class="blog-card">
+                    <div class="blog-card-image">
+                        <img src="images/blog/decisiones-datos.webp" alt="Decisiones agrícolas con datos" loading="lazy">
+                    </div>
+                    <div class="blog-card-content">
+                        <span class="blog-date">29 de enero de 2026</span>
+                        <h3 class="blog-title">Por qué hoy tomar decisiones sin datos es perder dinero (y cómo evitarlo)</h3>
+                        <p class="blog-summary">Durante años hemos sembrado mirando el cielo y confiando en la experiencia. Pero hoy, eso ya no es suficiente. Descubra el costo invisible de trabajar a ciegas.</p>
+                        <span class="blog-link">Leer más →</span>
+                    </div>
+                </a>
+
+                <a href="https://agrotechcolombia.netlify.app/blog/predicciones-climaticas-2026.html" class="blog-card">
+                    <div class="blog-card-image">
+                        <img src="images/blog/predicciones-clima.webp" alt="Predicciones climáticas 2026" loading="lazy">
+                    </div>
+                    <div class="blog-card-content">
+                        <span class="blog-date">28 de enero de 2026</span>
+                        <h3 class="blog-title">Predicciones Climáticas para el Agro en 2026</h3>
+                        <p class="blog-summary">Analizamos los patrones de El Niño y La Niña para este año y cómo afectarán sus cultivos en la región de Casanare y Meta.</p>
+                        <span class="blog-link">Leer más →</span>
+                    </div>
+                </a>
+
+                <a href="https://agrotechcolombia.netlify.app/blog/ndvi-guia-completa.html" class="blog-card">
+                    <div class="blog-card-image">
+                        <img src="images/blog/ndvi-guia.webp" alt="NDVI guía completa" loading="lazy">
+                    </div>
+                    <div class="blog-card-content">
+                        <span class="blog-date">15 de enero de 2026</span>
+                        <h3 class="blog-title">NDVI: La Guía Completa para Agricultores Modernos</h3>
+                        <p class="blog-summary">¿Escucha hablar del NDVI pero no sabe exactamente qué es? Le explicamos cómo este índice le dice la salud exacta de sus plantas.</p>
+                        <span class="blog-link">Leer más →</span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="blog-more">
+                <a href="https://agrotechcolombia.netlify.app/blog.html" class="btn-product btn-product-ghost">Ver todos los artículos →</a>
             </div>
         </div>
     </section>
@@ -203,7 +316,6 @@
             <h2 class="section-title">Planes que se adaptan a ti</h2>
             <p class="section-subtitle">Desde pequeños productores hasta grandes empresas agrícolas. Sin compromisos, cancela cuando quieras.</p>
             <div class="pricing-grid">
-                <!-- Explorador -->
                 <div class="pricing-card">
                     <h3>Explorador</h3>
                     <div class="price">
@@ -220,7 +332,6 @@
                     <a href="templates/billing/pricing.html" class="btn-plan">Probar Gratis</a>
                 </div>
 
-                <!-- Agricultor -->
                 <div class="pricing-card featured">
                     <div class="badge">POPULAR</div>
                     <h3>Agricultor</h3>
@@ -240,7 +351,6 @@
                     <a href="templates/billing/pricing.html" class="btn-plan">Comenzar Ahora</a>
                 </div>
 
-                <!-- Empresarial -->
                 <div class="pricing-card">
                     <h3>Empresarial</h3>
                     <div class="price">
@@ -262,6 +372,18 @@
         </div>
     </section>
 
+    <!-- CTA final -->
+    <section class="final-cta">
+        <div class="container">
+            <h2>¿Listo para ver tu finca desde el espacio?</h2>
+            <p>Empieza hoy. 14 días de prueba · Sin tarjeta de crédito.</p>
+            <div class="final-cta-buttons">
+                <a href="/register" class="btn-hero btn-hero-primary">Crear cuenta gratis →</a>
+                <a href="https://agrotechcolombia.netlify.app" class="btn-hero btn-hero-ghost">Ver Informes Satelitales</a>
+            </div>
+        </div>
+    </section>
+
     <!-- Footer -->
     <footer class="footer">
         <div class="container">
@@ -275,21 +397,22 @@
                 </div>
                 <div class="footer-col">
                     <h4>Producto</h4>
-                    <a href="#features">Características</a>
+                    <a href="#servicios">Monitoreo Continuo</a>
+                    <a href="https://agrotechcolombia.netlify.app">Informes Satelitales</a>
+                    <a href="#features">Beneficios</a>
                     <a href="#pricing">Planes</a>
-                    <a href="/templates/authentication/login.html">Iniciar Sesión</a>
                 </div>
                 <div class="footer-col">
                     <h4>Empresa</h4>
-                    <a href="#">Sobre Nosotros</a>
-                    <a href="#">Blog</a>
-                    <a href="#">Contacto</a>
+                    <a href="#blog">Blog</a>
+                    <a href="#servicios">Servicios</a>
+                    <a href="/templates/authentication/login.html">Iniciar Sesión</a>
                 </div>
                 <div class="footer-col">
                     <h4>Contacto</h4>
-                    <p>info@agrotechdigital.com</p>
-                    <p>+57 300 123 4567</p>
-                    <p>Bogotá, Colombia</p>
+                    <a href="mailto:contacto@agrotechcolombia.com">contacto@agrotechcolombia.com</a>
+                    <a href="tel:+573223088873">+57 322 308 8873</a>
+                    <p>Carrera 23 # 14 - 10, Yopal, Casanare</p>
                 </div>
             </div>
             <div class="footer-bottom">

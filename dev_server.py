@@ -26,6 +26,7 @@ Uso:
 import http.server
 import urllib.request
 import urllib.error
+import urllib.parse
 import os
 import sys
 import mimetypes
@@ -107,7 +108,7 @@ class AgroTechDevHandler(http.server.BaseHTTPRequestHandler):
             self.wfile.write(f.read())
 
     def do_GET(self):
-        path = self.path.split("?")[0].rstrip("/") or "/"
+        path = urllib.parse.unquote(self.path.split("?")[0]).rstrip("/") or "/"
 
         # 1. Proxy al backend
         if self._should_proxy(self.path):

@@ -52,7 +52,6 @@
     <link href="../../css/icons.min.css" rel="stylesheet" type="text/css" />
     <link href="../../css/app.min.css" rel="stylesheet" type="text/css" />
     <link href="../../css/employees.css" rel="stylesheet" type="text/css" />
-    <link href="../../css/mobile-clean-redesign.css" rel="stylesheet" type="text/css" />
     
     <!-- ⭐ SISTEMA NEUMÓRFICO AGROTECH ⭐ -->
     <link href="../../css/agrotech-neomorphic.css" rel="stylesheet" type="text/css" />
@@ -62,7 +61,6 @@
     <link href="../../css/liquid-glass-system.css" rel="stylesheet" type="text/css" />
     <link href="../../css/monitoring-responsive-pro.css" rel="stylesheet" type="text/css" />
     
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <!-- Tabler Icons for Sidebar -->
     <link href="https://cdn.jsdelivr.net/npm/@tabler/icons@latest/tabler-sprite.svg" as="image">
     <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
@@ -252,12 +250,6 @@
                 gap: 8px;
             }
 
-            /* Ocultar topbar y sidebar de desktop en móvil */
-            #topbar-container,
-            #left-sidebar {
-                display: none !important;
-            }
-
             /* Ajustar contenido principal */
             #main-content {
                 padding-top: 70px !important;
@@ -280,6 +272,37 @@
             .sidebar-overlay.show {
                 opacity: 1;
                 visibility: visible;
+            }
+
+            /* ── Sidebar móvil (drawer) — estilo Liquid Glass claro ── */
+            #mobile-sidebar {
+                display: none;
+                position: fixed !important;
+                top: 0;
+                left: 0;
+                width: 280px;
+                max-width: 82vw;
+                height: 100vh;
+                height: 100dvh;
+                background: rgba(255, 255, 255, 0.94) !important;
+                backdrop-filter: blur(26px);
+                -webkit-backdrop-filter: blur(26px);
+                border-right: 1px solid rgba(0, 0, 0, 0.06);
+                z-index: 9999;
+                transform: translateX(-100%);
+                transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+                overflow-y: auto;
+                box-shadow: 4px 0 28px rgba(0, 0, 0, 0.14);
+            }
+            #mobile-sidebar.show {
+                display: block !important;
+                transform: translateX(0) !important;
+            }
+            #mobile-sidebar .menu li a {
+                color: #2C3E50 !important;
+            }
+            #mobile-sidebar .menu li a.active {
+                color: #007A20 !important;
             }
         }
 
@@ -358,16 +381,25 @@
         }
         #button-container {
             position: absolute;
-            top: 80px;
-            left: 30%;
-            transform: translateX(-50%);
+            top: 76px;
+            left: 16px;
+            transform: none;
             z-index: 999;
-            background-color: rgba(255, 255, 255, 0.6);
-            padding: 12px 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-            text-align: center;
-            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.72);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            border: 1px solid rgba(255, 255, 255, 0.55);
+            padding: 14px 16px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            text-align: left;
+            max-width: 240px;
+        }
+        #button-container h3 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #1D1D1F;
+            margin-bottom: 8px;
         }
         @media (max-width: 767.98px) {
             #button-container {
@@ -426,9 +458,6 @@
             transform: translateY(0);
         }
         @media (max-width: 991.98px) {
-            #left-sidebar {
-                display: none;
-            }
             #main-content {
                 margin-left: 0;
                 margin-top: 60px;
@@ -460,44 +489,9 @@
             }
         }
     </style>
+    <script src="../../js/sidebar-controller.js"></script>
 </head>
 <body class="neomorphic-theme">  
-    <!-- Topbar móvil (solo visible en móvil < 768px) -->
-    <div class="topbar glass-nav" style="display: none;">
-        <button class="menu-toggle button-menu-mobile" aria-label="Abrir menú" onclick="toggleMobileSidebar()">
-            <i class="fas fa-bars"></i>
-        </button>
-        <div class="topbar-title" style="font-size: 1.1rem; font-weight: 600; color: #007A20;">Parcelas - Agrotech</div>
-        <div class="topbar-actions">
-            <button class="topbar-icon" aria-label="Notificaciones" style="background:none;border:none;color:#2C3E50;">
-                <i class="fas fa-bell"></i>
-            </button>
-        </div>
-    </div>
-
-    <!-- Sidebar móvil (solo visible en móvil < 768px) -->
-    <div id="mobile-sidebar" class="mobile-sidebar">
-        <div class="brand" style="padding: 32px 0 18px 0; text-align: center; background: linear-gradient(135deg, #FFFFFF, rgba(232, 245, 233, 0.4)); border-bottom: 1px solid #E8ECEF;">
-            <a href="#" class="logo">
-                <span>
-                    <img src="../../images/agrotech solo negro.png" alt="Agrotech" class="logo-sm" style="max-width: 80px; margin: 0 auto; display: block;">
-                </span>
-            </a>
-        </div>
-        <ul class="menu" style="padding: 20px 0; margin: 0; list-style: none;">
-            <li><a href="../dashboard.html" style="display: flex; align-items: center; gap: 10px; color: #2C3E50; padding: 12px 22px; border-radius: 7px; transition: all 0.3s; font-size: 15px;"><i class="ti ti-home" style="font-size: 1.2em; color: #35B835;"></i> Dashboard</a></li>
-            <!-- <li><a href="../employees/RRHH-dashboard.html" style="display: flex; align-items: center; gap: 10px; color: #2C3E50; padding: 12px 22px; border-radius: 7px; transition: all 0.3s; font-size: 15px;"><i class="ti ti-user" style="font-size: 1.2em; color: #35B835;"></i> Recursos Humanos</a></li> -->
-            <!-- <li><a href="../inventory/inventario-dashboard.html" style="display: flex; align-items: center; gap: 10px; color: #2C3E50; padding: 12px 22px; border-radius: 7px; transition: all 0.3s; font-size: 15px;"><i class="ti ti-box" style="font-size: 1.2em; color: #35B835;"></i> Inventario</a></li> -->
-            <!-- <li><a href="../configuration/configuracion.html" style="display: flex; align-items: center; gap: 10px; color: #2C3E50; padding: 12px 22px; border-radius: 7px; transition: all 0.3s; font-size: 15px;"><i class="ti ti-settings" style="font-size: 1.2em; color: #35B835;"></i> Configuración</a></li> -->
-            <li><a href="parcels-dashboard.html" class="active" style="display: flex; align-items: center; gap: 10px; color: #007A20; padding: 12px 22px; border-radius: 7px; background: linear-gradient(135deg, rgba(53, 184, 53, 0.15), rgba(0, 122, 32, 0.1)); font-weight: 600; transition: all 0.3s; font-size: 15px;"><i class="ti ti-map" style="font-size: 1.2em; color: #007A20;"></i> Parcelas</a></li>
-            <!-- <li><a href="../labors/labor-dashboard.html" style="display: flex; align-items: center; gap: 10px; color: #2C3E50; padding: 12px 22px; border-radius: 7px; transition: all 0.3s; font-size: 15px;"><i class="ti ti-clipboard-list" style="font-size: 1.2em; color: #35B835;"></i> Labores</a></li> -->
-            <li><a href="../crop/crop_list.html" style="display: flex; align-items: center; gap: 10px; color: #2C3E50; padding: 12px 22px; border-radius: 7px; transition: all 0.3s; font-size: 15px;"><i class="ti ti-plant" style="font-size: 1.2em; color: #35B835;"></i> Cultivos</a></li>
-        </ul>
-    </div>
-
-    <!-- Overlay del sidebar (solo móvil) -->
-    <div id="sidebar-overlay" class="sidebar-overlay"></div>
-            
     <div id="left-sidebar"></div>
     <!-- Contenedor del topbar -->
     <div id="topbar-container"></div>
@@ -595,13 +589,40 @@
             </div>
 
             <!-- Panel profesional de datos con análisis satelital -->
-            <div id="dashboardFlexRow" style="width:95%;max-width:1200px;margin:24px auto 0 auto;padding:24px 16px 16px 16px;background:#fff;border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,0.10);font-size:16px;display:flex;align-items:flex-start;gap:32px;flex-wrap:wrap;z-index:1;">
-                <!-- Columna izquierda: Tarjeta de Análisis Satelital e Info Parcela -->
-                <div style="flex:2;min-width:320px;">
+            <div id="dashboardFlexRow" style="width:95%;max-width:1200px;margin:24px auto 0 auto;padding:24px 16px 16px 16px;background:#fff;border-radius:18px;box-shadow:0 4px 16px rgba(0,0,0,0.10);font-size:16px;display:block;z-index:1;">
+                <!-- Contenido a ancho completo -->
+                <div style="width:100%;">
                     <!-- 🔔 Banner de parcela seleccionada -->
-                    <!-- Monitoreo Continuo Fase 3 — Badge de salud del cultivo -->
-                    <div id="crop-health-badge" style="margin:10px 0;font-size:1.2em;text-align:center"></div>
-                    <div id="crop-health-message" style="color:#666;margin-bottom:8px;font-size:0.9em;text-align:center"></div>
+                    <!-- Estado del cultivo — hero card -->
+                    <div id="crop-health-card" style="display:none;margin:0 0 16px 0;">
+                        <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 18px;border-radius:14px;background:linear-gradient(135deg,#ffffff,#f4f9f4);border:1px solid #e2eae2;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+                            <div style="display:flex;align-items:center;gap:12px;min-width:240px;flex:1;">
+                                <span id="crop-health-emoji" style="font-size:2.2em;line-height:1;">🌱</span>
+                                <div>
+                                    <div id="crop-health-label" style="font-weight:700;font-size:1.05em;color:#222;">—</div>
+                                    <div id="crop-health-message" style="font-size:0.85em;color:#666;max-width:380px;line-height:1.4;">—</div>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:26px;flex-wrap:wrap;align-items:center;">
+                                <div style="text-align:center;">
+                                    <div style="font-size:0.72em;color:#888;text-transform:uppercase;letter-spacing:0.5px;">NDVI (vigor)</div>
+                                    <div id="crop-ndvi-value" style="font-size:1.7em;font-weight:800;color:#1a9850;line-height:1.2;">—</div>
+                                </div>
+                                <div style="text-align:center;">
+                                    <div style="font-size:0.72em;color:#888;text-transform:uppercase;letter-spacing:0.5px;">NDMI (humedad)</div>
+                                    <div id="crop-ndmi-value" style="font-size:1.7em;font-weight:800;color:#2171b5;line-height:1.2;">—</div>
+                                </div>
+                                <div style="text-align:center;">
+                                    <div style="font-size:0.72em;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Última obs.</div>
+                                    <div id="crop-last-obs" style="font-size:1.05em;font-weight:700;color:#444;line-height:1.2;">—</div>
+                                </div>
+                                <div style="text-align:center;">
+                                    <div style="font-size:0.72em;color:#888;text-transform:uppercase;letter-spacing:0.5px;">Confianza</div>
+                                    <div id="crop-confidence" style="font-size:1.05em;font-weight:700;color:#444;line-height:1.2;">—</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Monitoreo Continuo Fase 6 — Actividad Reciente -->
                     <div id="crop-activity-section" style="background:#f8f9fa;border-radius:8px;padding:10px 14px;margin-bottom:12px">
@@ -612,53 +633,40 @@
                     </div>
 
                     <div id="selectedParcelBanner" style="display:none;background:linear-gradient(135deg, #4CAF50, #2E7D32);border-radius:12px;padding:14px 18px;margin-bottom:16px;color:white;box-shadow:0 3px 12px rgba(46,125,50,0.3);">
-                        <div style="display:flex;align-items:center;justify-content:space-between;">
+                        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
                             <div style="display:flex;align-items:center;gap:12px;">
                                 <i class="fas fa-map-marked-alt" style="font-size:1.5em;"></i>
                                 <div>
                                     <div style="font-size:12px;opacity:0.85;">Parcela seleccionada</div>
-                                    <div id="selectedParcelName" style="font-weight:700;font-size:1.1em;">-</div>
+                                    <div id="selectedParcelName" style="font-weight:700;font-size:1.15em;">-</div>
                                 </div>
                             </div>
-                            <button onclick="clearParcelSelection()" class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:6px 12px;">
-                                <i class="fas fa-times me-1"></i> Cambiar
-                            </button>
+                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                                <span id="bannerArea" style="display:none;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;">—</span>
+                                <span id="bannerType" style="display:none;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;">—</span>
+                                <span id="bannerSoil" style="display:none;background:rgba(255,255,255,0.18);padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600;">—</span>
+                                <button onclick="clearParcelSelection()" class="btn btn-sm" style="background:rgba(255,255,255,0.2);color:white;border:none;border-radius:8px;padding:6px 12px;">
+                                    <i class="fas fa-times me-1"></i> Cambiar
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
                     <!-- Análisis de Imagen Satelital -->
                     <div class="glass-card" style="margin-bottom:24px;">
                         <h5 style="font-weight:bold;color:#145A32;margin-bottom:15px;">🛰️ Análisis de Imagen Satelital</h5>
-                        
-                        <!-- Selector rápido de rango de fechas -->
-                        <div class="mb-3">
-                            <label class="form-label" style="font-weight:500;font-size:13px;color:#666;">Rango rápido:</label>
-                            <div class="btn-group w-100" role="group" aria-label="Selector de rango de fechas">
-                                <button type="button" class="btn btn-outline-success btn-sm" onclick="setDateRange(7)">7 días</button>
-                                <button type="button" class="btn btn-outline-success btn-sm active" onclick="setDateRange(30)">30 días</button>
-                                <button type="button" class="btn btn-outline-success btn-sm" onclick="setDateRange(90)">3 meses</button>
-                                <button type="button" class="btn btn-outline-success btn-sm" onclick="setDateRange(180)">6 meses</button>
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-2">
-                            <div class="col-6">
-                                <label for="fechaInicioInput" class="form-label" style="font-size:13px;">Desde:</label>
-                                <input type="date" id="fechaInicioInput" class="form-control form-control-sm">
-                            </div>
-                            <div class="col-6">
-                                <label for="fechaFinInput" class="form-label" style="font-size:13px;">Hasta:</label>
-                                <input type="date" id="fechaFinInput" class="form-control form-control-sm">
-                            </div>
-                        </div>
-                        <button id="escenasSatelitalesBtn" class="btn btn-warning w-100 mb-2" style="font-weight:500;">
+                         
+                        <button id="escenasSatelitalesBtn" class="btn btn-warning w-100 mb-2" style="font-weight:500;display:none;">
                             <i class="fas fa-satellite me-1"></i> Buscar escenas satelitales
                         </button>
-                        <button id="graficoHistoricoBtn" class="btn btn-success w-100 mb-2" style="font-weight:500;">
-                            <i class="fas fa-chart-line me-1"></i> Ver Gráfico Histórico
+                        <button id="graficoHistoricoBtn" class="btn btn-success w-100 mb-2" style="font-weight:500;" onclick="window.loadS2History()">
+                            <i class="fas fa-chart-line me-1"></i> Ver Histórico del Cultivo
                         </button>
                         <button id="analisisMeteorologicoBtn" class="btn btn-info w-100" style="font-weight:500;">
                             <i class="fas fa-cloud-sun me-1"></i> Ver Meteorología
+                        </button>
+                        <button id="zonificacionBtn" class="btn w-100 mt-2" style="font-weight:500; background: linear-gradient(135deg, #7B1FA2, #4A148C); border:none; color:white;" onclick="window.toggleZonesPanel && window.toggleZonesPanel()" title="Divide la parcela en zonas de manejo con una grilla + K-means">
+                            <i class="fas fa-th-large me-1"></i> Sectorizar parcela (zonas)
                         </button>
                         <button id="elevacionTerrenoBtn" class="btn w-100 mt-2" style="font-weight:500; background: linear-gradient(135deg, #8B4513, #2E7D32); border:none; color:white;" disabled title="Selecciona primero una parcela">
                             <i class="fas fa-mountain me-1"></i> Ver Elevación del Terreno
@@ -678,61 +686,8 @@
                     </div>
                 </div>
                 
-                <!-- Columna derecha: Panel de estado rápido + análisis -->
-                <div style="flex:1;min-width:320px;">
-                    <!-- 📊 Panel de Estado Rápido de la Parcela -->
-                    <div id="quickStatusPanel" class="glass-card" style="margin-bottom:24px;">
-                        <div style="font-weight:600;color:#145A32;font-size:14px;margin-bottom:14px;display:flex;align-items:center;gap:8px;">
-                            <i class="fas fa-tachometer-alt"></i> Estado Rápido
-                        </div>
-                        
-                        <!-- Estado placeholder cuando no hay parcela -->
-                        <div id="quickStatusPlaceholder" style="text-align:center;padding:20px 0;">
-                            <i class="fas fa-hand-pointer" style="font-size:2em;color:#ccc;margin-bottom:10px;display:block;"></i>
-                            <div style="font-size:13px;color:#888;">Selecciona una parcela para ver su estado</div>
-                        </div>
-                        
-                        <!-- Estado real (oculto inicialmente) -->
-                        <div id="quickStatusContent" style="display:none;">
-                            <div class="row g-2">
-                                <!-- Salud de Vegetación -->
-                                <div class="col-6">
-                                    <div style="background:white;border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
-                                        <div style="font-size:1.4em;margin-bottom:4px;">🌱</div>
-                                        <div style="font-size:11px;color:#888;">Vegetación</div>
-                                        <div id="statusNdvi" style="font-weight:700;color:#28a745;font-size:14px;">-</div>
-                                    </div>
-                                </div>
-                                <!-- Estrés Hídrico -->
-                                <div class="col-6">
-                                    <div style="background:white;border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
-                                        <div style="font-size:1.4em;margin-bottom:4px;">💧</div>
-                                        <div style="font-size:11px;color:#888;">Humedad</div>
-                                        <div id="statusNdmi" style="font-weight:700;color:#17a2b8;font-size:14px;">-</div>
-                                    </div>
-                                </div>
-                                <!-- Próxima Lluvia -->
-                                <div class="col-6">
-                                    <div style="background:white;border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
-                                        <div style="font-size:1.4em;margin-bottom:4px;">🌧️</div>
-                                        <div style="font-size:11px;color:#888;">Próx. Lluvia</div>
-                                        <div id="statusRain" style="font-weight:700;color:#6c757d;font-size:12px;">-</div>
-                                    </div>
-                                </div>
-                                <!-- Última Imagen -->
-                                <div class="col-6">
-                                    <div style="background:white;border-radius:10px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
-                                        <div style="font-size:1.4em;margin-bottom:4px;">📅</div>
-                                        <div style="font-size:11px;color:#888;">Últ. Imagen</div>
-                                        <div id="statusLastImage" style="font-weight:700;color:#6c757d;font-size:12px;">-</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- 🛰️ Monitoreo Radar (Sentinel-1) -->
-                    <div id="radarMonitoringPanel" class="glass-card" style="margin-bottom:24px;display:none;">
+                <!-- 🛰️ Monitoreo Radar (Sentinel-1) -->
+                <div id="radarMonitoringPanel" class="glass-card" style="margin-bottom:24px;display:none;">
                         <div style="font-weight:600;color:#145A32;font-size:14px;margin-bottom:6px;display:flex;align-items:center;gap:8px;">
                             <i class="fas fa-satellite-dish"></i> Monitoreo Radar
                         </div>
@@ -761,17 +716,59 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Análisis automático de imagen satelital -->
-                    <div id="analysisTableCard" class="glass-card">
-                        <h5 style="font-weight: bold; color: #333; margin-bottom: 15px;">📊 Análisis de Imagen</h5>
-                        <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:flex-start;">
-                            <!-- Imagen satelital -->
-                            <div id="satelliteImageContainer" style="flex:1;min-width:300px;max-width:400px;">
-                                <div id="ndviLegendBox" style="text-align: center;">
-                                    <!-- La imagen se insertará aquí dinámicamente -->
-                                </div>
+            </div>
+
+            <!-- Histórico del cultivo (ancho completo) -->
+            <div style="width:95%;max-width:1200px;margin:24px auto;padding:0 16px;">
+                <div class="glass-card" style="padding:18px;">
+                    <div style="font-weight:600;color:#145A32;font-size:14px;margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+                        <i class="fas fa-chart-line"></i> Evolución del Cultivo
+                    </div>
+                    <div id="s2HistoryDashboardPanel" style="display:none;"></div>
+                    <div id="s2HistoryHint" style="background:white;border-radius:10px;padding:20px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,0.05);">
+                        <div style="font-size:13px;color:#888;">📈 Pulsa "Ver Histórico del Cultivo" para ver la evolución mensual de tu cultivo desde el inicio del año.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sectorización de manejo (grilla + K-means) -->
+            <div id="zonesPanel" style="display:none;width:95%;max-width:1200px;margin:24px auto;padding:0 16px;">
+                <div class="glass-card" style="padding:18px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                        <div>
+                            <div style="font-weight:600;color:#145A32;font-size:14px;display:flex;align-items:center;gap:8px;">
+                                <i class="fas fa-th-large"></i> Sectorización de manejo (zonas de vigor)
                             </div>
+                            <div style="font-size:11.5px;color:#888;margin-top:3px;">Divide tu lote en zonas usando la escena satelital más reciente disponible.</div>
+                        </div>
+                        <button onclick="window.toggleZonesPanel && window.toggleZonesPanel()" class="btn btn-sm btn-outline-secondary" title="Cerrar">✕</button>
+                    </div>
+                    <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:14px;">
+                        <label style="font-size:12px;color:#666;margin:0;">Nº zonas (k)</label>
+                        <select id="zonesKSelect" class="form-select form-select-sm" style="width:auto;">
+                            <option value="2">2</option>
+                            <option value="3" selected>3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                        </select>
+                        <label style="font-size:12px;color:#666;margin:0;">Índice base</label>
+                        <select id="zonesIndexSelect" class="form-select form-select-sm" style="width:auto;">
+                            <option value="ndvi" selected>NDVI (vigor)</option>
+                            <option value="ndmi">NDMI (humedad)</option>
+                            <option value="savi">SAVI</option>
+                        </select>
+                        <button id="btnGenerateZones" class="btn btn-sm" style="background:linear-gradient(135deg,#7B1FA2,#4A148C);color:white;border:none;font-weight:600;">
+                            ⚙️ Generar zonificación
+                        </button>
+                        <button id="btnDownloadGeoJSON" class="btn btn-sm btn-outline-secondary" disabled title="Exporta las zonas para dosis variable (SIG/GIS)" onclick="window.downloadZonesGeoJSON && window.downloadZonesGeoJSON()">⬇ GeoJSON</button>
+                        <button id="btnDownloadKML" class="btn btn-sm btn-outline-secondary" disabled title="Exporta las zonas para Google Earth / maquinaria" onclick="window.downloadZonesKML && window.downloadZonesKML()">⬇ KML</button>
+                    </div>
+                    <div id="zonesStatus" style="font-size:13px;color:#666;margin-bottom:12px;">Selecciona una parcela y pulsa "Generar zonificación". Se usa la escena satelital más reciente disponible.</div>
+                    <div id="zonesLegend" style="display:none;margin-bottom:14px;"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                        <div id="zonesMap" style="height:360px;border-radius:12px;overflow:hidden;border:1px solid #e3e8ee;"></div>
+                        <div id="zonesList" style="max-height:360px;overflow-y:auto;">
+                            <div style="color:#888;font-style:italic;">Sin zonas todavía.</div>
                         </div>
                     </div>
                 </div>
@@ -1321,6 +1318,8 @@
     <script src="../../js/parcels/meteorological-analysis.js?v=2025102002"></script>
     <script src="../../js/parcels/weather-detail.js?v=2025090101"></script>
     <script src="../../js/parcels/elevation.js?v=2026032501"></script>
+    <script src="../../js/parcels/sentinel2-compare.js?v=2026082101"></script>
+    <script src="../../js/parcels/zones.js?v=2026082501"></script>
 
     <script>
         // Mostrar el filtro de rango de fechas solo cuando se activa la capa NDVI
@@ -1412,12 +1411,7 @@
 
         // Componentes a cargar: id del contenedor y ruta del archivo
         const components = {
-            "topbar-container": "../partials/horizontal-nav.html",
-            "left-sidebar": "../partials/left-sidebar.html"
-            // Desactivados componentes que no tienen contenedores:
-            // "footer-container": "/templates/partials/footer.html",
-            // "righsidebar": "/templates/partials/right-sidebar.html", 
-            // "vendorjs": "/templates/partials/vendorjs.html"
+            // Sidebar y topbar ahora se inyectan desde js/sidebar-controller.js
         };
 
         // Cargar todos los componentes solo si el contenedor existe
@@ -1724,6 +1718,25 @@
             document.getElementById('parcelNameCell').textContent = parcel.name || '-';
             document.getElementById('parcelAreaCell').textContent = 
                 parcel.area_hectares ? `${parcel.area_hectares.toFixed(2)} ha` : '-';
+
+            // Chips del banner (área, tipo, suelo)
+            const areaChip = document.getElementById('bannerArea');
+            if (areaChip) {
+                if (parcel.area_hectares) { areaChip.textContent = `${parcel.area_hectares.toFixed(1)} ha`; areaChip.style.display = 'inline'; }
+                else areaChip.style.display = 'none';
+            }
+            const typeMap = { agricola: 'Agrícola', ganadera: 'Ganadera', forestal: 'Forestal', mixta: 'Mixta' };
+            const typeChip = document.getElementById('bannerType');
+            if (typeChip) {
+                const ft = typeMap[parcel.field_type] || parcel.field_type;
+                if (ft) { typeChip.textContent = ft; typeChip.style.display = 'inline'; }
+                else typeChip.style.display = 'none';
+            }
+            const soilChip = document.getElementById('bannerSoil');
+            if (soilChip) {
+                if (parcel.soil_type) { soilChip.textContent = parcel.soil_type; soilChip.style.display = 'inline'; }
+                else soilChip.style.display = 'none';
+            }
             
             // Mostrar panel de estado rápido
             document.getElementById('quickStatusPlaceholder').style.display = 'none';

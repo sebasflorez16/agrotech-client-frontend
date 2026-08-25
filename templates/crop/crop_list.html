@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <meta name="theme-color" content="#0B0F14">
+    <meta name="theme-color" content="#F5F5F7">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Cultivos | Agrotech</title>
     
     <!-- Auth Global (config + token refresh) -->
     <script src="../../js/config.js"></script>
     <script src="../../js/auth-global.js"></script>
+    <script src="../../js/sidebar-controller.js"></script>
     
     <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <link href="/static/css/app.min.css" rel="stylesheet" type="text/css" />
     <link href="/css/agrotech-neomorphic.css" rel="stylesheet" type="text/css" />
-    <link href="/css/global-mobile-responsive.css" rel="stylesheet" type="text/css" />
+    <link href="/css/liquid-glass-system.css" rel="stylesheet" type="text/css" />
     <!-- Font Awesome — respaldo (el sistema lo carga también desde vendorjs.html) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" crossorigin="anonymous" />
     <style>
@@ -81,9 +82,9 @@
         }
     </style>
 </head>
-<body>
+<body class="neomorphic-theme">
     <!-- ORDEN CRÍTICO: topbar primero con display:none, luego sidebar, luego contenido -->
-    <div id="topbar-container" style="display:none;"></div>
+    <div id="topbar-container"></div>
     <div id="left-sidebar"></div>
 
     <div id="main-content" class="container mt-5" style="margin-top: 110px !important;">
@@ -450,9 +451,7 @@
     <script type="module">
         import { loadLayoutComponents } from '/js/load_components.js';
         const components = {
-            "topbar-container": "/templates/partials/horizontal-nav.html",
             "footer-container": "/templates/partials/footer.html",
-            "left-sidebar": "/templates/partials/left-sidebar.html",
             "righsidebar": "/templates/partials/right-sidebar.html",
             "vendorjs": "/templates/partials/vendorjs.html"
         };

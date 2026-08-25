@@ -580,6 +580,10 @@ function setupDrawingTools(map) {
         
         console.log("[LEAFLET] Polígono dibujado con", positions.length, "vértices");
         
+        // Validar área en tiempo real
+        const coordsLngLat = positions.map(pos => [pos[1], pos[0]]);
+        updateAreaFeedback(polygonAreaHectares(coordsLngLat));
+        
         // Ocultar botón cancelar
         if (cancelBtn) {
             cancelBtn.style.display = "none";
@@ -588,9 +592,48 @@ function setupDrawingTools(map) {
         isDrawing = false;
     });
 
+    // Área en vivo mientras se dibuja (cada vértice)
+    map.on('draw:drawvertex', function (e) {
+        try {
+            const layers = e.layers && e.layers.getLayers ? e.layers.getLayers() : [];
+            if (layers.length >= 3) {
+                const coords = layers.map(l => { const ll = l.getLatLng(); return [ll.lng, ll.lat]; });
+                coords.push(coords[0]);
+                updateAreaFeedback(polygonAreaHectares(coords));
+            }
+        } catch (err) {}
+    });
+
+    // Recalcular si se editan los vértices (y actualizar positions para guardar)
+    map.on('draw:edited', function (e) {
+        try {
+            const layers = e.layers.getLayers();
+            if (layers.length && layers[0].getLatLngs) {
+                const layer = layers[0];
+                currentPolygon = layer;
+                const latlngs = layer.getLatLngs()[0];
+                positions = latlngs.map(ll => [ll.lat, ll.lng]);
+                const coords = latlngs.map(ll => [ll.lng, ll.lat]);
+                updateAreaFeedback(polygonAreaHectares(coords));
+            }
+        } catch (err) {}
+    });
+
+    // Área en vivo al arrastrar un vértice (edición)
+    map.on('draw:editvertex', function (e) {
+        try {
+            if (e.poly && e.poly.getLatLngs) {
+                const latlngs = e.poly.getLatLngs()[0];
+                const coords = latlngs.map(ll => [ll.lng, ll.lat]);
+                updateAreaFeedback(polygonAreaHectares(coords));
+            }
+        } catch (err) {}
+    });
+
     // Evento cuando se inicia el dibujo
     map.on('draw:drawstart', function (e) {
         isDrawing = true;
+        fetchPlanHectareLimit(); // cargar límite actual del plan
         if (cancelBtn) {
             cancelBtn.style.display = "block";
         }
@@ -599,6 +642,10 @@ function setupDrawingTools(map) {
     // Evento cuando se detiene el dibujo
     map.on('draw:drawstop', function (e) {
         isDrawing = false;
+    });
+
+    map.on('draw:deletestop', function (e) {
+        hideAreaFeedback();
     });
 }
 
@@ -617,6 +664,15 @@ function savePolygon() {
     // Validar si se ha dibujado un polígono
     if (!positions || positions.length === 0) {
         alert("Primero dibuje el polígono de la parcela antes de guardar.");
+        return;
+    }
+
+    // Validar límite de hectáreas ANTES de guardar (evita el 403 del servidor)
+    const _coordsLngLat = positions.map(pos => [pos[1], pos[0]]);
+    const _areaHa = polygonAreaHectares(_coordsLngLat);
+    const _limitHa = window.AGROTECH_PLAN_LIMIT_HA || 50;
+    if (_areaHa > _limitHa) {
+        alert(`⚠️ La parcela tiene ${_areaHa.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha, pero tu plan permite máximo ${_limitHa} ha.\n\nDibuja un polígono más pequeño o mejora tu plan.`);
         return;
     }
 
@@ -943,6 +999,60 @@ function toRad(deg) {
     return deg * Math.PI / 180;
 }
 
+// ── Validación de hectáreas en tiempo real (mientras se dibuja) ──
+window.AGROTECH_PLAN_LIMIT_HA = 50; // default free
+
+async function fetchPlanHectareLimit() {
+    try {
+        const token = localStorage.getItem('accessToken');
+        const base = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'http://localhost:8000';
+        const resp = await fetch(`${base}/billing/api/my-subscription/`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const limit = data.limits && data.limits.hectares;
+        if (limit) window.AGROTECH_PLAN_LIMIT_HA = limit;
+    } catch (e) { /* silencioso */ }
+}
+
+function updateAreaFeedback(areaHa) {
+    const limit = window.AGROTECH_PLAN_LIMIT_HA || 50;
+    const over = areaHa > limit;
+    const cell = document.getElementById('parcelAreaCell');
+    if (cell) {
+        cell.textContent = `${areaHa.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha`;
+        if (over) {
+            cell.textContent += ` ⚠️ (límite ${limit} ha)`;
+            cell.style.color = '#c0392b';
+            cell.style.fontWeight = '600';
+        } else {
+            cell.style.color = 'inherit';
+            cell.style.fontWeight = '500';
+        }
+    }
+    // Feedback visual flotante mientras se dibuja
+    let fab = document.getElementById('areaFeedbackFloating');
+    if (!fab) {
+        fab = document.createElement('div');
+        fab.id = 'areaFeedbackFloating';
+        fab.style.cssText = 'position:absolute;top:12px;right:12px;z-index:1000;background:rgba(255,255,255,0.95);padding:8px 12px;border-radius:8px;font-weight:600;font-size:14px;box-shadow:0 2px 8px rgba(0,0,0,0.15);pointer-events:none;';
+        const mapEl = document.getElementById('mapContainer');
+        if (mapEl) mapEl.appendChild(fab);
+    }
+    fab.textContent = `${areaHa.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha`;
+    fab.style.color = over ? '#c0392b' : '#145A32';
+    fab.style.display = 'block';
+    if (over) {
+        fab.textContent += ` · ⚠️ excede el límite de ${limit} ha`;
+    }
+}
+
+function hideAreaFeedback() {
+    const fab = document.getElementById('areaFeedbackFloating');
+    if (fab) fab.style.display = 'none';
+}
+
 function showWaterStressLayer(viewer) {
     if (!window.SENTINEL_WATER_STRESS_WMTS) {
         console.error("La URL de la capa de estrés hídrico no está definida.");
@@ -1058,12 +1168,12 @@ function flyToParcel(parcelId) {
                 map.removeLayer(window.selectedParcelLayer);
             }
             
-            // Crear resaltado amarillo PERMANENTE para la parcela seleccionada
+            // Crear resaltado de la parcela seleccionada (SOLO contorno, sin relleno)
             window.selectedParcelLayer = L.polygon(coordinates, {
                 color: '#FFFF00', // Amarillo
                 weight: 4,
                 fillColor: '#FFFF00',
-                fillOpacity: 0.3,
+                fillOpacity: 0, // sin relleno: no interfiere con los colores del NDVI
                 className: 'selected-parcel-highlight',
                 interactive: false // No interfiere con clics en el mapa
             }).addTo(map);
@@ -1362,8 +1472,8 @@ function setupImageFilterUX() {
     // Deshabilitar el botón hasta que todo esté seleccionado
     function updateButtonState() {
         const parcelaSeleccionada = !!window.AGROTECH_STATE.selectedParcelId;
-        const fechasValidas = fechaInicio.value && fechaFin.value;
-        btnEscenas.disabled = !(parcelaSeleccionada && fechasValidas);
+        const fechasValidas = !!(fechaInicio && fechaFin && fechaInicio.value && fechaFin.value);
+        if (btnEscenas) btnEscenas.disabled = !(parcelaSeleccionada && fechasValidas);
     }
     if (fechaInicio) fechaInicio.addEventListener('change', updateButtonState);
     if (fechaFin) fechaFin.addEventListener('change', updateButtonState);
@@ -1373,7 +1483,7 @@ function setupImageFilterUX() {
     if (btnEscenas) {
         btnEscenas.onclick = async function() {
             const parcelaSeleccionada = !!window.AGROTECH_STATE.selectedParcelId;
-            const fechasValidas = fechaInicio.value && fechaFin.value;
+            const fechasValidas = !!(fechaInicio && fechaFin && fechaInicio.value && fechaFin.value);
             if (!parcelaSeleccionada && !fechasValidas) {
                 showErrorToast("Debes seleccionar primero una parcela y el rango de fechas.");
                 return;
@@ -3059,23 +3169,49 @@ window.getCurrentMapProvider = getCurrentMapProvider;
 // ============================================================
 // MONITOREO CONTINUO Fase 3 — Badge de salud del cultivo
 // ============================================================
+function formatDateShort(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso + (String(iso).length === 10 ? 'T00:00:00' : ''));
+    if (isNaN(d)) return String(iso).slice(0, 10);
+    const meses = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+    return `${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 async function loadCropHealth(parcelId) {
     try {
         const response = await window.axiosInstance.get(`parcel/${parcelId}/health/`);
-        const badge = health.status.badge;
+        const health = response.data;
 
-        const badgeEl = document.getElementById('crop-health-badge');
-        if (badgeEl) {
-            badgeEl.innerHTML = `<span style="font-size:1.5em">${badge.emoji}</span> 
-                <span style="color:${badge.color};font-weight:bold">${badge.label}</span>`;
+        const card = document.getElementById('crop-health-card');
+        if (card) card.style.display = 'block';
+
+        const badge = health.status && health.status.badge ? health.status.badge : {};
+        const emojiEl = document.getElementById('crop-health-emoji');
+        const labelEl = document.getElementById('crop-health-label');
+        const msgEl = document.getElementById('crop-health-message');
+        if (emojiEl) emojiEl.textContent = badge.emoji || '🌱';
+        if (labelEl) {
+            labelEl.textContent = badge.label || 'Sin datos';
+            labelEl.style.color = badge.color || '#222';
+        }
+        if (msgEl) msgEl.textContent = (health.status && health.status.message) || '';
+
+        const ndviEl = document.getElementById('crop-ndvi-value');
+        if (ndviEl && health.indices && health.indices.ndvi != null) {
+            ndviEl.textContent = Number(health.indices.ndvi).toFixed(2);
         }
 
-        const msgEl = document.getElementById('crop-health-message');
-        if (msgEl) msgEl.textContent = health.status.message;
+        const ndmiEl = document.getElementById('crop-ndmi-value');
+        if (ndmiEl && health.indices && health.indices.ndmi != null) {
+            ndmiEl.textContent = Number(health.indices.ndmi).toFixed(2);
+        }
 
-        if (health.indices.ndvi) {
-            const ndviEl = document.getElementById('crop-ndvi-value');
-            if (ndviEl) ndviEl.textContent = health.indices.ndvi.toFixed(2);
+        const obsEl = document.getElementById('crop-last-obs');
+        if (obsEl) obsEl.textContent = formatDateShort(health.last_observation);
+
+        const confEl = document.getElementById('crop-confidence');
+        if (confEl && health.status && health.status.confidence_score != null) {
+            confEl.textContent = health.status.confidence_score + '%';
         }
 
         // Actualizar actividad reciente

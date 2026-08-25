@@ -9,8 +9,8 @@
     <link rel="shortcut icon" href="../../images/agrotech solo negro.png">
     <script src="../../js/config.js"></script>
     <script src="../../js/auth-global.js"></script>
+    <script src="../../js/sidebar-controller.js"></script>
     <link rel="stylesheet" href="../../css/liquid-glass-system.css">
-    <link rel="stylesheet" href="../../css/global-mobile-responsive.css">
     <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
     <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <style>
@@ -105,11 +105,13 @@
             .fld-row { grid-template-columns: 1fr; }
             .panel { border-radius: 16px; padding: 18px; }
         }
+        .readonly-mode .actions button:not(:first-child) { display: none !important; }
+        .readonly-mode .btn-g.primary { display: none !important; }
     </style>
 </head>
-<body>
+<body class="neomorphic-theme">
     <div id="left-sidebar"></div>
-    <div id="topbar-container" style="display:none;"></div>
+    <div id="topbar-container"></div>
 
     <div class="page-wrap">
         <div class="page-hdr">
@@ -158,6 +160,22 @@
         </div>
     </div>
 
+    <!-- Modal de detalle (solo lectura) -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="detailModalTitle">Detalle</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="detailModalBody"></div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-g" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="/static/js/bootstrap.bundle.min.js"></script>
     <script src="../../js/utils/api-utils.js"></script>
 
@@ -167,6 +185,7 @@
     var currentTab = 'general';
     var editId = null;
     var editType = null;
+    if (typeof isAdmin === 'function' && !isAdmin()) document.body.classList.add('readonly-mode');
 
     function token() { return localStorage.getItem('accessToken') || ''; }
     function hdrs() { return { 'Authorization': 'Bearer ' + token(), 'Content-Type': 'application/json' }; }
@@ -201,7 +220,7 @@
     function renderContactsTemplate() {
         return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">' +
             '<div class="panel"><div class="panel-hdr"><div class="panel-title"><i class="ti ti-building"></i> Empresas</div><button class="btn-g primary sm" onclick="abrirModal(\'company\')"><i class="ti ti-plus"></i> Nueva</button></div><div class="gt-wrap"><table class="gt"><thead><tr><th>Nombre</th><th>NIT</th><th>Email</th><th>Telefono</th><th></th></tr></thead><tbody id="companyBody"><tr><td colspan="5" style="text-align:center;padding:20px">Cargando...</td></tr></tbody></table></div></div>' +
-            '<div class="panel"><div class="panel-hdr"><div class="panel-title"><i class="ti ti-truck-delivery"></i> Proveedores</div><button class="btn-g primary sm" onclick="abrirModal(\'supplier\')"><i class="ti ti-plus"></i> Nuevo</button></div><div class="gt-wrap"><table class="gt"><thead><tr><th>Nombre</th><th>Email</th><th>Telefono</th><th></th></tr></thead><tbody id="supplierBody"><tr><td colspan="4" style="text-align:center;padding:20px">Cargando...</td></tr></tbody></table></div></div>' +
+            '<div class="panel"><div class="panel-hdr"><div class="panel-title"><i class="ti ti-truck-delivery"></i> Proveedores</div><button class="btn-g primary sm" onclick="abrirModal(\'supplier\')"><i class="ti ti-plus"></i> Nuevo</button></div><div class="gt-wrap"><table class="gt"><thead><tr><th>Nombre</th><th>NIT</th><th>Contacto</th><th>Email</th><th>Telefono</th><th></th></tr></thead><tbody id="supplierBody"><tr><td colspan="6" style="text-align:center;padding:20px">Cargando...</td></tr></tbody></table></div></div>' +
             '</div>';
     }
 
@@ -273,16 +292,18 @@
                     head.innerHTML = '<tr><th>Nombre</th><th>Ubicacion</th><th>Capacidad</th><th>Estado</th><th></th></tr>';
                     if (list.length === 0) { body.innerHTML = '<tr><td colspan="5"><div class="empty-state"><p>No hay almacenes. Crea el primero.</p></div></td></tr>'; return; }
                     body.innerHTML = list.map(function(w) {
-                        return '<tr><td><strong>' + (w.name || '-') + '</strong></td><td>' + (w.location || '-') + '</td><td>' + (w.capacity || '-') + '</td><td>' + (w.is_active ? '<span class="badge-stock ok">Activo</span>' : '<span class="badge-stock low">Inactivo</span>') + '</td><td><div class="actions"><button onclick="editar(\'warehouse\',' + w.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'warehouses\',' + w.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                        return '<tr><td><strong>' + (w.name || '-') + '</strong></td><td>' + (w.location || '-') + '</td><td>' + (w.capacity || '-') + '</td><td>' + (w.is_active ? '<span class="badge-stock ok">Activo</span>' : '<span class="badge-stock low">Inactivo</span>') + '</td><td><div class="actions"><button onclick="verDetalle(\'warehouse\',' + w.id + ')"><i class="ti ti-eye"></i></button><button onclick="editar(\'warehouse\',' + w.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'warehouses\',' + w.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
                     }).join('');
                     break;
 
                 case 'supplies':
-                    head.innerHTML = '<tr><th>Nombre</th><th>Stock</th><th>Minimo</th><th>Unidad</th><th>Almacen</th><th>Categoria</th><th></th></tr>';
-                    if (list.length === 0) { body.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>No hay insumos registrados.</p></div></td></tr>'; return; }
+                    head.innerHTML = '<tr><th>Nombre</th><th>Stock</th><th>Minimo</th><th>Unidad</th><th>Precio</th><th>Almacen</th><th>Categoria</th><th></th></tr>';
+                    if (list.length === 0) { body.innerHTML = '<tr><td colspan="8"><div class="empty-state"><p>No hay insumos registrados.</p></div></td></tr>'; return; }
                     body.innerHTML = list.map(function(s) {
                         var stockBadge = (s.quantity || 0) <= (s.minimum_stock || 5) ? 'low' : ((s.quantity || 0) <= (s.minimum_stock || 5) * 2 ? 'warn' : 'ok');
-                        return '<tr><td><strong>' + (s.name || '-') + '</strong></td><td><span class="badge-stock ' + stockBadge + '">' + (s.quantity || 0) + '</span></td><td>' + (s.minimum_stock || 5) + '</td><td>' + (s.unit || s.measure_unit || '-') + '</td><td>' + (s.warehouse_name || s.warehouse_name_display || '-') + '</td><td>' + (s.category_name || '-') + '</td><td><div class="actions"><button onclick="editar(\'supply\',' + s.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'supplies\',' + s.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                        var precio = (s.unit_value != null && s.unit_value !== '') ? '$' + Number(s.unit_value).toLocaleString('es-CO') : '-';
+                        var almacen = (s.warehouse && s.warehouse.name) ? s.warehouse.name : (s.warehouse_name || '-');
+                        return '<tr><td><strong>' + (s.name || '-') + '</strong></td><td><span class="badge-stock ' + stockBadge + '">' + (s.quantity || 0) + '</span></td><td>' + (s.minimum_stock || 5) + '</td><td>' + (s.unit_display || s.unit || '-') + '</td><td>' + precio + '</td><td>' + almacen + '</td><td>' + (s.category_name || '-') + '</td><td><div class="actions"><button onclick="verDetalle(\'supply\',' + s.id + ')"><i class="ti ti-eye"></i></button><button onclick="editar(\'supply\',' + s.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'supplies\',' + s.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
                     }).join('');
                     break;
 
@@ -291,7 +312,7 @@
                     if (list.length === 0) { body.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>No hay movimientos registrados.</p></div></td></tr>'; return; }
                     body.innerHTML = list.map(function(m) {
                         var badgeCls = (m.movement_type === 'in' || m.movement_type === 'entrada') ? 'in' : 'out';
-                        return '<tr><td><strong>' + (m.supply_name || m.supply || '-') + '</strong></td><td><span class="badge-type ' + badgeCls + '">' + (m.movement_type || '-') + '</span></td><td>' + (m.quantity || 0) + '</td><td>' + (m.warehouse_name || '-') + '</td><td>' + (m.date || m.movement_date || m.created_at || '-') + '</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">' + (m.notes || '-') + '</td><td><div class="actions"><button onclick="editar(\'movement\',' + m.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'inventory-movements\',' + m.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                        return '<tr><td><strong>' + (m.asset_name || m.supply_name || m.supply || '-') + '</strong></td><td><span class="badge-type ' + badgeCls + '">' + (m.movement_type || '-') + '</span></td><td>' + (m.quantity || 0) + '</td><td>' + (m.origin_location || m.destination_location || '-') + '</td><td>' + (m.date || m.movement_date || m.created_at || '-') + '</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">' + (m.notes || '-') + '</td><td><div class="actions"><button onclick="verDetalle(\'movement\',' + m.id + ')"><i class="ti ti-eye"></i></button><button onclick="editar(\'movement\',' + m.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'inventory-movements\',' + m.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
                     }).join('');
                     break;
 
@@ -299,7 +320,7 @@
                     head.innerHTML = '<tr><th>Nombre</th><th>Tipo</th><th>Marca</th><th>Modelo</th><th>Estado</th><th></th></tr>';
                     if (list.length === 0) { body.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>No hay maquinaria registrada.</p></div></td></tr>'; return; }
                     body.innerHTML = list.map(function(m) {
-                        return '<tr><td><strong>' + (m.name || '-') + '</strong></td><td>' + (m.machinery_type || m.type || '-') + '</td><td>' + (m.brand || '-') + '</td><td>' + (m.model || '-') + '</td><td><span class="badge-stock ok">' + (m.status || 'Activo') + '</span></td><td><div class="actions"><button onclick="editar(\'machinery\',' + m.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'machinery\',' + m.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                        return '<tr><td><strong>' + (m.name || '-') + '</strong></td><td>' + (m.machinery_type || m.type || '-') + '</td><td>' + (m.brand || '-') + '</td><td>' + (m.model || '-') + '</td><td><span class="badge-stock ok">' + (m.status || 'Activo') + '</span></td><td><div class="actions"><button onclick="verDetalle(\'machinery\',' + m.id + ')"><i class="ti ti-eye"></i></button><button onclick="editar(\'machinery\',' + m.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'machinery\',' + m.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
                     }).join('');
                     break;
             }
@@ -318,7 +339,7 @@
                 cb.innerHTML = '<tr><td colspan="5"><div class="empty-state"><p>No hay empresas registradas.</p></div></td></tr>';
             } else {
                 cb.innerHTML = clist.map(function(c) {
-                    return '<tr><td><strong>' + (c.name || '-') + '</strong></td><td>' + (c.nit || c.tax_id || '-') + '</td><td>' + (c.email || c.contact_email || '-') + '</td><td>' + (c.phone || '-') + '</td><td><div class="actions"><button onclick="editar(\'company\',' + c.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'companies\',' + c.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                    return '<tr><td><strong>' + (c.name || '-') + '</strong></td><td>' + (c.rut || c.nit || c.tax_id || '-') + '</td><td>' + (c.email || c.contact_email || '-') + '</td><td>' + (c.phone || '-') + '</td><td><div class="actions"><button onclick="verDetalle(\'company\',' + c.id + ')"><i class="ti ti-eye"></i></button><button onclick="editar(\'company\',' + c.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'companies\',' + c.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
                 }).join('');
             }
         } catch(e) { document.getElementById('companyBody').innerHTML = '<tr><td colspan="5" style="color:#DC2626">Error</td></tr>'; }
@@ -329,10 +350,10 @@
             var slist = Array.isArray(suppliers) ? suppliers : (suppliers.results || []);
             var sb = document.getElementById('supplierBody');
             if (slist.length === 0) {
-                sb.innerHTML = '<tr><td colspan="4"><div class="empty-state"><p>No hay proveedores registrados.</p></div></td></tr>';
+                sb.innerHTML = '<tr><td colspan="6"><div class="empty-state"><p>No hay proveedores registrados.</p></div></td></tr>';
             } else {
                 sb.innerHTML = slist.map(function(s) {
-                    return '<tr><td><strong>' + (s.name || '-') + '</strong></td><td>' + (s.email || '-') + '</td><td>' + (s.phone || '-') + '</td><td><div class="actions"><button onclick="editar(\'supplier\',' + s.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'suppliers\',' + s.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                    return '<tr><td><strong>' + (s.name || '-') + '</strong></td><td>' + (s.tax_id || '-') + '</td><td>' + (s.contact || '-') + '</td><td>' + (s.email || '-') + '</td><td>' + (s.phone || '-') + '</td><td><div class="actions"><button onclick="verDetalle(\'supplier\',' + s.id + ')"><i class="ti ti-eye"></i></button><button onclick="editar(\'supplier\',' + s.id + ')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'suppliers\',' + s.id + ')"><i class="ti ti-trash"></i></button></div></td></tr>';
                 }).join('');
             }
         } catch(e) { document.getElementById('supplierBody').innerHTML = '<tr><td colspan="4" style="color:#DC2626">Error</td></tr>'; }
@@ -379,12 +400,18 @@
                 body = '<div class="fld"><label>Nombre</label><input id="mf_name" placeholder="Ej: AgroInsumos S.A."></div>' +
                        '<div class="fld"><label>NIT</label><input id="mf_nit" placeholder="Ej: 900123456-7"></div>' +
                        '<div class="fld-row"><div class="fld"><label>Email</label><input id="mf_email" type="email" placeholder="contacto@empresa.com"></div><div class="fld"><label>Telefono</label><input id="mf_phone" placeholder="+57 300 123 4567"></div></div>' +
-                       '<div class="fld"><label>Direccion</label><input id="mf_address" placeholder="Calle 123, Bogota"></div>';
+                       '<div class="fld"><label>Direccion</label><input id="mf_address" placeholder="Calle 123, Bogota"></div>' +
+                       '<div class="fld-row"><div class="fld"><label>Persona de contacto</label><input id="mf_contact" placeholder="Ej: María López"></div><div class="fld"><label>Sitio web</label><input id="mf_website" placeholder="https://..."></div></div>' +
+                       '<div class="fld"><label>Notas</label><textarea id="mf_notes" rows="2" placeholder="Observaciones..."></textarea></div>';
                 break;
             case 'supplier':
                 title = (id ? 'Editar' : 'Nuevo') + ' Proveedor';
                 body = '<div class="fld"><label>Nombre</label><input id="mf_name" placeholder="Ej: Distribuidora Agricola"></div>' +
-                       '<div class="fld-row"><div class="fld"><label>Email</label><input id="mf_email" type="email" placeholder="ventas@proveedor.com"></div><div class="fld"><label>Telefono</label><input id="mf_phone" placeholder="+57 310 456 7890"></div></div>';
+                       '<div class="fld-row"><div class="fld"><label>NIT/RUT</label><input id="mf_tax_id" placeholder="Ej: 900123456-7"></div><div class="fld"><label>Persona de contacto</label><input id="mf_contact" placeholder="Ej: Juan Pérez"></div></div>' +
+                       '<div class="fld-row"><div class="fld"><label>Email</label><input id="mf_email" type="email" placeholder="ventas@proveedor.com"></div><div class="fld"><label>Telefono</label><input id="mf_phone" placeholder="+57 310 456 7890"></div></div>' +
+                       '<div class="fld"><label>Direccion</label><input id="mf_address" placeholder="Calle 10 #5-20"></div>' +
+                       '<div class="fld"><label>Sitio web</label><input id="mf_website" placeholder="https://..."></div>' +
+                       '<div class="fld"><label>Notas</label><textarea id="mf_notes" rows="2" placeholder="Observaciones..."></textarea></div>';
                 break;
         }
 
@@ -450,7 +477,10 @@
             setVal('mf_model', d.model);
             setVal('mf_year', d.year);
             setVal('mf_status', d.status);
-            setVal('mf_nit', d.nit || d.tax_id);
+            setVal('mf_nit', d.rut || d.nit || d.tax_id);
+            setVal('mf_tax_id', d.tax_id);
+            setVal('mf_contact', d.contact || d.contact_person);
+            setVal('mf_website', d.website);
             setVal('mf_email', d.email || d.contact_email);
             setVal('mf_phone', d.phone);
             setVal('mf_address', d.address);
@@ -482,8 +512,8 @@
             case 'supply': payload = {name:getVal('mf_name'), quantity:parseInt(getVal('mf_quantity'))||0, minimum_stock:parseInt(getVal('mf_minimum_stock'))||5, unit:getVal('mf_unit'), warehouse:getVal('mf_warehouse')||null, category:getVal('mf_category')||null}; break;
             case 'movement': payload = {movement_type:getVal('mf_movement_type')||'entrada', quantity:parseInt(getVal('mf_quantity'))||0, supply:getVal('mf_supply')||null, warehouse:getVal('mf_warehouse')||null, notes:getVal('mf_notes'), date:getVal('mf_date')}; break;
             case 'machinery': payload = {name:getVal('mf_name'), type:getVal('mf_type'), brand:getVal('mf_brand'), model:getVal('mf_model'), year:parseInt(getVal('mf_year'))||null, status:getVal('mf_status')||'operativa'}; break;
-            case 'company': payload = {name:getVal('mf_name'), nit:getVal('mf_nit'), email:getVal('mf_email'), phone:getVal('mf_phone'), address:getVal('mf_address')}; break;
-            case 'supplier': payload = {name:getVal('mf_name'), email:getVal('mf_email'), phone:getVal('mf_phone')}; break;
+            case 'company': payload = {name:getVal('mf_name'), rut:getVal('mf_nit'), email:getVal('mf_email'), phone:getVal('mf_phone'), address:getVal('mf_address'), contact_person:getVal('mf_contact'), website:getVal('mf_website'), notes:getVal('mf_notes')}; break;
+            case 'supplier': payload = {name:getVal('mf_name'), tax_id:getVal('mf_tax_id'), contact:getVal('mf_contact'), email:getVal('mf_email'), phone:getVal('mf_phone'), address:getVal('mf_address'), website:getVal('mf_website'), notes:getVal('mf_notes')}; break;
         }
 
         var url = INV + endpointMap[editType];
@@ -504,6 +534,85 @@
     });
 
     function editar(type, id) { abrirModal(type, id); }
+
+    async function verDetalle(type, id) {
+        var endpointMap = {
+            'warehouse': 'warehouses', 'supply': 'supplies', 'movement': 'inventory-movements',
+            'machinery': 'machinery', 'company': 'companies', 'supplier': 'suppliers'
+        };
+        try {
+            var r = await fetch(INV + endpointMap[type] + '/' + id + '/', {headers:hdrs()});
+            var d = await r.json();
+            var rows = [];
+            function addRow(label, val) {
+                if (val !== undefined && val !== null && val !== '') {
+                    rows.push('<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)"><span style="color:#6b7280;font-size:13px">' + label + '</span><span style="font-weight:600;font-size:14px;text-align:right">' + val + '</span></div>');
+                }
+            }
+            function peso(v) { return (v != null && v !== '') ? '$' + Number(v).toLocaleString('es-CO') : null; }
+
+            if (type === 'supply') {
+                document.getElementById('detailModalTitle').textContent = 'Insumo: ' + (d.name || '');
+                addRow('Nombre', d.name);
+                addRow('Stock', (d.quantity || 0) + ' ' + (d.unit_display || d.unit || ''));
+                addRow('Stock mínimo', d.minimum_stock);
+                addRow('Precio unitario', peso(d.unit_value));
+                addRow('Valor total', (d.quantity != null && d.unit_value != null) ? peso(Number(d.quantity) * Number(d.unit_value)) : null);
+                addRow('Categoría', d.category_name);
+                addRow('Subcategoría', d.subcategory_name);
+                addRow('Almacén', (d.warehouse && d.warehouse.name) ? d.warehouse.name : null);
+            } else if (type === 'warehouse') {
+                document.getElementById('detailModalTitle').textContent = 'Almacén: ' + (d.name || '');
+                addRow('Nombre', d.name);
+                addRow('Ubicación', d.location);
+                addRow('Capacidad', d.capacity);
+                addRow('Dirección', d.address);
+                addRow('Estado', d.is_active ? 'Activo' : 'Inactivo');
+            } else if (type === 'machinery') {
+                document.getElementById('detailModalTitle').textContent = 'Maquinaria: ' + (d.name || '');
+                addRow('Nombre', d.name);
+                addRow('Marca', d.brand);
+                addRow('Modelo', d.model);
+                addRow('Serial', d.serial_number);
+                addRow('Año', d.year);
+                addRow('Estado', d.status);
+                addRow('Horas de uso', d.usage_hours);
+                addRow('Valor de compra', peso(d.purchase_value));
+                addRow('Valor actual', peso(d.current_value));
+            } else if (type === 'movement') {
+                document.getElementById('detailModalTitle').textContent = 'Movimiento de inventario';
+                addRow('Insumo', d.asset_name);
+                addRow('Tipo', d.movement_type);
+                addRow('Cantidad', d.quantity);
+                addRow('Fecha', d.date);
+                addRow('Cultivo destino', d.crop_name);
+                addRow('Labor destino', d.labor_name);
+                addRow('Notas', d.notes);
+            } else if (type === 'supplier') {
+                document.getElementById('detailModalTitle').textContent = 'Proveedor: ' + (d.name || '');
+                addRow('Nombre', d.name);
+                addRow('NIT/RUT', d.tax_id);
+                addRow('Contacto', d.contact);
+                addRow('Email', d.email);
+                addRow('Teléfono', d.phone);
+                addRow('Dirección', d.address);
+                addRow('Sitio web', d.website);
+                addRow('Notas', d.notes);
+            } else if (type === 'company') {
+                document.getElementById('detailModalTitle').textContent = 'Empresa: ' + (d.name || '');
+                addRow('Nombre', d.name);
+                addRow('NIT', d.rut || d.nit || d.tax_id);
+                addRow('Email', d.email);
+                addRow('Teléfono', d.phone);
+                addRow('Dirección', d.address);
+                addRow('Persona de contacto', d.contact_person);
+                addRow('Sitio web', d.website);
+                addRow('Notas', d.notes);
+            }
+            document.getElementById('detailModalBody').innerHTML = rows.length ? rows.join('') : '<p style="color:#6b7280">Sin información.</p>';
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
+        } catch(e) { alert('Error al cargar detalle'); }
+    }
 
     async function eliminar(endpoint, id) {
         if (!confirm('Eliminar este registro? Esta accion no se puede deshacer.')) return;
@@ -529,10 +638,7 @@
 
     <script type="module">
         import { loadLayoutComponents } from '/static/js/load_components.js';
-        loadLayoutComponents({
-            "left-sidebar": "/templates/partials/left-sidebar.html",
-            "topbar-container": "/templates/partials/horizontal-nav.html",
-        });
+        loadLayoutComponents({});
     </script>
 
     <script src="/static/js/bootstrap.bundle.min.js"></script>

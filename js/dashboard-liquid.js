@@ -101,8 +101,10 @@ async function loadDashboardStats() {
         const res = await fetchWithAuth(`${API_BASE_URL}/api/parcels/parcel/`);
         if (res && res.ok) {
             const data = await res.json();
-            const list = Array.isArray(data) ? data : (data.results || []);
-            updateStat('parcelCount', list.length);
+            const parcels = Array.isArray(data.parcels)
+                ? data.parcels
+                : (data.parcels && Array.isArray(data.parcels.results) ? data.parcels.results : []);
+            updateStat('parcelCount', parcels.length);
         }
     } catch (e) {
         console.warn('No se pudieron cargar las parcelas');
@@ -111,7 +113,7 @@ async function loadDashboardStats() {
     
     // Cargar cultivos
     try {
-        const res = await fetchWithAuth(`${API_BASE_URL}/api/crop/`);
+        const res = await fetchWithAuth(`${API_BASE_URL}/api/crop/crops/`);
         if (res && res.ok) {
             const data = await res.json();
             const list = Array.isArray(data) ? data : (data.results || []);
@@ -152,10 +154,11 @@ function updateStat(elementId, value) {
 // Cargar información de suscripción
 async function loadSubscriptionInfo() {
     try {
-        const res = await fetchWithAuth(`${API_BASE_URL}/billing/api/my-subscription/`);
+        const res = await fetchWithAuth(`${API_BASE_URL}/billing/api/usage/dashboard/`);
         if (res && res.ok) {
-            const sub = await res.json();
-            
+            const usageData = await res.json();
+            const sub = usageData.subscription || {};
+
             const planName = document.getElementById('subPlanName');
             const subStatus = document.getElementById('subStatus');
             
@@ -172,25 +175,15 @@ async function loadSubscriptionInfo() {
                 subStatus.textContent = statusMap[sub.status] || sub.status || 'Sin suscripción';
                 subStatus.style.color = sub.status === 'active' ? 'var(--agrotech-primary-dark)' : 'var(--text-secondary)';
             }
-        }
-        
-        // Intentar también cargar uso
-        try {
-            const usageRes = await fetchWithAuth(`${API_BASE_URL}/billing/api/usage/dashboard/`);
-            if (usageRes && usageRes.ok) {
-                const usageData = await usageRes.json();
-                const satData = usageData.current_usage?.eosda_requests;
-                const satUsage = document.getElementById('eosdaUsage');
-                if (satUsage && satData) {
-                    const used = satData.used || 0;
-                    const limit = satData.limit || 100;
-                    eosdaUsage.textContent = `${used}/${limit}`;
-                }
+
+            const eosda = usageData.current_usage && usageData.current_usage.eosda_requests;
+            const satUsage = document.getElementById('eosdaUsage');
+            if (satUsage && eosda) {
+                const used = eosda.used || 0;
+                const limit = eosda.limit || 0;
+                satUsage.textContent = limit ? `${used}/${limit}` : String(used);
             }
-        } catch (e) {
-            // Uso no disponible, mantener valor por defecto
         }
-        
     } catch (e) {
         console.warn('Información de suscripción no disponible');
     }
@@ -205,13 +198,18 @@ async function loadRecentActivity() {
         const res = await fetchWithAuth(`${API_BASE_URL}/api/parcels/parcel/`);
         if (res && res.ok) {
             const data = await res.json();
-            const list = Array.isArray(data) ? data : (data.results || []);
-            if (list.length > 0) {
-                const last = list[list.length - 1];
+            const list = Array.isArray(data.parcels)
+                ? data.parcels
+                : (data.parcels && Array.isArray(data.parcels.results) ? data.parcels.results : []);
+            const sorted = [...list].sort((a, b) =>
+                new Date(b.created_on || b.updated_on || 0) - new Date(a.created_on || a.updated_on || 0)
+            );
+            const last = sorted[0];
+            if (last) {
                 activities.push({
                     icon: '🌾',
                     text: `Parcela "${last.name || 'Sin nombre'}" registrada`,
-                    date: last.created_at ? new Date(last.created_at).toLocaleDateString('es-ES') : 'Reciente'
+                    date: last.created_on ? new Date(last.created_on).toLocaleDateString('es-ES') : 'Reciente'
                 });
             }
         }
@@ -219,17 +217,22 @@ async function loadRecentActivity() {
     
     // Intentar cargar últimos cultivos
     try {
-        const res = await fetchWithAuth(`${API_BASE_URL}/api/crop/`);
+        const res = await fetchWithAuth(`${API_BASE_URL}/api/crop/crops/`);
         if (res && res.ok) {
             const data = await res.json();
             const list = Array.isArray(data) ? data : (data.results || []);
-            if (list.length > 0) {
-                const last = list[list.length - 1];
-                const name = last.crop_name || last.name || 'Sin nombre';
+            const sorted = [...list].sort((a, b) =>
+                new Date(b.created_at || b.created_on || 0) - new Date(a.created_at || a.created_on || 0)
+            );
+            const last = sorted[0];
+            if (last) {
+                const name = last.crop_name || last.name || last.variety_name || 'Sin nombre';
                 activities.push({
                     icon: '📋',
                     text: `Cultivo "${name}" registrado`,
-                    date: last.created_at ? new Date(last.created_at).toLocaleDateString('es-ES') : 'Reciente'
+                    date: (last.created_at || last.created_on)
+                        ? new Date(last.created_at || last.created_on).toLocaleDateString('es-ES')
+                        : 'Reciente'
                 });
             }
         }

@@ -237,6 +237,21 @@ function handleAuthFailure() {
     window.location.href = loginUrl;
 }
 
+/**
+ * Determina si el usuario actual es administrador (puede editar/crear).
+ * @returns {boolean}
+ */
+function isAdmin() {
+    try {
+        const raw = localStorage.getItem('user');
+        if (!raw) return false;
+        const user = JSON.parse(raw);
+        return !!(user.is_superuser || user.role === 'admin');
+    } catch (e) {
+        return false;
+    }
+}
+
 // Exportar para uso global (siempre funciona)
 window.getBackendUrl = getBackendUrl;
 window.ApiUrls = ApiUrls;
@@ -245,6 +260,7 @@ window.getAuthHeaders = getAuthHeaders;
 window.authenticatedFetch = authenticatedFetch;
 window.refreshAccessToken = refreshAccessToken;
 window.handleAuthFailure = handleAuthFailure;
+window.isAdmin = isAdmin;
 
 // Exportar para módulos ES6 (solo si se carga como módulo)
 // Nota: Este export condicional evita errores cuando se carga como script regular

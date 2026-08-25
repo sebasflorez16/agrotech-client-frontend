@@ -8,8 +8,8 @@
     <link rel="shortcut icon" href="../../images/agrotech solo negro.png">
     <script src="../../js/config.js"></script>
     <script src="../../js/auth-global.js"></script>
+    <script src="../../js/sidebar-controller.js"></script>
     <link rel="stylesheet" href="../../css/liquid-glass-system.css">
-    <link rel="stylesheet" href="../../css/global-mobile-responsive.css">
     <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
     <link href="/static/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
     <style>
@@ -82,11 +82,13 @@
             .stats-row { grid-template-columns: repeat(2,1fr); }
             .fld-row { grid-template-columns: 1fr; }
         }
+        .readonly-mode .actions button:not(:first-child) { display: none !important; }
+        .readonly-mode .btn-g.primary { display: none !important; }
     </style>
 </head>
-<body>
+<body class="neomorphic-theme">
     <div id="left-sidebar"></div>
-    <div id="topbar-container" style="display:none;"></div>
+    <div id="topbar-container"></div>
 
     <div class="page-wrap">
         <div class="page-hdr">
@@ -126,12 +128,24 @@
         </div>
     </div>
 
+    <!-- Modal de detalle (solo lectura) -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title" id="detailModalTitle">Detalle</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body" id="detailModalBody"></div>
+                <div class="modal-footer"><button type="button" class="btn-g" data-bs-dismiss="modal">Cerrar</button></div>
+            </div>
+        </div>
+    </div>
+
     <script src="/static/js/bootstrap.bundle.min.js"></script>
     <script>
     var API = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'http://localhost:8000';
     var RRHH = API + '/api/RRHH/';
     var currentTab = 'employees';
     var editId = null; var editType = null;
+    if (typeof isAdmin === 'function' && !isAdmin()) document.body.classList.add('readonly-mode');
 
     function token() { return localStorage.getItem('accessToken') || ''; }
     function hdrs() { return {'Authorization':'Bearer '+token(),'Content-Type':'application/json'}; }
@@ -148,7 +162,7 @@
     async function renderTab() {
         var p = document.getElementById('panelContent');
         switch (currentTab) {
-            case 'employees': p.innerHTML = '<div class="panel-hdr"><div class="panel-title">Lista de Empleados</div><button class="btn-g primary sm" onclick="abrirModal(\'employee\')"><i class="ti ti-plus"></i> Nuevo</button></div><div class="gt-wrap"><table class="gt"><thead><tr><th>Nombre</th><th>ID</th><th>Email</th><th>Telefono</th><th>Departamento</th><th>Posicion</th><th>Contratacion</th><th></th></tr></thead><tbody id="dataBody"><tr><td colspan="8" style="text-align:center;padding:30px">Cargando...</td></tr></tbody></table></div>'; await loadEmployees(); break;
+            case 'employees': p.innerHTML = '<div class="panel-hdr"><div class="panel-title">Lista de Empleados</div><button class="btn-g primary sm" onclick="abrirModal(\'employee\')"><i class="ti ti-plus"></i> Nuevo</button></div><div class="gt-wrap"><table class="gt"><thead><tr><th>Nombre</th><th>ID</th><th>Email</th><th>Telefono</th><th>Departamento</th><th>Posicion</th><th>Salario</th><th>Contratacion</th><th></th></tr></thead><tbody id="dataBody"><tr><td colspan="8" style="text-align:center;padding:30px">Cargando...</td></tr></tbody></table></div>'; await loadEmployees(); break;
             case 'departments': p.innerHTML = '<div class="panel-hdr"><div class="panel-title">Departamentos</div><button class="btn-g primary sm" onclick="abrirModal(\'department\')"><i class="ti ti-plus"></i> Nuevo</button></div><div class="gt-wrap"><table class="gt"><thead><tr><th>Nombre</th><th>Descripcion</th><th></th></tr></thead><tbody id="dataBody"><tr><td colspan="3" style="text-align:center;padding:30px">Cargando...</td></tr></tbody></table></div>'; await loadList('departamentos'); break;
             case 'positions': p.innerHTML = '<div class="panel-hdr"><div class="panel-title">Posiciones</div><button class="btn-g primary sm" onclick="abrirModal(\'position\')"><i class="ti ti-plus"></i> Nueva</button></div><div class="gt-wrap"><table class="gt"><thead><tr><th>Nombre</th><th>Descripcion</th><th></th></tr></thead><tbody id="dataBody"><tr><td colspan="3" style="text-align:center;padding:30px">Cargando...</td></tr></tbody></table></div>'; await loadList('posiciones'); break;
             case 'contractors': p.innerHTML = '<div class="panel-hdr"><div class="panel-title">Contratistas</div><button class="btn-g primary sm" onclick="abrirModal(\'contractor\')"><i class="ti ti-plus"></i> Nuevo</button></div><div class="gt-wrap"><table class="gt"><thead><tr><th>Nombre</th><th>RUT</th><th>Descripcion</th><th></th></tr></thead><tbody id="dataBody"><tr><td colspan="4" style="text-align:center;padding:30px">Cargando...</td></tr></tbody></table></div>'; await loadContractors(); break;
@@ -180,14 +194,15 @@
             var list=await r.json();
             var arr=Array.isArray(list)?list:(list.results||[]);
             var b=document.getElementById('dataBody');
-            if (arr.length===0){b.innerHTML='<tr><td colspan="8"><div class="empty-state"><i class="ti ti-users"></i><p>No hay empleados registrados.</p></div></td></tr>';return;}
-            b.innerHTML=arr.map(function(e){
-                var dept = e.department_name || (e.department&&e.department.name) || '-';
-                var pos = e.position_name || (e.position&&e.position.name) || '-';
-                var hire = e.date_of_hire || '-';
-                return '<tr><td><strong>'+(e.first_name||'')+' '+(e.last_name||'')+'</strong></td><td>'+(e.identification_number||'-')+'</td><td>'+(e.email||'-')+'</td><td>'+(e.phone||'-')+'</td><td>'+dept+'</td><td>'+pos+'</td><td>'+hire+'</td><td><div class="actions"><button onclick="abrirModal(\'employee\','+e.id+')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'empleados\','+e.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
-            }).join('');
-        } catch(e) { document.getElementById('dataBody').innerHTML='<tr><td colspan="8" style="color:#DC2626;text-align:center">Error al cargar</td></tr>'; }
+             if (arr.length===0){b.innerHTML='<tr><td colspan="9"><div class="empty-state"><i class="ti ti-users"></i><p>No hay empleados registrados.</p></div></td></tr>';return;}
+             b.innerHTML=arr.map(function(e){
+                 var dept = e.department_name || (e.department&&e.department.name) || '-';
+                 var pos = e.position_name || (e.position&&e.position.name) || '-';
+                 var sal = e.salary_name || (e.salary && e.salary.name) || '-';
+                 var hire = e.date_of_hire || '-';
+                 return '<tr><td><strong>'+(e.first_name||'')+' '+(e.last_name||'')+'</strong></td><td>'+(e.identification_number||'-')+'</td><td>'+(e.email||'-')+'</td><td>'+(e.phone||'-')+'</td><td>'+dept+'</td><td>'+pos+'</td><td>'+sal+'</td><td>'+hire+'</td><td><div class="actions"><button onclick="verDetalle(\'employee\','+e.id+')"><i class="ti ti-eye"></i></button><button onclick="abrirModal(\'employee\','+e.id+')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'empleados\','+e.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
+             }).join('');
+         } catch(e) { document.getElementById('dataBody').innerHTML='<tr><td colspan="9" style="color:#DC2626;text-align:center">Error al cargar</td></tr>'; }
     }
 
     async function loadList(endpoint) {
@@ -198,7 +213,7 @@
             var b=document.getElementById('dataBody');
             if (arr.length===0){b.innerHTML='<tr><td colspan="3"><div class="empty-state"><i class="ti ti-building"></i><p>No hay registros.</p></div></td></tr>';return;}
             b.innerHTML=arr.map(function(d){
-                return '<tr><td><strong>'+(d.name||'-')+'</strong></td><td>'+(d.description||'-')+'</td><td><div class="actions"><button onclick="abrirModal(\''+(endpoint==='departamentos'?'department':'position')+'\','+d.id+')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\''+endpoint+'\','+d.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                return '<tr><td><strong>'+(d.name||'-')+'</strong></td><td>'+(d.description||'-')+'</td><td><div class="actions"><button onclick="verDetalle(\''+(endpoint==='departamentos'?'department':'position')+'\','+d.id+')"><i class="ti ti-eye"></i></button><button onclick="abrirModal(\''+(endpoint==='departamentos'?'department':'position')+'\','+d.id+')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\''+endpoint+'\','+d.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
             }).join('');
         } catch(e) { document.getElementById('dataBody').innerHTML='<tr><td colspan="3" style="color:#DC2626;text-align:center">Error</td></tr>'; }
     }
@@ -211,7 +226,7 @@
             var b=document.getElementById('dataBody');
             if (arr.length===0){b.innerHTML='<tr><td colspan="4"><div class="empty-state"><i class="ti ti-briefcase"></i><p>No hay contratistas registrados.</p></div></td></tr>';return;}
             b.innerHTML=arr.map(function(c){
-                return '<tr><td><strong>'+(c.first_name||'')+' '+(c.last_name||'')+'</strong></td><td>'+(c.rut||'-')+'</td><td>'+(c.description||'-')+'</td><td><div class="actions"><button class="del" onclick="eliminar(\'contratistas-empleados\','+c.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                return '<tr><td><strong>'+(c.first_name||'')+' '+(c.last_name||'')+'</strong></td><td>'+(c.rut||'-')+'</td><td>'+(c.description||'-')+'</td><td><div class="actions"><button onclick="verDetalle(\'contractor\','+c.id+')"><i class="ti ti-eye"></i></button><button onclick="abrirModal(\'contractor\','+c.id+')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'contratistas-empleados\','+c.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
             }).join('');
         } catch(e) { document.getElementById('dataBody').innerHTML='<tr><td colspan="4" style="color:#DC2626;text-align:center">Error</td></tr>'; }
     }
@@ -225,7 +240,7 @@
             if (arr.length===0){b.innerHTML='<tr><td colspan="5"><div class="empty-state"><i class="ti ti-cash"></i><p>No hay metodos de pago.</p></div></td></tr>';return;}
             b.innerHTML=arr.map(function(p){
                 var amt = p.amount ? '$'+new Intl.NumberFormat('es-CO').format(p.amount) : '-';
-                return '<tr><td><strong>'+(p.name||'-')+'</strong></td><td>'+amt+'</td><td>'+(p.description||'-')+'</td><td>'+(p.created_date||'-')+'</td><td><div class="actions"><button onclick="abrirModal(\'payment\','+p.id+')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'metodos-pago\','+p.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
+                return '<tr><td><strong>'+(p.name||'-')+'</strong></td><td>'+amt+'</td><td>'+(p.description||'-')+'</td><td>'+(p.created_date||'-')+'</td><td><div class="actions"><button onclick="verDetalle(\'payment\','+p.id+')"><i class="ti ti-eye"></i></button><button onclick="abrirModal(\'payment\','+p.id+')"><i class="ti ti-edit"></i></button><button class="del" onclick="eliminar(\'metodos-pago\','+p.id+')"><i class="ti ti-trash"></i></button></div></td></tr>';
             }).join('');
         } catch(e) { document.getElementById('dataBody').innerHTML='<tr><td colspan="5" style="color:#DC2626;text-align:center">Error</td></tr>'; }
     }
@@ -343,6 +358,50 @@
         } catch(e) { alert('Error de conexion'); }
     }
 
+    async function verDetalle(type, id) {
+        var epMap = {'employee':'empleados','department':'departamentos','position':'posiciones','contractor':'contratistas-empleados','payment':'metodos-pago'};
+        try {
+            var r = await fetch(RRHH + epMap[type] + '/' + id + '/', {headers:hdrs()});
+            var d = await r.json();
+            var rows = [];
+            function addRow(label, val) {
+                if (val !== undefined && val !== null && val !== '') rows.push('<div style="display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(0,0,0,0.06)"><span style="color:#6b7280;font-size:13px">'+label+'</span><span style="font-weight:600;font-size:14px;text-align:right">'+val+'</span></div>');
+            }
+            function peso(v){return (v!=null&&v!=='')?'$'+Number(v).toLocaleString('es-CO'):null;}
+            if (type === 'employee') {
+                document.getElementById('detailModalTitle').textContent = 'Empleado: ' + ((d.first_name||'')+' '+(d.last_name||'')).trim();
+                addRow('Nombre', (d.first_name||'')+' '+(d.last_name||''));
+                addRow('Identificación', d.identification_number);
+                addRow('Email', d.email);
+                addRow('Teléfono', d.phone);
+                addRow('Dirección', d.address);
+                addRow('Departamento', d.department_name || (d.department&&d.department.name));
+                addRow('Cargo', d.position_name || (d.position&&d.position.name));
+                addRow('Método de pago', d.salary_name || (d.salary&&d.salary.name));
+                addRow('Fecha contratación', d.date_of_hire);
+            } else if (type === 'contractor') {
+                document.getElementById('detailModalTitle').textContent = 'Contratista: ' + ((d.first_name||'')+' '+(d.last_name||'')).trim();
+                addRow('Nombre', (d.first_name||'')+' '+(d.last_name||''));
+                addRow('RUT', d.rut);
+                addRow('Identificación', d.identification_number);
+                addRow('Teléfono', d.phone);
+                addRow('Descripción', d.description);
+            } else if (type === 'payment') {
+                document.getElementById('detailModalTitle').textContent = 'Método de pago';
+                addRow('Nombre', d.name);
+                addRow('Monto', peso(d.amount));
+                addRow('Descripción', d.description);
+                addRow('Fecha', d.created_date);
+            } else {
+                document.getElementById('detailModalTitle').textContent = (type==='department'?'Departamento':'Cargo');
+                addRow('Nombre', d.name);
+                addRow('Descripción', d.description);
+            }
+            document.getElementById('detailModalBody').innerHTML = rows.length ? rows.join('') : '<p style="color:#6b7280">Sin información.</p>';
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
+        } catch(e) { alert('Error al cargar detalle'); }
+    }
+
     document.addEventListener('DOMContentLoaded', function() { renderTab(); });
 
     function handleResponsiveNav() {
@@ -355,7 +414,7 @@
 
     <script type="module">
         import { loadLayoutComponents } from '/static/js/load_components.js';
-        loadLayoutComponents({"left-sidebar":"/templates/partials/left-sidebar.html","topbar-container":"/templates/partials/horizontal-nav.html"});
+        loadLayoutComponents({});
     </script>
 </body>
 </html>

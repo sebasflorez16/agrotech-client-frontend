@@ -13,9 +13,11 @@ let selectedParcelId = null;
  */
 function initializeHistoricalChart() {
     const graficoBtn = document.getElementById('graficoHistoricoBtn');
-    if (graficoBtn) {
-        graficoBtn.addEventListener('click', mostrarGraficoHistorico);
-    }
+    // DESACTIVADO: el histórico ahora usa Sentinel-2 (window.loadS2History en
+    // sentinel2-compare.js). No se usa el histórico EOSDA.
+    // if (graficoBtn) {
+    //     graficoBtn.addEventListener('click', mostrarGraficoHistorico);
+    // }
     
     // Event listeners para checkboxes de mostrar/ocultar líneas
     document.getElementById('showNDVI')?.addEventListener('change', toggleChartLine);
