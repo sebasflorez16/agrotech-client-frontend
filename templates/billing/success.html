@@ -148,6 +148,7 @@
         var tier = params.get('plan') || 'basic';
         var cycle = params.get('cycle') || 'monthly';
         var preapprovalId = params.get('preapproval_id') || params.get('subscription_id') || '';
+        var wompiRef = params.get('ref') || localStorage.getItem('checkout_reference') || '';
         var tenantParam = params.get('tenant') || '';
         var isFree = tier === 'free';
 
@@ -173,8 +174,8 @@
             confirmStatusEl.className = 'confirm-status show success';
         }
 
-        // Para planes pagos que vienen de MercadoPago: confirmar pago y crear tenant + usuario
-        if (!isFree && preapprovalId) {
+        // Para planes pagos (MercadoPago o Wompi): confirmar pago y crear tenant + usuario
+        if (!isFree && (preapprovalId || wompiRef)) {
             confirmStatusEl.textContent = 'Verificando pago y configurando tu espacio de trabajo...';
             confirmStatusEl.className = 'confirm-status show';
 
@@ -184,18 +185,25 @@
             var checkoutEmail = localStorage.getItem('checkout_email') || params.get('payer_email') || '';
             var checkoutTenant = localStorage.getItem('checkout_tenant') || '';
 
+            var confirmPayload = {
+                plan_tier: tier,
+                billing_cycle: cycle,
+                payer_email: checkoutEmail,
+                tenant_name: checkoutTenant,
+                username: checkoutUsername,
+                password: checkoutPassword,
+            };
+            if (wompiRef) {
+                confirmPayload.gateway = 'wompi';
+                confirmPayload.reference = wompiRef;
+            } else {
+                confirmPayload.preapproval_id = preapprovalId;
+            }
+
             fetch(API + '/billing/api/confirm-payment/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    preapproval_id: preapprovalId,
-                    plan_tier: tier,
-                    billing_cycle: cycle,
-                    payer_email: checkoutEmail,
-                    tenant_name: checkoutTenant,
-                    username: checkoutUsername,
-                    password: checkoutPassword,
-                })
+                body: JSON.stringify(confirmPayload)
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
@@ -223,6 +231,7 @@
                     localStorage.removeItem('checkout_password');
                     localStorage.removeItem('checkout_email');
                     localStorage.removeItem('checkout_tenant');
+                    localStorage.removeItem('checkout_reference');
                 } else {
                     confirmStatusEl.textContent = 'Tu pago fue registrado. Revisa tu email para los datos de acceso.';
                     confirmStatusEl.className = 'confirm-status show';

@@ -368,6 +368,7 @@
             .then(function(r) { return r.json(); })
             .then(function(data) {
                 if (data.checkout_url) {
+                    if (data.reference) localStorage.setItem('checkout_reference', data.reference);
                     window.location.href = data.checkout_url;
                 } else {
                     throw new Error(data.error || 'Error al crear el checkout');
