@@ -251,6 +251,31 @@
             </div>`).join('');
     }
 
+    async function pollZonification(parcelId, zonificationId) {
+        for (let attempt = 0; attempt < 40; attempt++) {
+            await new Promise(r => setTimeout(r, 3000));
+            try {
+                const list = await api(`/api/parcels/parcel-zonifications/?parcel=${parcelId}`);
+                const items = Array.isArray(list) ? list : (list.results || []);
+                const z = items.find(x => x.id === zonificationId) || items[0];
+                if (!z) continue;
+                if (z.status === 'ready') return { ok: true, data: z };
+                if (z.status === 'failed') return { ok: false, error: z.notes || 'No se pudo generar la zonificación.' };
+            } catch (_) {}
+        }
+        return { ok: false, error: 'La zonificación tardó demasiado. Inténtalo de nuevo.' };
+    }
+
+    function renderZonification(data) {
+        state.currentZonification = data;
+        renderZonesList(data);
+        renderZonesOnMap(data);
+        setStatus(
+            `✅ Zonificación lista · ${data.zones?.length || 0} zonas · ${data.total_pixels} pixeles · escena del ${data.scene_date} (la más reciente)`,
+            '#27ae60'
+        );
+    }
+
     async function generateZonification() {
         const parcelId = state.currentParcelId;
         if (!parcelId) {
@@ -261,20 +286,25 @@
         const idx = document.getElementById('zonesIndexSelect').value || 'ndvi';
         const btn = document.getElementById('btnGenerateZones');
         if (btn) { btn.disabled = true; btn.textContent = 'Procesando…'; }
-        setStatus('<i class="fas fa-spinner fa-spin"></i> Generando zonificación… puede tardar unos segundos la primera vez.');
+        setStatus('<i class="fas fa-spinner fa-spin"></i> Generando zonificación… puede tardar hasta 1 minuto.');
         showZonesSkeleton();
         try {
             const data = await api('/api/parcels/parcel-zonifications/generate-for-parcel/', {
                 method: 'POST',
                 body: JSON.stringify({ parcel: parcelId, k_zones: k, index_base: idx }),
             });
-            state.currentZonification = data;
-            renderZonesList(data);
-            renderZonesOnMap(data);
-            setStatus(
-                `✅ Zonificación lista · ${data.zones?.length || 0} zonas · ${data.total_pixels} pixeles · escena del ${data.scene_date} (la más reciente)`,
-                '#27ae60'
-            );
+            if (data.status === 'ready') {
+                renderZonification(data);
+                return;
+            }
+            setStatus('<i class="fas fa-spinner fa-spin"></i> Procesando en segundo plano… puede tardar hasta 1 minuto.');
+            const result = await pollZonification(parcelId, data.id);
+            if (result.ok) {
+                renderZonification(result.data);
+            } else {
+                setStatus(`❌ ${result.error}`, '#c0392b');
+                renderZonesList({ zones: [] });
+            }
         } catch (e) {
             setStatus(`❌ Error: ${e.message}`, '#c0392b');
         } finally {
