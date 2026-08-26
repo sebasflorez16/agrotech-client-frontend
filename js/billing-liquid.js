@@ -311,7 +311,7 @@ async function processPayment() {
     const planTier = window._selectedPlanTier || document.querySelector('.plan-card.selected')?.dataset?.tier;
     const email = localStorage.getItem('userEmail') || '';
     if (!planTier || planTier === 'free') {
-        alert('Selecciona un plan pago (Agricultor, Empresarial o Corporativo).');
+        alert('Selecciona un plan pago (Agricultor o Empresarial).');
         return;
     }
     if (!email) {

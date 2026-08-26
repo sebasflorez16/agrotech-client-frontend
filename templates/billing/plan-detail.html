@@ -125,23 +125,6 @@
                 ],
                 cta: 'Comenzar ahora', secondary: false,
             },
-            enterprise: {
-                tier: 'enterprise', name: 'Corporativo', badge: 'EMPRESA',
-                tagline: 'Para agroindustrias y operaciones a gran escala.',
-                price: '$600.000', period: '/mes', note: 'Soporte dedicado',
-                includes: [
-                    'Todo lo incluido en Empresarial',
-                    'Acceso a API para tu equipo',
-                    'Soporte prioritario y cuenta dedicada',
-                ],
-                limits: [
-                    { v: '∞', l: 'parcelas' },
-                    { v: '∞', l: 'hectáreas' },
-                    { v: '10', l: 'usuarios' },
-                    { v: '∞', l: 'análisis/mes' },
-                ],
-                cta: 'Hablar con ventas', secondary: true,
-            },
         };
 
         const params = new URLSearchParams(window.location.search);
@@ -157,9 +140,7 @@
             '<div class="limit-box"><div class="limit-value">' + l.v + '</div><div class="limit-label">' + l.l + '</div></div>'
         ).join('');
 
-        const ctaHref = p.tier === 'enterprise'
-            ? 'mailto:contacto@agrotechcolombia.com'
-            : 'checkout.html?plan=' + p.tier + '&cycle=monthly';
+        const ctaHref = 'checkout.html?plan=' + p.tier + '&cycle=monthly';
 
         container.innerHTML =
             '<div class="plan-header"><span class="plan-badge">' + p.badge + '</span><h1 class="plan-name">' + p.name + '</h1></div>' +
