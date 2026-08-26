@@ -124,17 +124,17 @@
     # Cache - Moderado para contenido dinámico
     Cache-Control = "public, max-age=3600, must-revalidate"
 
-# Cache largo para JS - Assets estáticos inmutables
+# Cache corto para JS - cambian en cada deploy (must-revalidate)
 [[headers]]
   for = "/js/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=3600, must-revalidate"
 
-# Cache largo para CSS - Assets estáticos inmutables
+# Cache corto para CSS - cambian en cada deploy (must-revalidate)
 [[headers]]
   for = "/css/*"
   [headers.values]
-    Cache-Control = "public, max-age=31536000, immutable"
+    Cache-Control = "public, max-age=3600, must-revalidate"
 
 # Cache largo para imágenes - Assets estáticos inmutables
 [[headers]]

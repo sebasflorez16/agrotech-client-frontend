@@ -538,11 +538,29 @@ function setupDrawingTools(map) {
     let isDrawing = false;
 
     // Funciones globales para iniciar y cancelar dibujo
+    function enterMapFullscreen() {
+        const mc = document.getElementById('mapContainer');
+        if (mc) mc.classList.add('fullscreen');
+        const exitBtn = document.getElementById('mapFullscreenExit');
+        if (exitBtn) exitBtn.classList.add('show');
+        setTimeout(() => { if (map) map.invalidateSize(); }, 150);
+    }
+    window.exitMapFullscreen = function () {
+        const mc = document.getElementById('mapContainer');
+        if (mc) mc.classList.remove('fullscreen');
+        const exitBtn = document.getElementById('mapFullscreenExit');
+        if (exitBtn) exitBtn.classList.remove('show');
+        setTimeout(() => { if (map) map.invalidateSize(); }, 150);
+    };
+
     window.startDrawing = function () {
         // Limpiar cualquier dibujo previo
         drawnItems.clearLayers();
         positions = [];
         currentPolygon = null;
+
+        // Pantalla completa para dibujar cómodamente (sobre todo en móvil)
+        enterMapFullscreen();
         
         // Activar modo de dibujo
         new L.Draw.Polygon(map, drawControl.options.draw.polygon).enable();
@@ -563,6 +581,7 @@ function setupDrawingTools(map) {
         isDrawing = false;
         
         cancelBtn.style.display = "none";
+        window.exitMapFullscreen();
         console.log("[LEAFLET] Dibujo cancelado.");
     };
 
@@ -651,6 +670,8 @@ function setupDrawingTools(map) {
 
 // Función para abrir el modal
 window.openModal = function () {
+    // Salir de pantalla completa para llenar el formulario de la parcela
+    window.exitMapFullscreen();
     document.getElementById("parcelModal").style.display = "block";
 };
 
