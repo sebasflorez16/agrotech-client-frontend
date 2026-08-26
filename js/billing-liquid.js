@@ -98,7 +98,8 @@ function displayMetrics(data) {
     container.innerHTML = resources.map(resource => {
         const metric = usage[resource] || {};
         const used = metric.used || 0;
-        const limit = metric.limit || 0;
+        const limit = metric.limit;
+        const limitText = (limit === 'unlimited' || limit == null || limit === 0 || limit >= 9999) ? '∞' : limit;
         const percentage = metric.percentage || 0;
         const status = metric.status || 'ok';
         
@@ -125,7 +126,7 @@ function displayMetrics(data) {
                     </div>
                 </div>
                 <div class="metric-value">${used}</div>
-                <div class="metric-limit">de ${limit} disponibles</div>
+                <div class="metric-limit">de ${limitText} disponibles</div>
                 <div style="margin-top: var(--space-md);">
                     <div class="progress-glass">
                         <div class="progress-glass-bar ${statusClass}" style="width: ${Math.min(percentage, 100)}%"></div>

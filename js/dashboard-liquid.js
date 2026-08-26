@@ -180,8 +180,9 @@ async function loadSubscriptionInfo() {
             const satUsage = document.getElementById('eosdaUsage');
             if (satUsage && eosda) {
                 const used = eosda.used || 0;
-                const limit = eosda.limit || 0;
-                satUsage.textContent = limit ? `${used}/${limit}` : String(used);
+                const limit = eosda.limit;
+                const limitText = (limit === 'unlimited' || limit == null || limit === 0 || limit >= 9999) ? '∞' : limit;
+                satUsage.textContent = `${used}/${limitText}`;
             }
         }
     } catch (e) {
