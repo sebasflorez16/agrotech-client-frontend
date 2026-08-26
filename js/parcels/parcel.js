@@ -379,7 +379,7 @@ function initializeLeaflet() {
             center: [4.6097, -74.0817], // Colombia
             zoom: 6,
             zoomControl: true,
-            attributionControl: true,
+            attributionControl: false, // Ocultar letrero "Leaflet | Esri..."
             fullscreenControl: false // Lo agregamos manualmente después
         });
 
@@ -543,6 +543,8 @@ function setupDrawingTools(map) {
         if (mc) mc.classList.add('fullscreen');
         const exitBtn = document.getElementById('mapFullscreenExit');
         if (exitBtn) exitBtn.classList.add('show');
+        const hint = document.getElementById('mapFullscreenHint');
+        if (hint && window.innerWidth <= 767) hint.classList.add('show');
         setTimeout(() => { if (map) map.invalidateSize(); }, 150);
     }
     window.exitMapFullscreen = function () {
@@ -550,6 +552,8 @@ function setupDrawingTools(map) {
         if (mc) mc.classList.remove('fullscreen');
         const exitBtn = document.getElementById('mapFullscreenExit');
         if (exitBtn) exitBtn.classList.remove('show');
+        const hint = document.getElementById('mapFullscreenHint');
+        if (hint) hint.classList.remove('show');
         setTimeout(() => { if (map) map.invalidateSize(); }, 150);
     };
 
