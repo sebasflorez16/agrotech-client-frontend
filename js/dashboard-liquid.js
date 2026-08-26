@@ -292,6 +292,11 @@ function logout() {
 
 // ── 🔧 Developer Mode Toggle ──────────────────────────────────────
 async function checkDevModeStatus() {
+    // El modo desarrollador es solo para desarrollo local.
+    // En producción NO se muestra el botón.
+    const host = window.location.hostname;
+    if (host !== 'localhost' && host !== '127.0.0.1') return;
+
     const btn = document.getElementById('devModeToggle');
     if (!btn) return;
 

@@ -359,33 +359,25 @@ function logout() {
 // Cargar plan actual
 async function loadCurrentPlan() {
     try {
-        var r = await fetchWithAuth(API_BASE_URL + '/billing/api/plans/');
-        if (!r || !r.ok) return;
-        var plans = await r.json();
         var usageR = await fetchWithAuth(API_BASE_URL + '/billing/api/usage/dashboard/');
-        var usage = {};
-        if (usageR && usageR.ok) {
-            var usageData = await usageR.json();
-            usage = usageData.current_usage || {};
-        }
+        if (!usageR || !usageR.ok) return;
+        var usageData = await usageR.json();
+        var sub = usageData.subscription || {};
+        var usage = usageData.current_usage || {};
 
-        // Determinar plan actual basado en limites
+        // Usar el plan REAL de la suscripción (no adivinar por límites)
+        var planName = sub.plan_name || 'Plan Libre';
+        var planTier = sub.plan_tier || 'free';
+        var colorMap = { free: '#86868B', basic: '#2FB344', pro: '#007AFF', enterprise: '#FF9F0A' };
+        var planColor = colorMap[planTier] || '#86868B';
+
         var satUsed = (usage.eosda_requests && usage.eosda_requests.used) || 0;
-        var satLimit = (usage.eosda_requests && usage.eosda_requests.limit) || 15;
-        
-        var planName = 'Plan Libre';
-        var planTier = 'free';
-        var planColor = '#86868B';
-        var plansArr = Array.isArray(plans) ? plans : (plans.results || plans.plans || []);
-        
-        if (satLimit <= 15) { planName = 'Explorador'; planTier = 'free'; planColor = '#86868B'; }
-        else if (satLimit <= 150) { planName = 'Agricultor'; planTier = 'basic'; planColor = '#2FB344'; }
-        else if (satLimit <= 300) { planName = 'Empresarial'; planTier = 'pro'; planColor = '#007AFF'; }
-        else { planName = 'Corporativo'; planTier = 'enterprise'; planColor = '#FF9F0A'; }
+        var satLimit = (usage.eosda_requests && usage.eosda_requests.limit);
+        var satLimitText = (satLimit === 'unlimited' || !satLimit) ? '∞' : satLimit;
 
         var nameEl = document.getElementById('currentPlanName');
         var badgeEl = document.getElementById('planBadge');
-        if (nameEl) nameEl.textContent = planName + ' - ' + satUsed + '/' + satLimit + ' analisis usados';
+        if (nameEl) nameEl.textContent = planName + ' - ' + satUsed + '/' + satLimitText + ' analisis usados';
         if (badgeEl) {
             badgeEl.textContent = planName;
             badgeEl.style.background = planColor + '20';
