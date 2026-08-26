@@ -36,8 +36,10 @@ BACKEND = "http://localhost:8000"
 FRONTEND_DIR = os.path.dirname(os.path.abspath(__file__))
 
 ROUTE_MAP = {
-    "/login":     "templates/authentication/login.html",
-    "/register":  "templates/authentication/register.html",
+    "/login":            "templates/authentication/login.html",
+    "/register":         "templates/authentication/register.html",
+    "/recover-password": "templates/authentication/recover-password.html",
+    "/reset-password":   "templates/authentication/reset-password.html",
 }
 
 PROXY_PREFIXES = (

@@ -48,6 +48,18 @@
   to = "/templates/authentication/register.html"
   status = 200
 
+# 3d. Recuperar contraseña (solicitud)
+[[redirects]]
+  from = "/recover-password"
+  to = "/templates/authentication/recover-password.html"
+  status = 200
+
+# 3e. Restablecer contraseña (confirmación del enlace del correo)
+[[redirects]]
+  from = "/reset-password"
+  to = "/templates/authentication/reset-password.html"
+  status = 200
+
 # 3c. Authentication files (fallback for relative paths)
 [[redirects]]
   from = "/authentication/*"
