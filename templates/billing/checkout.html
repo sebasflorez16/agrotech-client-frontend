@@ -9,6 +9,7 @@
     <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
     <script src="../../js/config.js"></script>
     <script src="../../js/auth-global.js"></script>
+    <script src="https://checkout.wompi.co/widget.js"></script>
     <style>
         .checkout-layout { display:grid; grid-template-columns:1fr 400px; gap:32px; padding:120px 0 60px; align-items:start; }
         .checkout-main h1 { font-size:clamp(28px,4vw,40px); font-weight:800; letter-spacing:-0.03em; margin-bottom:8px; }
@@ -145,6 +146,33 @@
                         </div>
                         <span class="payment-check">&#x2713;</span>
                     </div>
+
+                    <div id="cardForm" style="display:none;margin-top:16px;">
+                        <div style="margin-bottom:12px;">
+                            <label style="display:block;font-size:13px;color:var(--gris-400);margin-bottom:6px;">Número de tarjeta</label>
+                            <input type="text" id="cardNumber" class="form-input" placeholder="4111 1111 1111 1111" inputmode="numeric" maxlength="19" autocomplete="cc-number">
+                        </div>
+                        <div style="display:flex;gap:12px;margin-bottom:12px;">
+                            <div style="flex:1;">
+                                <label style="display:block;font-size:13px;color:var(--gris-400);margin-bottom:6px;">Mes</label>
+                                <input type="text" id="cardExpMonth" class="form-input" placeholder="MM" maxlength="2" inputmode="numeric" autocomplete="cc-exp-month">
+                            </div>
+                            <div style="flex:1;">
+                                <label style="display:block;font-size:13px;color:var(--gris-400);margin-bottom:6px;">Año</label>
+                                <input type="text" id="cardExpYear" class="form-input" placeholder="AA" maxlength="2" inputmode="numeric" autocomplete="cc-exp-year">
+                            </div>
+                            <div style="flex:1;">
+                                <label style="display:block;font-size:13px;color:var(--gris-400);margin-bottom:6px;">CVC</label>
+                                <input type="text" id="cardCvc" class="form-input" placeholder="123" maxlength="4" inputmode="numeric" autocomplete="cc-csc">
+                            </div>
+                        </div>
+                        <div style="margin-bottom:4px;">
+                            <label style="display:block;font-size:13px;color:var(--gris-400);margin-bottom:6px;">Nombre en la tarjeta</label>
+                            <input type="text" id="cardHolder" class="form-input" placeholder="JUAN PEREZ" autocomplete="cc-name">
+                        </div>
+                        <p style="font-size:11px;color:var(--gris-500);margin-top:8px;">💳 Guardaremos tu tarjeta de forma segura para renovar tu plan automáticamente cada mes.</p>
+                    </div>
+
                     <label class="terms-label">
                         <input type="checkbox" id="termsCheck">
                         <span>Acepto los <a href="#">Terminos y Condiciones</a> y la <a href="#">Politica de Privacidad</a> de AgroTech Digital</span>
@@ -233,6 +261,9 @@
             paymentCard.style.display = 'none';
             btnText.textContent = 'Activar Cuenta Gratis';
             termsCheck.checked = true;
+        } else {
+            var cardForm = document.getElementById('cardForm');
+            if (cardForm) cardForm.style.display = 'block';
         }
 
         emailInput.addEventListener('input', function() {
@@ -351,36 +382,55 @@
                 return;
             }
 
-            // Plan pago: guardar datos para despues del pago
-            localStorage.setItem('checkout_username', payload.username);
-            localStorage.setItem('checkout_password', payload.password);
-            localStorage.setItem('checkout_email', payload.payer_email);
-            localStorage.setItem('checkout_tenant', payload.tenant_name);
+            // Plan pago: tokenizar tarjeta y suscribirse (renovación automática 3RI)
+            loadingText.textContent = 'Procesando pago...';
+            var cardData = {
+                number: (document.getElementById('cardNumber').value || '').replace(/\s/g, ''),
+                exp_month: document.getElementById('cardExpMonth').value.trim(),
+                exp_year: '20' + document.getElementById('cardExpYear').value.trim(),
+                cvc: document.getElementById('cardCvc').value.trim(),
+                card_holder: document.getElementById('cardHolder').value.trim(),
+            };
 
-            payload.gateway = 'wompi';
+            if (!cardData.number || !cardData.exp_month || !cardData.exp_year || !cardData.cvc || !cardData.card_holder) {
+                overlay.classList.remove('show');
+                btnCheckout.disabled = false;
+                alert('Completa los datos de la tarjeta.');
+                return;
+            }
 
-            loadingText.textContent = 'Redirigiendo a Wompi...';
-            fetch(API + '/billing/api/create-checkout/', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+            var tokenize = (typeof wompi !== 'undefined' && wompi.createCardToken)
+                ? wompi.createCardToken(cardData)
+                : Promise.reject(new Error('Wompi no está disponible en este momento'));
+
+            tokenize
+            .then(function(card) {
+                if (!card || !card.token) throw new Error('No se pudo tokenizar la tarjeta.');
+                payload.card_token = card.token;
+                return fetch(API + '/billing/api/subscribe-card/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
             })
             .then(function(r) { return r.json(); })
             .then(function(data) {
-                if (data.checkout_url) {
-                    if (data.reference) localStorage.setItem('checkout_reference', data.reference);
-                    window.location.href = data.checkout_url;
+                if (data.success) {
+                    if (data.tokens) {
+                        localStorage.setItem('accessToken', data.tokens.access);
+                        localStorage.setItem('refreshToken', data.tokens.refresh);
+                        localStorage.setItem('userName', data.username || payload.username);
+                        localStorage.setItem('userEmail', payload.payer_email);
+                        localStorage.setItem('tenantName', data.schema_name || '');
+                    }
+                    window.location.href = 'success.html?plan=' + encodeURIComponent(payload.plan_tier) + '&cycle=monthly&tenant=' + encodeURIComponent(data.schema_name || '');
                 } else {
-                    throw new Error(data.error || 'Error al crear el checkout');
+                    throw new Error(data.error || 'Error al procesar el pago');
                 }
             })
             .catch(function(e) {
                 overlay.classList.remove('show');
                 btnCheckout.disabled = false;
-                localStorage.removeItem('checkout_username');
-                localStorage.removeItem('checkout_password');
-                localStorage.removeItem('checkout_email');
-                localStorage.removeItem('checkout_tenant');
                 alert('Error: ' + e.message);
             });
         });
