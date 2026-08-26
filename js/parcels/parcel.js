@@ -589,6 +589,14 @@ function setupDrawingTools(map) {
         console.log("[LEAFLET] Dibujo cancelado.");
     };
 
+    // Evitar el salto de página (href="#") al tocar los botones de Leaflet.draw en móvil
+    document.addEventListener('click', function (e) {
+        const el = e.target && e.target.closest ? e.target.closest('.leaflet-draw-toolbar a, .leaflet-draw-actions a') : null;
+        if (el) {
+            e.preventDefault();
+        }
+    });
+
     // Evento cuando se completa el dibujo
     map.on('draw:created', function (e) {
         const layer = e.layer;
