@@ -597,6 +597,15 @@ function setupDrawingTools(map) {
         }
     });
 
+    // En móvil, impedir que el mapa capture el toque y agregue un vértice al pulsar
+    // los botones de dibujo (Finalizar / Borrar / Cancelar).
+    document.addEventListener('touchend', function (e) {
+        const el = e.target && e.target.closest ? e.target.closest('.leaflet-draw-toolbar, .leaflet-draw-actions') : null;
+        if (el) {
+            e.stopPropagation();
+        }
+    }, true);
+
     // Evento cuando se completa el dibujo
     map.on('draw:created', function (e) {
         const layer = e.layer;
