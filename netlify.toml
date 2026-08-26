@@ -86,6 +86,13 @@
   [redirects.headers]
     X-Forwarded-Proto = "https"
 
+# 4b. Archivos estáticos del backend (Bootstrap, JS compartidos, etc.)
+[[redirects]]
+  from = "/static/*"
+  to = "https://agrotech-digital-production.up.railway.app/static/:splat"
+  status = 200
+  force = true
+
 # 5. Manejo de 404 - Landing page
 [[redirects]]
   from = "/*"
