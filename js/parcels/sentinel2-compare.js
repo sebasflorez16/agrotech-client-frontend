@@ -187,17 +187,22 @@
                             <option value="savi">SAVI</option>
                             <option value="ndre">NDRE (nitrógeno)</option>
                         </select>
-                        <label class="form-label" style="font-size:13px;">Modo</label>
-                        <select id="s2ModeSelect" class="form-select mb-2">
-                            <option value="contrast" selected>Contraste (percentiles)</option>
-                            <option value="standard">Estándar (escala fija -1..1)</option>
-                        </select>
-                        <label class="form-label" style="font-size:13px;">Render</label>
-                        <select id="s2SmoothingSelect" class="form-select mb-3">
-                            <option value="none">Píxel a píxel</option>
-                            <option value="median" selected>Manchas uniformes (mediana)</option>
-                            <option value="gaussian">Suave (gaussiano)</option>
-                        </select>
+                        <details class="mb-3" style="background:#f8f9fa;border-radius:10px;padding:10px 12px;">
+                            <summary style="cursor:pointer;font-weight:600;color:#555;font-size:13px;">Opciones avanzadas (opcional)</summary>
+                            <div style="margin-top:10px;">
+                                <label class="form-label" style="font-size:13px;">Modo</label>
+                                <select id="s2ModeSelect" class="form-select mb-2">
+                                    <option value="contrast" selected>Contraste (percentiles)</option>
+                                    <option value="standard">Estándar (escala fija -1..1)</option>
+                                </select>
+                                <label class="form-label" style="font-size:13px;">Render</label>
+                                <select id="s2SmoothingSelect" class="form-select mb-0">
+                                    <option value="none">Píxel a píxel</option>
+                                    <option value="median" selected>Manchas uniformes (mediana)</option>
+                                    <option value="gaussian">Suave (gaussiano)</option>
+                                </select>
+                            </div>
+                        </details>
                         <div id="s2CompareStatus" style="font-size:13px;color:#555;margin-bottom:10px;">
                             Selecciona índice y render, luego "Cargar".
                         </div>
@@ -219,7 +224,7 @@
                         </button>
                         <div id="s2AnalysisPanel" style="margin-top:14px;display:none;"></div>
                         <div style="border-top:1px solid #eee;padding-top:12px;margin-top:14px;">
-                            <div style="font-size:13px;font-weight:600;color:#333;margin-bottom:4px;">📅 Escenas disponibles</div>
+                            <div style="font-size:13px;font-weight:600;color:#333;margin-bottom:4px;">📅 Imágenes disponibles</div>
                             <div style="font-size:11px;color:#888;margin-bottom:8px;">Elige el rango de fechas para ver las imágenes satelitales disponibles de tu parcela.</div>
                             <div style="display:flex;gap:8px;margin-bottom:8px;">
                                 <input type="date" id="s2HistFrom" class="form-control form-control-sm" style="font-size:12px;" title="Desde">
@@ -318,14 +323,14 @@
         if (!to) to = now.toISOString().slice(0, 10);
         if (!from) from = new Date(now.getTime() - 180 * 86400000).toISOString().slice(0, 10);
 
-        panel.innerHTML = '🛰️ Buscando escenas disponibles…';
+        panel.innerHTML = '🛰️ Buscando imágenes disponibles…';
         try {
             const url = `${getBaseUrl()}/parcel/${parcelId}/sentinel2-scenes/?date_from=${from}&date_to=${to}`;
             const resp = await authFetch(url);
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) throw new Error(data.error || data.message || `HTTP ${resp.status}`);
             const scenes = data.scenes || [];
-            if (!scenes.length) { panel.innerHTML = 'No hay escenas en el rango de fechas.'; return; }
+            if (!scenes.length) { panel.innerHTML = 'No hay imágenes en el rango de fechas.'; return; }
 
             const rows = scenes.map(s => {
                 const cc = s.cloud_cover;
@@ -355,7 +360,7 @@
             }).join('');
 
             panel.innerHTML = `
-                <div style="font-size:11px;color:#888;margin-bottom:8px;">${scenes.length} escenas · 🟢 Óptima (&lt;15% nubes) · 🟠 Buena (&lt;40%) · 🔴 Nublada (&gt;40%) · toca un índice para ver la imagen de esa fecha</div>
+                <div style="font-size:11px;color:#888;margin-bottom:8px;">${scenes.length} imágenes · 🟢 Óptima (&lt;15% nubes) · 🟠 Buena (&lt;40%) · 🔴 Nublada (&gt;40%) · toca un índice para ver la imagen de esa fecha</div>
                 <table class="table table-sm table-hover" style="font-size:12px;margin:0;">
                     <thead><tr><th>Fecha</th><th>Nubosidad</th><th>Ver índice</th></tr></thead>
                     <tbody>${rows}</tbody>
@@ -372,7 +377,12 @@
         const toEl = document.getElementById('fechaFinInput');
         const panel = document.getElementById('s2HistoryDashboardPanel');
         if (!panel) return;
-        if (!parcelId) { alert('Selecciona primero una parcela en el mapa.'); return; }
+        if (!parcelId) {
+            if (typeof window.showErrorToast === 'function') {
+                window.showErrorToast('Selecciona primero una parcela en el mapa.');
+            }
+            return;
+        }
 
         let from = fromEl ? fromEl.value : '';
         let to = toEl ? toEl.value : '';
@@ -400,7 +410,7 @@
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) throw new Error(data.error || data.message || `HTTP ${resp.status}`);
             const series = data.series || [];
-            if (!series.length) { panel.innerHTML = '<div style="padding:12px;color:#888;">No hay escenas en el rango de fechas.</div>'; return; }
+            if (!series.length) { panel.innerHTML = '<div style="padding:12px;color:#888;">No hay imágenes en el rango de fechas.</div>'; return; }
 
             let trend = '';
             if (series.length >= 2) {
@@ -429,11 +439,11 @@
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:12px;">
                         <div>
                             <div style="font-weight:700;color:#145A32;font-size:15px;">Evolución de índices de vegetación</div>
-                            <div style="font-size:12px;color:#888;margin-top:2px;">Cada punto es el <strong>promedio de todos los píxeles del lote completo</strong> en esa fecha · una escena limpia por mes, desde enero.</div>
+                            <div style="font-size:12px;color:#888;margin-top:2px;">Cada punto es el <strong>promedio de todos los píxeles del lote completo</strong> en esa fecha · una imagen limpia por mes, desde enero.</div>
                         </div>
                         <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
                             ${trend}
-                            <span style="font-size:11px;color:#999;background:#f1f3f5;border-radius:20px;padding:4px 10px;">${series.length} escenas</span>
+                            <span style="font-size:11px;color:#999;background:#f1f3f5;border-radius:20px;padding:4px 10px;">${series.length} imágenes</span>
                         </div>
                     </div>
 
