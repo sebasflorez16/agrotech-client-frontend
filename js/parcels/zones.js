@@ -229,10 +229,10 @@
                 renderZonesList(latest);
                 renderZonesOnMap(latest);
                 setStatus(
-                    `Última zonificación: escena del ${latest.scene_date} (la más reciente disponible) · ${latest.method_display || latest.method} · k=${latest.k_zones}`
+                    `Última zonificación: imagen del ${latest.scene_date} (la más reciente disponible) · ${latest.method_display || latest.method} · ${latest.k_zones} zonas`
                 );
             } else {
-                setStatus('No hay zonificaciones aún. Haz clic en "Generar zonificación".');
+                setStatus('No hay zonas aún. Pulsa "Generar zonas".');
                 renderZonesList({ zones: [] });
             }
         } catch (e) {
@@ -271,7 +271,7 @@
         renderZonesList(data);
         renderZonesOnMap(data);
         setStatus(
-            `✅ Zonificación lista · ${data.zones?.length || 0} zonas · ${data.total_pixels} pixeles · escena del ${data.scene_date} (la más reciente)`,
+            `✅ Zonificación lista · ${data.zones?.length || 0} zonas · ${data.total_pixels} píxeles · imagen del ${data.scene_date} (la más reciente)`,
             '#27ae60'
         );
     }
@@ -286,7 +286,7 @@
         const idx = document.getElementById('zonesIndexSelect').value || 'ndvi';
         const btn = document.getElementById('btnGenerateZones');
         if (btn) { btn.disabled = true; btn.textContent = 'Procesando…'; }
-        setStatus('<i class="fas fa-spinner fa-spin"></i> Generando zonificación… puede tardar hasta 1 minuto.');
+        setStatus('<i class="fas fa-spinner fa-spin"></i> Generando zonas… puede tardar hasta 1 minuto.');
         showZonesSkeleton();
         try {
             const data = await api('/api/parcels/parcel-zonifications/generate-for-parcel/', {
@@ -308,7 +308,7 @@
         } catch (e) {
             setStatus(`❌ Error: ${e.message}`, '#c0392b');
         } finally {
-            if (btn) { btn.disabled = false; btn.textContent = '⚙️ Generar zonificación'; }
+            if (btn) { btn.disabled = false; btn.textContent = 'Generar zonas'; }
         }
     }
 
