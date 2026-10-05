@@ -1503,7 +1503,7 @@ function setupImageFilterUX() {
     const tooltip = document.getElementById("imageFilterTooltip");
 
     // Cambiar el título
-    if (tituloFiltro) tituloFiltro.textContent = "Buscar escenas satelitales";
+    if (tituloFiltro) tituloFiltro.textContent = "Buscar imágenes satelitales";
     // Tooltip aclaratorio
     if (tooltip) {
         tooltip.title = "Selecciona primero una parcela y luego el rango de fechas para buscar imágenes satelitales disponibles.";
@@ -1531,11 +1531,11 @@ function setupImageFilterUX() {
                 return;
             }
             if (!parcelaSeleccionada) {
-                showErrorToast("Selecciona primero una parcela antes de buscar escenas satelitales.");
+                showErrorToast("Selecciona primero una parcela antes de buscar imágenes satelitales.");
                 return;
             }
             if (!fechasValidas) {
-                showErrorToast("Selecciona el rango de fechas antes de buscar escenas satelitales.");
+                showErrorToast("Selecciona el rango de fechas antes de buscar imágenes satelitales.");
                 return;
             }
             const parcelId = window.AGROTECH_STATE.selectedParcelId;
@@ -1757,8 +1757,9 @@ async function showSceneSelectionTable(scenes) {
         `;
         header.innerHTML = `
             <div>
-                <h4 style="margin:0;font-weight:600;font-size:18px;color:#1D1D1F;">Imagenes Satelitales Disponibles</h4>
-                <p style="margin:4px 0 0;font-size:13px;color:#86868B;">${finalScenes.length} escenas encontradas</p>
+                <h4 style="margin:0;font-weight:600;font-size:18px;color:#1D1D1F;">Imágenes satelitales disponibles</h4>
+                <p style="margin:4px 0 0;font-size:13px;color:#86868B;">${finalScenes.length} imágenes encontradas</p>
+                <p style="margin:6px 0 0;font-size:12px;color:#86868B;">Elige un índice para verlo en el mapa: <strong>NDVI</strong> = vigor · <strong>NDMI</strong> = agua · <strong>SAVI</strong> = vigor con suelo visible · <strong>NDRE</strong> = etapa avanzada</p>
             </div>
             <button id="closeSceneModal" style="background:none;border:1px solid rgba(0,0,0,0.1);color:#86868B;width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px;">x</button>
         `;
@@ -1772,7 +1773,7 @@ async function showSceneSelectionTable(scenes) {
         if (filteredCount > 0) {
             const filterMsg = document.createElement("div");
             filterMsg.style.cssText = `margin-bottom:14px;padding:10px 14px;border-radius:10px;font-size:13px;color:#6E6E73;background:#F5F5F7;`;
-            filterMsg.textContent = `${filteredCount} escenas con mas del 75% de nubes ocultas.`;
+            filterMsg.textContent = `${filteredCount} imágenes con más del 75% de nubes ocultas.`;
             body.appendChild(filterMsg);
         }
 
@@ -1784,11 +1785,11 @@ async function showSceneSelectionTable(scenes) {
                 <tr style="border-bottom:1px solid rgba(0,0,0,0.06);">
                     <th style="padding:10px 12px;text-align:left;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Fecha</th>
                     <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Nubes</th>
-                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">NDVI</th>
-                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">NDMI</th>
-                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">SAVI</th>
-                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">NDRE</th>
-                    <th style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Stats</th>
+                    <th title="Vigor y verdor del cultivo" style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">NDVI</th>
+                    <th title="Contenido de agua / estrés hídrico" style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">NDMI</th>
+                    <th title="Vigor cuando el suelo está visible (etapas tempranas)" style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">SAVI</th>
+                    <th title="Vigor en etapas avanzadas (clorofila)" style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">NDRE</th>
+                    <th title="Análisis científico detallado de la imagen" style="padding:10px 12px;text-align:center;font-weight:600;color:#86868B;font-size:11px;text-transform:uppercase;letter-spacing:.5px;">Ver análisis</th>
                 </tr>
             </thead>
             <tbody>
@@ -1818,7 +1819,7 @@ async function showSceneSelectionTable(scenes) {
                             <button class="btn btn-sm btn-outline-primary" onclick="procesarImagenEOSDA('${scene.view_id}','ndre',this,'${scene.date}')">NDRE</button>
                         </td>
                         <td style="padding:8px 12px;text-align:center;">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="obtenerAnalyticsEscena('${scene.view_id}','${scene.date}')">Stats</button>
+                            <button class="btn btn-sm btn-outline-secondary" title="Ver análisis científico detallado" onclick="obtenerAnalyticsEscena('${scene.view_id}','${scene.date}')">Ver análisis</button>
                         </td>
                     </tr>`;
                 }).join('')}
@@ -3367,7 +3368,7 @@ async function loadRadarMonitoring(parcelId) {
             const types = (change.change_types || []).map(t => `• ${t}`).join('<br>');
             const detailEl = document.getElementById('radarChangeDetail');
             if (detailEl) {
-                detailEl.innerHTML = `Cambio detectado (${change.magnitude} dB) entre ${change.from_date} y ${change.to_date}.<br>${types}`;
+                detailEl.innerHTML = `Cambio detectado por radar entre ${change.from_date} y ${change.to_date} (intensidad ${change.magnitude}).<br>${types}`;
             }
             setText('radarInterpretation', change.interpretation || '');
         } else {

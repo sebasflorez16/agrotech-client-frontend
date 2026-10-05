@@ -598,20 +598,25 @@
                 <textarea id="parcelDescription" name="description" class="form-control" rows="2"></textarea>
             </div>
 
-            <div class="form-group mb-3">
-                <label for="parcelFieldType">Tipo de campo:</label>
-                <input type="text" id="parcelFieldType" name="field_type" class="form-control">
-            </div>
+            <details class="mb-4" style="background:#f8f9fa;border-radius:10px;padding:10px 14px;">
+                <summary style="cursor:pointer;font-weight:600;color:#555;font-size:14px;">Opciones avanzadas (opcional)</summary>
+                <div style="margin-top:12px;">
+                    <div class="form-group mb-3">
+                        <label for="parcelFieldType">Tipo de campo:</label>
+                        <input type="text" id="parcelFieldType" name="field_type" class="form-control">
+                    </div>
 
-            <div class="form-group mb-3">
-                <label for="parcelSoilType">Tipo de suelo:</label>
-                <input type="text" id="parcelSoilType" name="soil_type" class="form-control">
-            </div>
+                    <div class="form-group mb-3">
+                        <label for="parcelSoilType">Tipo de suelo:</label>
+                        <input type="text" id="parcelSoilType" name="soil_type" class="form-control">
+                    </div>
 
-            <div class="form-group mb-4">
-                <label for="parcelTopography">Topografía:</label>
-                <input type="text" id="parcelTopography" name="topography" class="form-control">
-            </div>
+                    <div class="form-group mb-0">
+                        <label for="parcelTopography">Topografía:</label>
+                        <input type="text" id="parcelTopography" name="topography" class="form-control">
+                    </div>
+                </div>
+            </details>
 
             <div class="d-flex justify-content-between">
                 <button type="button" onclick="savePolygon()" class="btn btn-success">Guardar</button>
@@ -719,10 +724,10 @@
                         <button id="escenasSatelitalesBtn" class="btn btn-warning w-100 mb-2" style="font-weight:500;display:none;">
                             <i class="fas fa-satellite me-1"></i> Buscar escenas satelitales
                         </button>
-                        <button id="graficoHistoricoBtn" class="btn btn-success w-100 mb-2" style="font-weight:500;" onclick="window.loadS2History()">
+                        <button id="graficoHistoricoBtn" class="btn btn-success w-100 mb-2" style="font-weight:500;" onclick="window.loadS2History()" disabled title="Selecciona primero una parcela">
                             <i class="fas fa-chart-line me-1"></i> Ver Histórico del Cultivo
                         </button>
-                        <button id="analisisMeteorologicoBtn" class="btn btn-info w-100" style="font-weight:500;">
+                        <button id="analisisMeteorologicoBtn" class="btn btn-info w-100" style="font-weight:500;" disabled title="Selecciona primero una parcela">
                             <i class="fas fa-cloud-sun me-1"></i> Ver Meteorología
                         </button>
                         <button id="zonificacionBtn" class="btn w-100 mt-2" style="font-weight:500; background: linear-gradient(135deg, #7B1FA2, #4A148C); border:none; color:white;" onclick="window.toggleZonesPanel && window.toggleZonesPanel()" title="Divide la parcela en zonas de manejo con una grilla + K-means">
@@ -740,7 +745,7 @@
                             <tbody id="parcelDataTable">
                                 <tr><td style="color:#888;width:40%;">Nombre:</td><td id="parcelNameCell" style="font-weight:500;">Selecciona una parcela</td></tr>
                                 <tr><td style="color:#888;">Área:</td><td id="parcelAreaCell">-</td></tr>
-                                <tr><td style="color:#888;">Última escena:</td><td id="parcelDateCell">-</td></tr>
+                                <tr><td style="color:#888;">Última imagen:</td><td id="parcelDateCell">-</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -770,8 +775,8 @@
                                 <div id="radarChangeSummary" style="margin-top:6px;font-size:12px;color:#c0392b;font-weight:600;"></div>
                                 <div id="radarInterpretation" style="margin-top:8px;font-size:12px;color:#888;line-height:1.5;"></div>
                                 <div id="radarLegend" style="margin-top:10px;font-size:11px;color:#666;display:flex;flex-wrap:wrap;gap:14px;border-top:1px solid #eee;padding-top:8px;">
-                                    <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#147a2e;margin-right:4px;"></span>Verde = vegetación (RVI)</span>
-                                    <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e03c28;margin-right:4px;"></span>Rojo = cambio detectado</span>
+                                    <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#147a2e;margin-right:4px;"></span>Verde = vigor del cultivo (estimado por radar)</span>
+                                    <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e03c28;margin-right:4px;"></span>Rojo = cambio detectado (revisar la zona)</span>
                                 </div>
                             </div>
                         </div>
@@ -1370,7 +1375,7 @@
     <script src="../../js/utils/api-utils.js"></script>
     <script type="module" src="../../js/auth/dev-auth-helper.js"></script>
     <script src="../../js/app.js"></script>
-    <script type="module" src="../../js/parcels/parcel.js"></script>
+    <script type="module" src="../../js/parcels/parcel.js?v=20261005"></script>
     <script type="module" src="../../js/parcels/layers.js"></script>
     <script src="../../js/parcels/analytics-cientifico.js"></script>
     <script src="../../js/parcels/crop-cycles.js"></script>
@@ -1430,6 +1435,25 @@
                         lastElevParcelId = null;
                         btnElevacion.disabled = true;
                         btnElevacion.title = 'Selecciona primero una parcela';
+                    }
+                }, 500);
+            }
+
+            // ── Histórico y Meteorología también requieren parcela seleccionada ──
+            const actionButtons = [
+                document.getElementById('graficoHistoricoBtn'),
+                document.getElementById('analisisMeteorologicoBtn')
+            ].filter(Boolean);
+            if (actionButtons.length) {
+                let lastActionParcelId = null;
+                setInterval(() => {
+                    const currentId = window.AGROTECH_STATE?.selectedParcelId;
+                    if (currentId && currentId !== lastActionParcelId) {
+                        lastActionParcelId = currentId;
+                        actionButtons.forEach(b => { b.disabled = false; b.removeAttribute('title'); });
+                    } else if (!currentId && lastActionParcelId) {
+                        lastActionParcelId = null;
+                        actionButtons.forEach(b => { b.disabled = true; b.title = 'Selecciona primero una parcela'; });
                     }
                 }, 500);
             }
