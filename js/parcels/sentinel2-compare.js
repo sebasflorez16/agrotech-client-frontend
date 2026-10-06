@@ -114,11 +114,21 @@
             const scene = data.scene || {};
             const stats = data.statistics && data.statistics[index];
             const cloud = scene.cloud_cover != null ? `${Number(scene.cloud_cover).toFixed(1)}%` : '?';
-            setStatus(
-                `✅ ${index.toUpperCase()} (${smoothing}) · escena ${scene.date || '?'} · nubes ${cloud}` +
-                (stats ? ` · mean=${stats.mean}` : ''),
-                '#27ae60'
-            );
+            const dateTxt = scene.date || '?';
+            const meanTxt = stats ? ` · promedio ${stats.mean}` : '';
+            if (data.fallback) {
+                setStatus(
+                    `ℹ️ No hay imagen limpia para ${data.requested_date || 'la fecha pedida'}. ` +
+                    `Te muestro la imagen REAL más reciente disponible: <strong>${dateTxt}</strong> (nubes ${cloud})${meanTxt}. ` +
+                    `Puedes elegir otra fecha en "Imágenes disponibles".`,
+                    '#b45309'
+                );
+            } else {
+                setStatus(
+                    `✅ ${index.toUpperCase()} · imagen del <strong>${dateTxt}</strong> · nubes ${cloud}${meanTxt}`,
+                    '#27ae60'
+                );
+            }
             renderAnalysis(data.analysis);
             console.log(`${MODULE_TAG} Imagen ${index} cargada (${smoothing})`);
         } catch (e) {
