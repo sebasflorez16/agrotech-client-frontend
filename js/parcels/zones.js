@@ -103,12 +103,23 @@
         if (state.map || !window.L) return state.map;
         const el = document.getElementById('zonesMap');
         if (!el) return null;
-        state.map = L.map(el, { zoomControl: true }).setView([4.6, -74.1], 12);
+        const main = window.map;
+        const center = (main && typeof main.getCenter === 'function') ? main.getCenter() : [4.6, -74.1];
+        const zoom = (main && typeof main.getZoom === 'function') ? main.getZoom() : 12;
+        state.map = L.map(el, { zoomControl: true }).setView(center, zoom);
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Esri, Maxar, Earthstar Geographics',
             maxZoom: 19,
         }).addTo(state.map);
         return state.map;
+    }
+
+    function centerOnMainMap() {
+        if (!state.map || !window.map) return;
+        try {
+            state.map.setView(window.map.getCenter(), window.map.getZoom(), { animate: false });
+            state.map.invalidateSize();
+        } catch (_) {}
     }
 
     function setStatus(html, color) {
@@ -327,6 +338,7 @@
         setTimeout(() => {
             const m = ensureMap();
             if (m) m.invalidateSize();
+            centerOnMainMap();
             loadLatestZonification(parcel.id);
         }, 100);
     }
@@ -455,6 +467,7 @@
         setTimeout(() => {
             const m = ensureMap();
             if (m) m.invalidateSize();
+            centerOnMainMap();
             loadLatestZonification(id);
         }, 120);
     };

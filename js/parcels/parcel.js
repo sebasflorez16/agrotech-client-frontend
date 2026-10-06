@@ -3290,7 +3290,8 @@ async function downloadCropReport() {
     }
     try {
         const response = await window.axiosInstance.get(`/parcel/${parcelId}/report/`, {
-            responseType: 'blob'
+            responseType: 'blob',
+            _silentError: true,
         });
         const blob = response.data;
         const disposition = response.headers['content-disposition'] || '';
@@ -3307,13 +3308,28 @@ async function downloadCropReport() {
         link.remove();
         window.URL.revokeObjectURL(url);
     } catch (e) {
-        if (e.response && e.response.status === 403) {
-            alert('El reporte PDF está disponible en los planes Empresarial y Corporativo. Mejora tu plan para descargarlo.');
-        } else if (e.response && e.response.status === 402) {
+        const status = e && e.response && e.response.status;
+        let backendMsg = null;
+        const d = e && e.response && e.response.data;
+        try {
+            if (d instanceof Blob) {
+                const txt = await d.text();
+                try { const j = JSON.parse(txt); backendMsg = j.error || j.message; }
+                catch (_) { backendMsg = txt ? txt.slice(0, 180) : null; }
+            } else if (d && typeof d === 'object') {
+                backendMsg = d.error || d.message;
+            }
+        } catch (_) {}
+
+        if (status === 403) {
+            alert(backendMsg || 'El reporte PDF está disponible en el plan Empresarial. Mejora tu plan para descargarlo.');
+        } else if (status === 402) {
             alert('Necesitas una suscripción activa para descargar el reporte.');
+        } else if (status === 503) {
+            alert('La generación de PDF no está disponible en el servidor.');
         } else {
             console.error('[REPORT] Error descargando reporte:', e);
-            alert('No se pudo generar el reporte. Intenta de nuevo.');
+            alert(`No se pudo generar el reporte${status ? ' (HTTP ' + status + ')' : ''}.${backendMsg ? ' ' + backendMsg : ''}`);
         }
     }
 }
