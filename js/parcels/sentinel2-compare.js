@@ -92,7 +92,11 @@
             const headers = getToken() ? { Authorization: `Bearer ${getToken()}` } : {};
             const resp = await fetch(url, { headers });
             const data = await resp.json().catch(() => ({}));
-            if (!resp.ok) throw new Error(data.error || data.message || `HTTP ${resp.status}`);
+            if (!resp.ok) {
+                const err = new Error(data.error || data.message || `HTTP ${resp.status}`);
+                err.status = resp.status;
+                throw err;
+            }
 
             const b64 = data.images && data.images[index];
             const bounds = data.bounds; // [west, south, east, north]
@@ -118,7 +122,10 @@
             renderAnalysis(data.analysis);
             console.log(`${MODULE_TAG} Imagen ${index} cargada (${smoothing})`);
         } catch (e) {
-            setStatus('❌ ' + e.message, '#c0392b');
+            const msg = (e && e.status === 404) || /no se (pudo|encontr)/i.test(String(e && e.message))
+                ? 'No hay una imagen limpia para esa fecha (probablemente nublada). Abre "Imágenes disponibles", elige una fecha con 🟢 o 🟠 e inténtalo de nuevo.'
+                : 'No se pudo cargar el análisis satelital. Revisa tu conexión e inténtalo de nuevo.';
+            setStatus('ℹ️ ' + msg, '#c0392b');
             console.error(`${MODULE_TAG} Error:`, e);
         }
     }
