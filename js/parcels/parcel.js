@@ -1702,9 +1702,9 @@ async function showSceneSelectionTable(scenes) {
         const uniqueScenes = [];
         const seenDates = new Set();
         
-        // Ordenar por fecha desc y luego por calidad (menor nubosidad = mejor)
+        // Ordenar por FECHA ASCENDENTE (cronológico). Con misma fecha, menor nubosidad primero.
         const sortedScenes = [...scenes].sort((a, b) => {
-            const dateCompare = new Date(b.date) - new Date(a.date);
+            const dateCompare = new Date(a.date) - new Date(b.date);
             if (dateCompare !== 0) return dateCompare;
             
             // Si misma fecha, ordenar por nubosidad (menor es mejor)
@@ -1834,12 +1834,23 @@ async function showSceneSelectionTable(scenes) {
         // Cerrar modal
         const closeModal = () => {
             modal.style.animation = 'fadeOut 0.2s ease';
-            setTimeout(() => modal.remove(), 150);
+            setTimeout(() => {
+                modal.remove();
+                // Restaurar scroll: un modal/backdrop pudo haber dejado el body bloqueado
+                document.body.style.overflow = '';
+                document.body.classList.remove('modal-open');
+                document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+                if (window.map && typeof window.map.invalidateSize === 'function') {
+                    window.map.invalidateSize();
+                }
+            }, 150);
             resolve({ ndvi: null, ndmi: null });
         };
         
-        document.getElementById('closeSceneModal').onclick = closeModal;
-        document.getElementById('closeSceneModalFooter').onclick = closeModal;
+        const closeBtn = document.getElementById('closeSceneModal');
+        if (closeBtn) closeBtn.onclick = closeModal;
+        const closeBtnFooter = document.getElementById('closeSceneModalFooter');
+        if (closeBtnFooter) closeBtnFooter.onclick = closeModal;
         modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 
         // Manejar click en NDVI (usar finalScenes en lugar de scenes)
