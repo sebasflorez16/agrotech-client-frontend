@@ -202,6 +202,7 @@ registerForm.addEventListener('submit', async (e) => {
     }
     
     setLoading(true);
+    if (window.trackEvent) window.trackEvent('begin_signup');
     
     const payload = {
         email: document.getElementById('email').value.trim(),
@@ -264,6 +265,7 @@ registerForm.addEventListener('submit', async (e) => {
         }
         
         // Success!
+        if (window.trackEvent) window.trackEvent('signup_complete');
         if (data.requires_email_verification) {
             // Verificacion de email requerida → mostrar mensaje y no redirigir
             registerForm.style.display = 'none';

@@ -1,0 +1,314 @@
+/* ============================================================
+   theme.css — Sistema de temas Light/Dark para AgroTech Colombia
+   Cargar DESPUÉS de landing.css/agrotech-neomorphic.css/blog-article.css
+   ============================================================ */
+
+/* ---------- DARK (default, espejea los tokens existentes) ---------- */
+:root,
+:root[data-theme="dark"] {
+  /* Brand — sin cambios */
+  --brand-green: #4CAF50;
+  --brand-green-dark: #388E3C;
+  --brand-green-light: #66BB6A;
+  --brand-orange: #FF6F00;
+  --brand-orange-dark: #E65100;
+  --brand-orange-light: #FF8F00;
+
+  /* Surfaces */
+  --dark-bg: #1a1a1a;
+  --dark-bg-secondary: #242424;
+  --dark-bg-tertiary: #2d2d2d;
+  --dark-card: #212121;
+  --dark-card-hover: #2a2a2a;
+
+  /* Semantic surfaces (los componentes ya consumen estas) */
+  --surface-page: #1a1a1a;
+  --surface-page-alt: #242424;
+  --surface-card: #212121;
+  --surface-card-hover: #2a2a2a;
+  --surface-header: rgba(26, 26, 26, .92);
+  --surface-overlay: rgba(10, 14, 39, .92);
+
+  /* Text */
+  --text-primary: #f5f5f5;
+  --text-secondary: #b0b0b0;
+  --text-muted: #808080;
+  --text-on-brand: #ffffff;
+
+  /* Borders / hairlines */
+  --border-subtle: rgba(255, 255, 255, .07);
+  --border-strong: rgba(255, 255, 255, .14);
+
+  /* Shadows (neumorphism dual) */
+  --shadow-light: rgba(255, 255, 255, .05);
+  --shadow-dark: rgba(0, 0, 0, .5);
+  --shadow-inset-light: rgba(255, 255, 255, .03);
+  --shadow-inset-dark: rgba(0, 0, 0, .3);
+
+  /* Hero overlay tint */
+  --hero-overlay-from: rgba(10, 14, 39, .92);
+  --hero-overlay-mid: rgba(10, 14, 39, .85);
+  --hero-overlay-to: rgba(76, 175, 80, .15);
+
+  color-scheme: dark;
+}
+
+/* ---------- LIGHT (paper warm + tinta verde-oscuro) ---------- */
+:root[data-theme="light"] {
+  /* Brand — verde y naranja oscurecidos para contrastar sobre paper */
+  --brand-green: #2E7D32;
+  --brand-green-dark: #1B5E20;
+  --brand-green-light: #43A047;
+  --brand-orange: #E65100;
+  --brand-orange-dark: #BF360C;
+  --brand-orange-light: #F57C00;
+
+  /* Surfaces — paper warm tintado al hue 145 */
+  --dark-bg: #f7f5f0;
+  --dark-bg-secondary: #eef0e8;
+  --dark-bg-tertiary: #e6e9e0;
+  --dark-card: #ffffff;
+  --dark-card-hover: #fafaf6;
+
+  --surface-page: #f7f5f0;
+  --surface-page-alt: #eef0e8;
+  --surface-card: #ffffff;
+  --surface-card-hover: #fafaf6;
+  --surface-header: rgba(247, 245, 240, .92);
+  --surface-overlay: rgba(247, 245, 240, .82);
+
+  /* Text — verde-oscuro casi negro, no #000 puro */
+  --text-primary: #1a221c;
+  --text-secondary: #4a554c;
+  --text-muted: #6f7a70;
+  --text-on-brand: #ffffff;
+
+  /* Borders */
+  --border-subtle: rgba(26, 34, 28, .08);
+  --border-strong: rgba(26, 34, 28, .16);
+
+  /* Shadows — más suaves, sombra única gris-verde, dejamos la light en 0 */
+  --shadow-light: rgba(255, 255, 255, .9);
+  --shadow-dark: rgba(46, 125, 50, .12);
+  --shadow-inset-light: rgba(255, 255, 255, .8);
+  --shadow-inset-dark: rgba(46, 125, 50, .08);
+
+  /* Hero overlay tint — paper sobre la foto */
+  --hero-overlay-from: rgba(247, 245, 240, .88);
+  --hero-overlay-mid: rgba(247, 245, 240, .72);
+  --hero-overlay-to: rgba(46, 125, 50, .12);
+
+  color-scheme: light;
+}
+
+/* ---------- Auto: respetar prefers-color-scheme cuando no hay attr ---------- */
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) {
+    --brand-green: #2E7D32;
+    --brand-green-dark: #1B5E20;
+    --brand-green-light: #43A047;
+    --brand-orange: #E65100;
+    --brand-orange-dark: #BF360C;
+    --brand-orange-light: #F57C00;
+    --dark-bg: #f7f5f0;
+    --dark-bg-secondary: #eef0e8;
+    --dark-bg-tertiary: #e6e9e0;
+    --dark-card: #ffffff;
+    --dark-card-hover: #fafaf6;
+    --surface-page: #f7f5f0;
+    --surface-page-alt: #eef0e8;
+    --surface-card: #ffffff;
+    --surface-card-hover: #fafaf6;
+    --surface-header: rgba(247, 245, 240, .92);
+    --surface-overlay: rgba(247, 245, 240, .82);
+    --text-primary: #1a221c;
+    --text-secondary: #4a554c;
+    --text-muted: #6f7a70;
+    --border-subtle: rgba(26, 34, 28, .08);
+    --border-strong: rgba(26, 34, 28, .16);
+    --shadow-light: rgba(255, 255, 255, .9);
+    --shadow-dark: rgba(46, 125, 50, .12);
+    --shadow-inset-light: rgba(255, 255, 255, .8);
+    --shadow-inset-dark: rgba(46, 125, 50, .08);
+    --hero-overlay-from: rgba(247, 245, 240, .88);
+    --hero-overlay-mid: rgba(247, 245, 240, .72);
+    --hero-overlay-to: rgba(46, 125, 50, .12);
+    color-scheme: light;
+  }
+}
+
+/* ---------- Overrides puente: que body/secciones consuman los tokens ---------- */
+html, body {
+  background: var(--surface-page) !important;
+  color: var(--text-primary);
+  transition: background-color .3s ease, color .3s ease;
+}
+
+.header,
+header[role="banner"],
+nav.header {
+  background: var(--surface-header) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  -webkit-backdrop-filter: blur(20px);
+          backdrop-filter: blur(20px);
+}
+
+.nav-logo,
+.nav-links a,
+.nav-burger span {
+  color: var(--text-primary) !important;
+}
+.nav-links a { color: var(--text-secondary) !important; }
+.nav-links a:hover { color: var(--brand-green) !important; }
+.nav-burger span { background: var(--text-primary) !important; }
+
+/* Hero overlay tint — usa los tokens, no hardcoded */
+.hero-bg::before {
+  background: linear-gradient(
+    135deg,
+    var(--hero-overlay-from) 0%,
+    var(--hero-overlay-mid) 40%,
+    var(--hero-overlay-to) 100%
+  ) !important;
+}
+
+/* H1 — NO gradient text (quick-win 1 refrendado). Color sólido por tema */
+h1, .hero-content h1 {
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: var(--text-primary) !important;
+}
+
+/* Texto secundario de hero */
+.hero-description { color: var(--text-secondary) !important; }
+
+/* Cards: usar tokens semánticos */
+.neuro-card,
+.feature-card,
+.pricing-card,
+.blog-card,
+.faq-card {
+  background: var(--surface-card) !important;
+  color: var(--text-primary);
+  box-shadow:
+    8px 8px 16px var(--shadow-dark),
+    -8px -8px 16px var(--shadow-light) !important;
+  border: 1px solid var(--border-subtle);
+  transition: box-shadow .3s ease, background-color .3s ease, transform .2s ease;
+}
+.neuro-card:hover,
+.feature-card:hover,
+.pricing-card:hover,
+.blog-card:hover {
+  background: var(--surface-card-hover) !important;
+  box-shadow:
+    12px 12px 24px var(--shadow-dark),
+    -12px -12px 24px var(--shadow-light) !important;
+}
+
+/* Botones primarios mantienen gradient brand (affordance 3D), texto blanco */
+.neuro-button-primary,
+.btn-cta,
+.btn-primary {
+  color: var(--text-on-brand) !important;
+}
+
+/* Inputs / textareas */
+input, textarea, select {
+  background: var(--surface-card) !important;
+  color: var(--text-primary) !important;
+  border-color: var(--border-strong) !important;
+}
+input::placeholder, textarea::placeholder { color: var(--text-muted) !important; }
+
+/* Secciones alternadas */
+section, .section {
+  color: var(--text-primary);
+}
+section.alt, .section-alt, .section-secondary {
+  background: var(--surface-page-alt) !important;
+}
+
+/* Footer */
+footer, .footer {
+  background: var(--surface-page-alt) !important;
+  color: var(--text-secondary) !important;
+  border-top: 1px solid var(--border-subtle);
+}
+footer a, .footer a { color: var(--text-secondary) !important; }
+footer a:hover, .footer a:hover { color: var(--brand-green) !important; }
+
+/* Blog editorial */
+.blog-intro { color: var(--text-secondary) !important; border-left: 0 !important; padding-left: 0 !important; }
+.article-content,
+.blog-row, .blog-row p, .blog-row li,
+article p, article li {
+  color: var(--text-primary);
+}
+.article-content h2 { color: var(--text-primary) !important; }
+.article-content h3 { color: var(--text-primary) !important; }
+.article-content blockquote,
+.blog-pullquote {
+  color: var(--text-primary) !important;
+  border-left: 3px solid var(--brand-green);
+  padding-left: 1rem;
+}
+
+/* Bullet check del pricing */
+.neuro-card li .check { color: var(--brand-green) !important; }
+
+/* ============================================================
+   THEME TOGGLE BUTTON
+   ============================================================ */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: 0.5rem;
+  padding: 0;
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color .2s ease, color .2s ease, transform .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-toggle:hover { background: var(--surface-card-hover); transform: translateY(-1px); }
+.theme-toggle:active { transform: translateY(0); }
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--brand-green);
+  outline-offset: 2px;
+}
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: block; }
+:root[data-theme="light"] .theme-toggle .icon-sun { display: block; }
+:root[data-theme="light"] .theme-toggle .icon-moon { display: none; }
+
+/* Móvil: meter el toggle en el burger row */
+@media (max-width: 968px) {
+  .theme-toggle {
+    width: 40px;
+    height: 40px;
+    margin-left: 0;
+    margin-right: 0.5rem;
+  }
+}
+
+/* prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  html, body, .neuro-card, .feature-card, .pricing-card, .blog-card, .theme-toggle {
+    transition: none !important;
+  }
+}

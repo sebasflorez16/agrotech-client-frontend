@@ -23,10 +23,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroTech Digital - Monitoreo Continuo e Informes Satelitales para tu Cultivo</title>
     <meta name="description" content="Monitoreo satelital continuo e informes históricos para tus cultivos. NDVI, estrés hídrico y datos climáticos para decidir con precisión en el campo.">
+    <link rel="canonical" href="https://agrotechcolombia.com/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="AgroTech Digital">
+    <meta property="og:locale" content="es_CO">
+    <meta property="og:title" content="AgroTech Digital - Monitoreo Continuo e Informes Satelitales para tu Cultivo">
+    <meta property="og:description" content="Analiza tus lotes con imágenes satelitales: monitoreo continuo, índices de vegetación e informes históricos.">
+    <meta property="og:url" content="https://agrotechcolombia.com/">
+    <meta property="og:image" content="https://agrotechcolombia.com/images/hero-agrotech.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="AgroTech Digital - Monitoreo e Informes Satelitales para tu Cultivo">
+    <meta name="twitter:description" content="Analiza tus lotes con imágenes satelitales: NDVI, estrés hídrico e informes históricos.">
+    <meta name="twitter:image" content="https://agrotechcolombia.com/images/hero-agrotech.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="js/analytics.js"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -138,8 +151,8 @@
         </div>
 
         <!-- CTA Principal -->
-        <a href="#pricing" class="cta-hero">
-            <span class="cta-text">Comenzar</span>
+        <a href="/register" class="cta-hero" data-ga-event="click_cta_trial" data-ga-location="hero">
+            <span class="cta-text">Comenzar prueba gratuita</span>
             <span class="cta-arrow">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10h12M12 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </span>
@@ -173,7 +186,7 @@
                         <li>✓ Mapa 3D interactivo de parcelas</li>
                         <li>✓ Pronóstico meteorológico de 7 días</li>
                     </ul>
-                    <a href="/register" class="btn-product btn-product-primary">Probar Monitoreo Continuo →</a>
+                    <a href="/register" class="btn-product btn-product-primary" data-ga-event="click_cta_trial" data-ga-location="product">Probar Monitoreo Continuo →</a>
                 </div>
 
                 <div class="product-card">
@@ -243,7 +256,7 @@
             </div>
 
             <div class="blog-grid">
-                <a href="https://agrotechcolombia.netlify.app/blog/siembra-arroz-primer-semestre-2026.html" class="blog-card">
+                <a href="/blog/siembra-arroz-primer-semestre-2026.html" class="blog-card">
                     <div class="blog-card-image">
                         <img src="images/blog/arroz-siembra.webp" alt="Siembra de Arroz 2026" loading="lazy">
                     </div>
@@ -255,7 +268,7 @@
                     </div>
                 </a>
 
-                <a href="https://agrotechcolombia.netlify.app/blog/tecnologia-satelital-aliado-agricultor.html" class="blog-card">
+                <a href="/blog/tecnologia-satelital-aliado-agricultor.html" class="blog-card">
                     <div class="blog-card-image">
                         <img src="images/blog/satelite-aliado.webp" alt="El satélite como aliado del agricultor" loading="lazy">
                     </div>
@@ -267,7 +280,7 @@
                     </div>
                 </a>
 
-                <a href="https://agrotechcolombia.netlify.app/blog/decisiones-agricolas-datos.html" class="blog-card">
+                <a href="/blog/decisiones-agricolas-datos.html" class="blog-card">
                     <div class="blog-card-image">
                         <img src="images/blog/decisiones-datos.webp" alt="Decisiones agrícolas con datos" loading="lazy">
                     </div>
@@ -279,7 +292,7 @@
                     </div>
                 </a>
 
-                <a href="https://agrotechcolombia.netlify.app/blog/predicciones-climaticas-2026.html" class="blog-card">
+                <a href="/blog/predicciones-climaticas-2026.html" class="blog-card">
                     <div class="blog-card-image">
                         <img src="images/blog/predicciones-clima.webp" alt="Predicciones climáticas 2026" loading="lazy">
                     </div>
@@ -291,7 +304,7 @@
                     </div>
                 </a>
 
-                <a href="https://agrotechcolombia.netlify.app/blog/ndvi-guia-completa.html" class="blog-card">
+                <a href="/blog/ndvi-guia-completa.html" class="blog-card">
                     <div class="blog-card-image">
                         <img src="images/blog/ndvi-guia.webp" alt="NDVI guía completa" loading="lazy">
                     </div>
@@ -305,7 +318,7 @@
             </div>
 
             <div class="blog-more">
-                <a href="https://agrotechcolombia.netlify.app/blog.html" class="btn-product btn-product-ghost">Ver todos los artículos →</a>
+                <a href="/blog.html" class="btn-product btn-product-ghost">Ver todos los artículos →</a>
             </div>
         </div>
     </section>
@@ -329,7 +342,7 @@
                         <li><span class="check">✓</span> Análisis NDVI</li>
                         <li><span class="check">✓</span> Histórico del cultivo</li>
                     </ul>
-                    <a href="templates/billing/plan-detail.html?plan=free" class="btn-plan">Probar Gratis</a>
+                    <a href="templates/billing/plan-detail.html?plan=free" class="btn-plan" data-ga-event="select_plan" data-ga-plan="free">Probar Gratis</a>
                 </div>
 
                 <div class="pricing-card featured">
@@ -348,7 +361,7 @@
                         <li><span class="check">✓</span> NDVI + NDMI + SAVI</li>
                         <li><span class="check">✓</span> Pronóstico climático básico</li>
                     </ul>
-                    <a href="templates/billing/plan-detail.html?plan=basic" class="btn-plan">Comenzar Ahora</a>
+                    <a href="templates/billing/plan-detail.html?plan=basic" class="btn-plan" data-ga-event="select_plan" data-ga-plan="basic">Comenzar Ahora</a>
                 </div>
 
                 <div class="pricing-card">
@@ -366,7 +379,7 @@
                         <li><span class="check">✓</span> NDVI + NDMI + SAVI + EVI</li>
                         <li><span class="check">✓</span> Sectorización + prescripción + monitoreo</li>
                     </ul>
-                    <a href="templates/billing/plan-detail.html?plan=pro" class="btn-plan">Comenzar Ahora</a>
+                    <a href="templates/billing/plan-detail.html?plan=pro" class="btn-plan" data-ga-event="select_plan" data-ga-plan="pro">Comenzar Ahora</a>
                 </div>
             </div>
         </div>
@@ -378,14 +391,14 @@
             <h2>¿Listo para ver tu finca desde el espacio?</h2>
             <p>Empieza hoy. 14 días de prueba · Sin tarjeta de crédito.</p>
             <div class="final-cta-buttons">
-                <a href="/register" class="btn-hero btn-hero-primary">Crear cuenta gratis →</a>
+                <a href="/register" class="btn-hero btn-hero-primary" data-ga-event="click_cta_trial" data-ga-location="final">Crear cuenta gratis →</a>
                 <a href="https://agrotechcolombia.netlify.app" class="btn-hero btn-hero-ghost">Ver Informes Satelitales</a>
             </div>
         </div>
     </section>
 
     <!-- Footer -->
-    <footer class="footer">
+    <footer class="footer" id="contacto">
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">

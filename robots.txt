@@ -1,0 +1,28 @@
+# robots.txt - AgroTech Digital
+# Host canónico: https://agrotechcolombia.com  (www → 301)
+
+User-agent: *
+Allow: /
+
+# Páginas públicas de conversión
+Allow: /register
+Allow: /templates/billing/
+
+# Área privada / aplicación (no indexar)
+Disallow: /templates/dashboard.html
+Disallow: /templates/apps/
+Disallow: /templates/employees/
+Disallow: /templates/inventory/
+Disallow: /templates/inventario/
+Disallow: /templates/labores/
+Disallow: /templates/parcels/
+Disallow: /templates/crop/
+Disallow: /templates/pages/profile.html
+Disallow: /templates/staff-dashboard.html
+
+# Recursos internos sin valor SEO
+Disallow: /libs/
+Disallow: /scripts/
+Disallow: /source/
+
+Sitemap: https://agrotechcolombia.com/sitemap.xml
