@@ -308,7 +308,7 @@ registerForm.addEventListener('submit', async (e) => {
         
         // Redirect to dashboard after 2 seconds
         setTimeout(() => {
-            window.location.href = '../dashboard.html';
+            window.location.href = '/templates/dashboard.html';
         }, 2000);
         
     } catch (error) {
@@ -326,6 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // If already authenticated, redirect
     const token = localStorage.getItem('accessToken');
     if (token && token !== 'null' && token !== 'undefined') {
-        window.location.href = '../dashboard.html';
+        window.location.href = '/templates/dashboard.html';
     }
 });
