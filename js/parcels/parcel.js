@@ -3361,6 +3361,12 @@ async function loadRadarMonitoring(parcelId) {
         if (el) el.textContent = text;
     };
 
+    // Mostrar la tarjeta de inmediato: la consulta a Sentinel-1 puede tardar.
+    panel.style.display = 'block';
+    setText('radarLastObservation', 'Cargando…');
+    setText('radarAttentionLevel', '—');
+    setText('radarChangeDetail', 'Consultando Sentinel-1…');
+
     try {
         const response = await window.axiosInstance.get(`parcel/${parcelId}/radar/`);
         const data = response.data;
