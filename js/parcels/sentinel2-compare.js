@@ -250,21 +250,27 @@
                             </div>
                             <div id="s2HistoryPanel" style="font-size:12px;color:#555;"></div>
                         </div>
-                        <div style="border:1px solid #dcefe1;background:#f6fbf7;border-radius:10px;padding:12px;margin-top:12px;">
-                            <div style="font-size:13px;font-weight:700;color:#145A32;">Sentinel-1 · Radar</div>
-                            <div style="font-size:11px;color:#666;line-height:1.5;margin:4px 0 8px;">
-                                Es un satélite <strong>distinto</strong> al óptico: el radar <strong>atraviesa las nubes</strong> y sigue viendo el cultivo cuando el Sentinel-2 no puede.
-                                Se muestra en la tarjeta <strong>“Sentinel-1 · Radar”</strong> del panel y como capa en el mapa.
+                        <div style="border-top:1px solid #eee;padding-top:12px;margin-top:14px;">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                                <div style="font-size:13px;font-weight:700;color:#145A32;">Sentinel-1 · Radar</div>
+                                <span style="font-size:9px;font-weight:700;letter-spacing:.4px;color:#145A32;background:#e6f4ea;border-radius:20px;padding:2px 8px;">ATRAVIESA NUBES</span>
                             </div>
-                            <div style="font-size:11px;color:#4a6b52;background:#eef8f0;border:1px solid #d5ebd9;border-radius:8px;padding:8px 10px;">
-                                Abre la tarjeta <strong>“Sentinel-1 · Radar”</strong> del panel del dashboard para ver la última observación, la detección de cambios y la capa RVI.
+                            <div style="font-size:11px;color:#666;line-height:1.5;margin:4px 0 10px;">
+                                Satélite distinto al óptico: el radar <strong>atraviesa las nubes</strong> y sigue viendo el cultivo aunque el Sentinel-2 no pueda.
                             </div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+                                <button class="btn btn-sm btn-success" onclick="window.loadSentinel1Radar()">Cargar radar</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="window.toggleSentinel1Layer()">Ver capa RVI en el mapa</button>
+                            </div>
+                            <div id="s1RadarBody" style="font-size:12px;color:#555;">Consultando Sentinel-1…</div>
                         </div>
                     </div>
                 </div>
             </div>
         `;
         document.body.appendChild(modal);
+        // Al abrir el modal, cargar Sentinel-1 en vivo (radar independiente de nubes).
+        modal.addEventListener('shown.bs.modal', () => { loadSentinel1Radar(); });
         console.log(`${MODULE_TAG} UI inyectada`);
 
         // Leyenda dinámica según índice
@@ -621,6 +627,85 @@
         }
         return loadSentinel2(sceneDate);
     }
+
+    let s1RviLayer = null;
+
+    function fmtDb(v) {
+        return (v == null || isNaN(v)) ? '—' : Number(v).toFixed(2) + ' dB';
+    }
+
+    async function loadSentinel1Radar() {
+        const body = document.getElementById('s1RadarBody');
+        const parcelId = selectedParcelId();
+        if (!parcelId) { if (body) body.innerHTML = '⚠️ Selecciona primero una parcela.'; return; }
+        if (body) body.innerHTML = 'Consultando Sentinel-1…';
+        try {
+            const resp = await authFetch(`${getBaseUrl()}/parcel/${parcelId}/radar/`);
+            let data = {};
+            try { data = await resp.json(); } catch (e) {}
+            if (!resp.ok) {
+                const msg = data.message || data.error || `No disponible (${resp.status}).`;
+                if (body) body.innerHTML = `<span style="color:#b45309;">${msg}</span>`;
+                return;
+            }
+            if (!data.available) {
+                if (body) body.innerHTML = `<span style="color:#b45309;">${data.message || 'Datos radar no disponibles para esta fecha.'}</span>`;
+                return;
+            }
+            const last = data.last_observation || {};
+            const ch = data.change || {};
+            const obs = Array.isArray(data.time_series) ? data.time_series.length : 0;
+            let html = `
+                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
+                    <div><div style="font-size:10px;color:#888;">Última observación</div><div style="font-weight:700;color:#222;">${last.date || '—'}</div></div>
+                    <div><div style="font-size:10px;color:#888;">Nivel de atención</div><div style="font-weight:700;color:#222;">${data.attention_level || '—'}</div></div>
+                    <div><div style="font-size:10px;color:#888;">Observaciones</div><div style="font-weight:700;color:#222;">${obs}</div></div>
+                    <div><div style="font-size:10px;color:#888;">VV / VH</div><div style="font-weight:700;color:#222;">${fmtDb(last.vv_db)} / ${fmtDb(last.vh_db)}</div></div>
+                </div>`;
+            if (ch && (ch.change_detected != null || ch.changed_percent != null)) {
+                const detected = !!ch.change_detected;
+                html += `<div style="font-size:11px;font-weight:600;color:${detected ? '#c0392b' : '#2e7d32'};">
+                    ${detected ? `Cambio detectado${ch.changed_percent != null ? ` (${ch.changed_percent}% de la parcela)` : ''}.` : 'Sin cambios significativos detectados.'}
+                </div>`;
+            }
+            if (data.message) html += `<div style="font-size:11px;color:#777;margin-top:4px;">${data.message}</div>`;
+            if (body) body.innerHTML = html;
+        } catch (e) {
+            if (body) body.innerHTML = '<span style="color:#b45309;">No se pudo consultar el radar. Intenta de nuevo.</span>';
+            console.error(`${MODULE_TAG} radar error`, e);
+        }
+    }
+    window.loadSentinel1Radar = loadSentinel1Radar;
+
+    async function toggleSentinel1Layer() {
+        const map = window.map;
+        if (!map) return;
+        if (s1RviLayer) {
+            try { map.removeLayer(s1RviLayer); } catch (e) {}
+            s1RviLayer = null;
+            if (typeof window.showInfoToast === 'function') window.showInfoToast('Capa RVI ocultada.');
+            return;
+        }
+        const parcelId = selectedParcelId();
+        if (!parcelId) return;
+        try {
+            const resp = await authFetch(`${getBaseUrl()}/parcel/${parcelId}/radar-layers/`);
+            let data = {};
+            try { data = await resp.json(); } catch (e) {}
+            const rvi = data && data.layers && data.layers.rvi;
+            if (!resp.ok || !data.available || !rvi || !rvi.image_base64 || !rvi.bounds) {
+                if (typeof window.showWarningToast === 'function') window.showWarningToast('Capa radar no disponible.');
+                return;
+            }
+            const b = rvi.bounds;
+            s1RviLayer = L.imageOverlay(`data:image/png;base64,${rvi.image_base64}`, [[b[1], b[0]], [b[3], b[2]]], { opacity: 0.72 });
+            s1RviLayer.addTo(map);
+            if (typeof window.showInfoToast === 'function') window.showInfoToast('Capa RVI Sentinel-1 visible en el mapa.');
+        } catch (e) {
+            console.error(`${MODULE_TAG} radar layers error`, e);
+        }
+    }
+    window.toggleSentinel1Layer = toggleSentinel1Layer;
 
     window.loadSentinel2Compare = loadSentinel2;
     window.clearSentinel2Compare = clearSentinel2;
