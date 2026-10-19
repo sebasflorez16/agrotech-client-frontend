@@ -255,8 +255,11 @@
                                 <div style="font-size:13px;font-weight:700;color:#145A32;">Sentinel-1 · Radar</div>
                                 <span style="font-size:9px;font-weight:700;letter-spacing:.4px;color:#145A32;background:#e6f4ea;border-radius:20px;padding:2px 8px;">ATRAVIESA NUBES</span>
                             </div>
-                            <div style="font-size:11px;color:#666;line-height:1.5;margin:4px 0 10px;">
+                            <div style="font-size:11px;color:#666;line-height:1.5;margin:4px 0 4px;">
                                 Satélite distinto al óptico: el radar <strong>atraviesa las nubes</strong> y sigue viendo el cultivo aunque el Sentinel-2 no pueda.
+                            </div>
+                            <div style="font-size:10px;color:#888;margin-bottom:10px;">
+                                Radar de las <strong>últimas observaciones (últimos 60 días)</strong>; no depende de la fecha óptica elegida.
                             </div>
                             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
                                 <button class="btn btn-sm btn-success" onclick="window.loadSentinel1Radar()">Cargar radar</button>
@@ -386,6 +389,7 @@
                             <button class="btn btn-outline-success" title="NDVI (vigor)" onclick="window.viewSceneImage('${s.date}', 'ndvi')">NDVI</button>
                             <button class="btn btn-outline-primary" title="NDMI (humedad)" onclick="window.viewSceneImage('${s.date}', 'ndmi')">NDMI</button>
                             <button class="btn btn-outline-warning" title="SAVI" onclick="window.viewSceneImage('${s.date}', 'savi')">SAVI</button>
+                            ${cc != null && cc > 40 ? `<button class="btn btn-outline-dark" title="Sentinel-1 Radar (atraviesa nubes)" onclick="window.openSentinel1ForScene()">Radar</button>` : ''}
                         </div>
                     </td>
                 </tr>
@@ -644,12 +648,12 @@
             let data = {};
             try { data = await resp.json(); } catch (e) {}
             if (!resp.ok) {
-                const msg = data.message || data.error || `No disponible (${resp.status}).`;
-                if (body) body.innerHTML = `<span style="color:#b45309;">${msg}</span>`;
+                const msg = data.message || data.error || `No disponible.`;
+                if (body) body.innerHTML = `<span style="color:#b45309;">${msg} (HTTP ${resp.status})</span>`;
                 return;
             }
             if (!data.available) {
-                if (body) body.innerHTML = `<span style="color:#b45309;">${data.message || 'Datos radar no disponibles para esta fecha.'}</span>`;
+                if (body) body.innerHTML = `<span style="color:#b45309;">${data.message || 'Radar sin datos en los últimos 60 días.'}</span>`;
                 return;
             }
             const last = data.last_observation || {};
@@ -676,6 +680,13 @@
         }
     }
     window.loadSentinel1Radar = loadSentinel1Radar;
+
+    // Llamado desde las fechas nubladas de la lista: baja a la sección radar y la carga.
+    window.openSentinel1ForScene = function () {
+        const body = document.getElementById('s1RadarBody');
+        if (body && body.scrollIntoView) body.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        loadSentinel1Radar();
+    };
 
     async function toggleSentinel1Layer() {
         const map = window.map;
