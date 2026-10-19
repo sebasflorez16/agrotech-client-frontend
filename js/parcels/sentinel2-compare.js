@@ -256,9 +256,8 @@
                                 Es un satélite <strong>distinto</strong> al óptico: el radar <strong>atraviesa las nubes</strong> y sigue viendo el cultivo cuando el Sentinel-2 no puede.
                                 Se muestra en la tarjeta <strong>“Sentinel-1 · Radar”</strong> del panel y como capa en el mapa.
                             </div>
-                            <div style="font-size:11px;color:#8a5a00;background:#fff8e1;border:1px solid #ffe0a3;border-radius:8px;padding:8px 10px;">
-                                Disponible en planes <strong>Pro</strong> y <strong>Corporativo</strong>.
-                                <a href="/templates/billing/pricing.html" style="color:#145A32;font-weight:700;text-decoration:none;">Ver planes →</a>
+                            <div style="font-size:11px;color:#4a6b52;background:#eef8f0;border:1px solid #d5ebd9;border-radius:8px;padding:8px 10px;">
+                                Abre la tarjeta <strong>“Sentinel-1 · Radar”</strong> del panel del dashboard para ver la última observación, la detección de cambios y la capa RVI.
                             </div>
                         </div>
                     </div>
