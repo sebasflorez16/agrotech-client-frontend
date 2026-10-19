@@ -241,14 +241,25 @@
                         </button>
                         <div id="s2AnalysisPanel" style="margin-top:14px;display:none;"></div>
                         <div style="border-top:1px solid #eee;padding-top:12px;margin-top:14px;">
-                            <div style="font-size:13px;font-weight:600;color:#333;margin-bottom:4px;">📅 Imágenes disponibles</div>
-                            <div style="font-size:11px;color:#888;margin-bottom:8px;">Elige el rango de fechas para ver las imágenes satelitales disponibles de tu parcela.</div>
+                            <div style="font-size:13px;font-weight:700;color:#145A32;margin-bottom:2px;">Sentinel-2 · Óptico</div>
+                            <div style="font-size:11px;color:#888;margin-bottom:8px;">Imágenes ópticas (sensibles a las nubes). Elige el rango de fechas para ver las imágenes disponibles de tu parcela.</div>
                             <div style="display:flex;gap:8px;margin-bottom:8px;">
                                 <input type="date" id="s2HistFrom" class="form-control form-control-sm" style="font-size:12px;" title="Desde">
                                 <input type="date" id="s2HistTo" class="form-control form-control-sm" style="font-size:12px;" title="Hasta">
                                 <button class="btn btn-sm btn-success" onclick="window.loadSentinel2History()">Buscar</button>
                             </div>
                             <div id="s2HistoryPanel" style="font-size:12px;color:#555;"></div>
+                        </div>
+                        <div style="border:1px solid #dcefe1;background:#f6fbf7;border-radius:10px;padding:12px;margin-top:12px;">
+                            <div style="font-size:13px;font-weight:700;color:#145A32;">Sentinel-1 · Radar</div>
+                            <div style="font-size:11px;color:#666;line-height:1.5;margin:4px 0 8px;">
+                                Es un satélite <strong>distinto</strong> al óptico: el radar <strong>atraviesa las nubes</strong> y sigue viendo el cultivo cuando el Sentinel-2 no puede.
+                                Se muestra en la tarjeta <strong>“Sentinel-1 · Radar”</strong> del panel y como capa en el mapa.
+                            </div>
+                            <div style="font-size:11px;color:#8a5a00;background:#fff8e1;border:1px solid #ffe0a3;border-radius:8px;padding:8px 10px;">
+                                Disponible en planes <strong>Pro</strong> y <strong>Corporativo</strong>.
+                                <a href="/templates/billing/pricing.html" style="color:#145A32;font-weight:700;text-decoration:none;">Ver planes →</a>
+                            </div>
                         </div>
                     </div>
                 </div>
