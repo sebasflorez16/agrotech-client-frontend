@@ -1822,9 +1822,11 @@
                 else soilChip.style.display = 'none';
             }
             
-            // Mostrar panel de estado rápido
-            document.getElementById('quickStatusPlaceholder').style.display = 'none';
-            document.getElementById('quickStatusContent').style.display = 'block';
+            // Mostrar panel de estado rápido (si existe en el DOM)
+            const qsPlaceholder = document.getElementById('quickStatusPlaceholder');
+            const qsContent = document.getElementById('quickStatusContent');
+            if (qsPlaceholder) qsPlaceholder.style.display = 'none';
+            if (qsContent) qsContent.style.display = 'block';
             
             // Cargar datos de estado rápido
             loadQuickStatus(parcel);
@@ -1839,8 +1841,10 @@
             document.getElementById('parcelDateCell').textContent = '-';
             
             // Ocultar panel de estado rápido
-            document.getElementById('quickStatusPlaceholder').style.display = 'block';
-            document.getElementById('quickStatusContent').style.display = 'none';
+            const qsPlaceholder2 = document.getElementById('quickStatusPlaceholder');
+            const qsContent2 = document.getElementById('quickStatusContent');
+            if (qsPlaceholder2) qsPlaceholder2.style.display = 'block';
+            if (qsContent2) qsContent2.style.display = 'none';
             
             // Actualizar estado del botón de escenas
             updateSceneButtonState();
