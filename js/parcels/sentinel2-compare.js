@@ -644,16 +644,24 @@
         if (!parcelId) { if (body) body.innerHTML = '⚠️ Selecciona primero una parcela.'; return; }
         if (body) body.innerHTML = 'Consultando Sentinel-1…';
         try {
-            const resp = await authFetch(`${getBaseUrl()}/parcel/${parcelId}/radar/`);
+            const urlRadar = `${getBaseUrl()}/parcel/${parcelId}/radar/`;
+            const resp = await authFetch(urlRadar);
             let data = {};
             try { data = await resp.json(); } catch (e) {}
+            console.log(`${MODULE_TAG} radar`, { url: urlRadar, status: resp.status, available: data && data.available, n: (data && data.time_series || []).length });
             if (!resp.ok) {
                 const msg = data.message || data.error || `No disponible.`;
                 if (body) body.innerHTML = `<span style="color:#b45309;">${msg} (HTTP ${resp.status})</span>`;
                 return;
             }
+            const series = Array.isArray(data.time_series) ? data.time_series : [];
             if (!data.available) {
-                if (body) body.innerHTML = `<span style="color:#b45309;">${data.message || 'Radar sin datos en los últimos 60 días.'}</span>`;
+                const realDates = series.slice(0, 8).map(o => `<li>${o.date || '—'}${o.available ? '' : ' · sin lectura'}</li>`).join('');
+                if (body) body.innerHTML = `
+                    <div style="color:#b45309;">${data.message || 'Sin observaciones radar en los últimos 60 días.'}</div>
+                    <div style="font-size:10px;color:#888;margin-top:6px;">Escenas Sentinel-1 encontradas en la ventana (60 días): <strong>${series.length}</strong></div>
+                    ${realDates ? `<ul style="font-size:11px;color:#666;margin:6px 0 0 16px;">${realDates}</ul>` : ''}
+                `;
                 return;
             }
             const last = data.last_observation || {};
