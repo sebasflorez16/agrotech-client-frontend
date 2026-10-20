@@ -265,6 +265,18 @@
                             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
                                 <button class="btn btn-sm btn-success" onclick="window.refreshRadar()" title="Fuerza una consulta nueva (ignora cache) de los últimos 60 días">Actualizar radar</button>
                                 <button class="btn btn-sm btn-outline-success" onclick="window.toggleSentinel1Layer()" title="Superpone la capa RVI (verde = vigor) sobre el mapa">Mostrar/ocultar capa RVI</button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="window.toggleS1Help()" title="Explicación de los datos radar">¿Qué significa esto?</button>
+                            </div>
+                            <div id="s1HelpPanel" style="display:none;background:#f8f9fa;border:1px solid #e3e6e8;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:11.5px;color:#555;line-height:1.55;">
+                                <div style="font-weight:700;color:#145A32;margin-bottom:4px;">Cómo leer el radar</div>
+                                <ul style="margin:0 0 0 16px;padding:0;">
+                                    <li><b>Sentinel-2 (óptico)</b>: fotografía el color del cultivo. Se tapa con nubes.</li>
+                                    <li><b>Sentinel-1 (radar)</b>: emite microondas y mide cuánto rebotan. Atraviesa nubes y funciona de día o de noche.</li>
+                                    <li><b>VV / VH</b>: las dos polarizaciones del radar. <b>VV</b> responde más al suelo y la estructura; <b>VH</b> al follaje.</li>
+                                    <li><b>dB (decibelios)</b>: intensidad de la señal. Son valores negativos; <b>menos negativo = más señal</b> (más biomasa/humedad).</li>
+                                    <li><b>Nivel de atención</b>: <i>sin cambios</i> = todo estable; <i>revisar / revisar pronto</i> = conviene mirar el lote.</li>
+                                    <li><b>Colores en el mapa</b>: <span style="color:#1e7b34;font-weight:700;">verde = vigor del cultivo</span> · <span style="color:#c0392b;font-weight:700;">rojo = cambio detectado</span> entre dos fechas.</li>
+                                </ul>
                             </div>
                             <div id="s1LayerStatus" style="font-size:11px;color:#888;margin-bottom:8px;"></div>
                             <div id="s1RadarBody" style="font-size:12px;color:#555;">Consultando Sentinel-1…</div>
@@ -669,12 +681,13 @@
             const last = data.last_observation || {};
             const ch = data.change || {};
             const obs = Array.isArray(data.time_series) ? data.time_series.length : 0;
+            const attentionText = ({ none: 'sin cambios', moderate: 'revisar', high: 'revisar pronto' })[data.attention_level] || (data.attention_level || '—');
             let html = `
                 <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
                     <div><div style="font-size:10px;color:#888;">Última observación</div><div style="font-weight:700;color:#222;">${last.date || '—'}</div></div>
-                    <div><div style="font-size:10px;color:#888;">Nivel de atención</div><div style="font-weight:700;color:#222;">${data.attention_level || '—'}</div></div>
-                    <div><div style="font-size:10px;color:#888;">Observaciones</div><div style="font-weight:700;color:#222;">${obs}</div></div>
-                    <div><div style="font-size:10px;color:#888;">VV / VH</div><div style="font-weight:700;color:#222;">${fmtDb(last.vv_db)} / ${fmtDb(last.vh_db)}</div></div>
+                    <div><div style="font-size:10px;color:#888;">Nivel de atención</div><div style="font-weight:700;color:#222;">${attentionText}</div></div>
+                    <div><div style="font-size:10px;color:#888;">Imágenes radar</div><div style="font-weight:700;color:#222;">${obs}</div></div>
+                    <div><div style="font-size:10px;color:#888;" title="Intensidad de la señal radar en decibelios (menos negativo = más señal)">Señal radar (VV / VH)</div><div style="font-weight:700;color:#222;" title="VV responde al suelo/estructura; VH al follaje">${fmtDb(last.vv_db)} / ${fmtDb(last.vh_db)}</div></div>
                 </div>`;
             if (ch && (ch.change_detected != null || ch.changed_percent != null)) {
                 const detected = !!ch.change_detected;
@@ -683,6 +696,9 @@
                 </div>`;
             }
             if (data.message) html += `<div style="font-size:11px;color:#777;margin-top:4px;">${data.message}</div>`;
+            html += `<div style="font-size:10px;color:#888;margin-top:8px;border-top:1px solid #eee;padding-top:6px;">
+                En el mapa: <span style="color:#1e7b34;font-weight:700;">verde = vigor del cultivo</span> · <span style="color:#c0392b;font-weight:700;">rojo = cambio detectado</span>.
+            </div>`;
             if (body) body.innerHTML = html;
         } catch (e) {
             if (body) body.innerHTML = '<span style="color:#b45309;">No se pudo consultar el radar. Intenta de nuevo.</span>';
@@ -737,6 +753,12 @@
         }
     }
     window.toggleSentinel1Layer = toggleSentinel1Layer;
+
+    window.toggleS1Help = function () {
+        const el = document.getElementById('s1HelpPanel');
+        if (!el) return;
+        el.style.display = (el.style.display === 'none' || !el.style.display) ? 'block' : 'none';
+    };
 
     // Fuerza actualización (ignora cache) del monitoreo y de la capa si está visible.
     window.refreshRadar = async function () {
