@@ -263,7 +263,7 @@
                                 Radar de las <strong>últimas observaciones (últimos 60 días)</strong>; no depende de la fecha óptica elegida.
                             </div>
                             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
-                                <button class="btn btn-sm btn-success" onclick="window.loadSentinel1Radar()" title="Consulta las observaciones radar de los últimos 60 días">Actualizar radar</button>
+                                <button class="btn btn-sm btn-success" onclick="window.refreshRadar()" title="Fuerza una consulta nueva (ignora cache) de los últimos 60 días">Actualizar radar</button>
                                 <button class="btn btn-sm btn-outline-success" onclick="window.toggleSentinel1Layer()" title="Superpone la capa RVI (verde = vigor) sobre el mapa">Mostrar/ocultar capa RVI</button>
                             </div>
                             <div id="s1LayerStatus" style="font-size:11px;color:#888;margin-bottom:8px;"></div>
@@ -640,13 +640,13 @@
         return (v == null || isNaN(v)) ? '—' : Number(v).toFixed(2) + ' dB';
     }
 
-    async function loadSentinel1Radar() {
+    async function loadSentinel1Radar(force = false) {
         const body = document.getElementById('s1RadarBody');
         const parcelId = selectedParcelId();
         if (!parcelId) { if (body) body.innerHTML = '⚠️ Selecciona primero una parcela.'; return; }
         if (body) body.innerHTML = 'Consultando Sentinel-1…';
         try {
-            const urlRadar = `${getBaseUrl()}/parcel/${parcelId}/radar/`;
+            const urlRadar = `${getBaseUrl()}/parcel/${parcelId}/radar/${force ? '?refresh=1' : ''}`;
             const resp = await authFetch(urlRadar);
             let data = {};
             try { data = await resp.json(); } catch (e) {}
@@ -703,7 +703,7 @@
         if (el) el.textContent = txt || '';
     }
 
-    async function toggleSentinel1Layer() {
+    async function toggleSentinel1Layer(force = false) {
         const map = window.map;
         if (!map) return;
         if (s1RviLayer) {
@@ -717,7 +717,7 @@
         if (!parcelId) { setS1LayerStatus('Selecciona primero una parcela.'); return; }
         setS1LayerStatus('Cargando capa RVI…');
         try {
-            const resp = await authFetch(`${getBaseUrl()}/parcel/${parcelId}/radar-layers/`);
+            const resp = await authFetch(`${getBaseUrl()}/parcel/${parcelId}/radar-layers/${force ? '?refresh=1' : ''}`);
             let data = {};
             try { data = await resp.json(); } catch (e) {}
             const rvi = data && data.layers && data.layers.rvi;
@@ -737,6 +737,19 @@
         }
     }
     window.toggleSentinel1Layer = toggleSentinel1Layer;
+
+    // Fuerza actualización (ignora cache) del monitoreo y de la capa si está visible.
+    window.refreshRadar = async function () {
+        setS1LayerStatus('Forzando actualización…');
+        await loadSentinel1Radar(true);
+        if (s1RviLayer) {
+            try { window.map.removeLayer(s1RviLayer); } catch (e) {}
+            s1RviLayer = null;
+            await toggleSentinel1Layer(true);
+        } else {
+            setS1LayerStatus('Datos radar actualizados.');
+        }
+    };
 
     window.loadSentinel2Compare = loadSentinel2;
     window.clearSentinel2Compare = clearSentinel2;
