@@ -1197,3 +1197,24 @@ body {
     .product-card { padding: 30px 24px; }
     .final-cta-buttons { flex-direction: column; }
 }
+
+/* Iconos SVG de producto (sin emojis) */
+.product-icon {
+    color: var(--verde-accent);
+}
+.product-icon svg {
+    width: 38px;
+    height: 38px;
+    display: block;
+}
+.product-features .check {
+    margin-right: 7px;
+}
+
+/* Tres tarjetas de producto en escritorio */
+@media (min-width: 901px) {
+    .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 1180px;
+    }
+}
