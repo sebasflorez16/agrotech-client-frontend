@@ -193,10 +193,11 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <p style="font-size:12px;color:#888;margin-bottom:12px;">
-                            Visualiza los índices de vegetación y humedad de tu parcela
-                            sobre el mapa, con análisis de píxeles y recomendaciones.
-                        </p>
+                        <div style="background:#f8f9fa;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:12px;color:#555;line-height:1.5;">
+                            <strong>Dos satélites, dos vistas:</strong>
+                            <b>Sentinel-2 (óptico)</b> muestra el color del cultivo (NDVI, humedad) pero se tapa con nubes;
+                            <b>Sentinel-1 (radar)</b> atraviesa las nubes. Usa el óptico para días despejados y el radar para días nublados.
+                        </div>
                         <label class="form-label" style="font-size:13px;">Índice</label>
                         <select id="s2IndexSelect" class="form-select mb-2">
                             <option value="ndvi">NDVI (vigor)</option>
@@ -261,10 +262,11 @@
                             <div style="font-size:10px;color:#888;margin-bottom:10px;">
                                 Radar de las <strong>últimas observaciones (últimos 60 días)</strong>; no depende de la fecha óptica elegida.
                             </div>
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-                                <button class="btn btn-sm btn-success" onclick="window.loadSentinel1Radar()">Cargar radar</button>
-                                <button class="btn btn-sm btn-outline-success" onclick="window.toggleSentinel1Layer()">Ver capa RVI en el mapa</button>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+                                <button class="btn btn-sm btn-success" onclick="window.loadSentinel1Radar()" title="Consulta las observaciones radar de los últimos 60 días">Actualizar radar</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="window.toggleSentinel1Layer()" title="Superpone la capa RVI (verde = vigor) sobre el mapa">Mostrar/ocultar capa RVI</button>
                             </div>
+                            <div id="s1LayerStatus" style="font-size:11px;color:#888;margin-bottom:8px;"></div>
                             <div id="s1RadarBody" style="font-size:12px;color:#555;">Consultando Sentinel-1…</div>
                         </div>
                     </div>
@@ -696,31 +698,41 @@
         loadSentinel1Radar();
     };
 
+    function setS1LayerStatus(txt) {
+        const el = document.getElementById('s1LayerStatus');
+        if (el) el.textContent = txt || '';
+    }
+
     async function toggleSentinel1Layer() {
         const map = window.map;
         if (!map) return;
         if (s1RviLayer) {
             try { map.removeLayer(s1RviLayer); } catch (e) {}
             s1RviLayer = null;
+            setS1LayerStatus('Capa RVI oculta.');
             if (typeof window.showInfoToast === 'function') window.showInfoToast('Capa RVI ocultada.');
             return;
         }
         const parcelId = selectedParcelId();
-        if (!parcelId) return;
+        if (!parcelId) { setS1LayerStatus('Selecciona primero una parcela.'); return; }
+        setS1LayerStatus('Cargando capa RVI…');
         try {
             const resp = await authFetch(`${getBaseUrl()}/parcel/${parcelId}/radar-layers/`);
             let data = {};
             try { data = await resp.json(); } catch (e) {}
             const rvi = data && data.layers && data.layers.rvi;
             if (!resp.ok || !data.available || !rvi || !rvi.image_base64 || !rvi.bounds) {
+                setS1LayerStatus('No se pudo cargar la capa RVI (sin datos radar para esta parcela).');
                 if (typeof window.showWarningToast === 'function') window.showWarningToast('Capa radar no disponible.');
                 return;
             }
             const b = rvi.bounds;
             s1RviLayer = L.imageOverlay(`data:image/png;base64,${rvi.image_base64}`, [[b[1], b[0]], [b[3], b[2]]], { opacity: 0.72 });
             s1RviLayer.addTo(map);
+            setS1LayerStatus('Capa RVI visible en el mapa (verde = vigor, rojo = cambio).');
             if (typeof window.showInfoToast === 'function') window.showInfoToast('Capa RVI Sentinel-1 visible en el mapa.');
         } catch (e) {
+            setS1LayerStatus('No se pudo cargar la capa RVI.');
             console.error(`${MODULE_TAG} radar layers error`, e);
         }
     }
