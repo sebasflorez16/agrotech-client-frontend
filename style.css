@@ -1211,6 +1211,15 @@ body {
     margin-right: 7px;
 }
 
+.product-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: color .2s ease;
+}
+.product-title a:hover {
+    color: var(--verde-claro);
+}
+
 /* Tarjetas de producto: 2 columnas en escritorio (4 servicios) */
 @media (min-width: 901px) {
     .product-grid {
