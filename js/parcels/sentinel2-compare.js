@@ -116,26 +116,44 @@
             const cloud = scene.cloud_cover != null ? `${Number(scene.cloud_cover).toFixed(1)}%` : '?';
             const dateTxt = scene.date || '?';
             const meanTxt = stats ? ` · promedio ${stats.mean}` : '';
+            const cov = typeof data.coverage_index === 'number' ? data.coverage_index : null;
+            const covPct = cov != null ? Math.round(cov * 100) : null;
             if (data.fallback) {
                 setStatus(
                     `ℹ️ No hay imagen limpia para ${data.requested_date || 'la fecha pedida'}. ` +
-                    `Te muestro la imagen REAL más reciente disponible: <strong>${dateTxt}</strong> (nubes ${cloud})${meanTxt}. ` +
+                    `Te muestro la mejor imagen disponible (mayor superficie de tu lote sin nubes): ` +
+                    `<strong>${dateTxt}</strong> (nubes ${cloud})${meanTxt}. ` +
                     `Puedes elegir otra fecha en "Imágenes disponibles".`,
                     '#b45309'
                 );
-            } else {
+            } else if (covPct != null && covPct < 30) {
                 setStatus(
-                    `✅ ${index.toUpperCase()} · imagen del <strong>${dateTxt}</strong> · nubes ${cloud}${meanTxt}`,
+                    `⚠️ Esta fecha está muy nublada sobre tu lote: solo se ve ~${covPct}% de la parcela ` +
+                    `(nubes de escena ${cloud}). Abre <strong>"Imágenes disponibles"</strong> y elige una fecha ` +
+                    `con 🟢 o 🟠 para ver el lote completo.`,
+                    '#b45309'
+                );
+                // Cadena: si el óptico no deja ver el lote, ofrecer el radar más cercano.
+                runOpticalRadarChain(sceneDate || dateTxt);
+            } else {
+                const covTxt = covPct != null ? ` · lote visible ${covPct}%` : '';
+                setStatus(
+                    `✅ ${index.toUpperCase()} · imagen del <strong>${dateTxt}</strong> · nubes ${cloud}${covTxt}${meanTxt}`,
                     '#27ae60'
                 );
             }
             renderAnalysis(data.analysis);
             console.log(`${MODULE_TAG} Imagen ${index} cargada (${smoothing})`);
         } catch (e) {
-            const msg = (e && e.status === 404) || /no se (pudo|encontr)/i.test(String(e && e.message))
-                ? 'No hay una imagen limpia para esa fecha (probablemente nublada). Abre "Imágenes disponibles", elige una fecha con 🟢 o 🟠 e inténtalo de nuevo.'
+            const noOptical = (e && e.status === 404) || /no se (pudo|encontr)|sin datos/i.test(String(e && e.message));
+            const msg = noOptical
+                ? 'No hay una imagen limpia para esa fecha (probablemente nublada). Buscando la observación radar más cercana…'
                 : 'No se pudo cargar el análisis satelital. Revisa tu conexión e inténtalo de nuevo.';
             setStatus('ℹ️ ' + msg, '#c0392b');
+            if (noOptical) {
+                // Cadena automática: sin óptico → radar en la fecha más cercana.
+                runOpticalRadarChain(sceneDate);
+            }
             console.error(`${MODULE_TAG} Error:`, e);
         }
     }
@@ -258,24 +276,31 @@
                             </div>
                             <div style="font-size:11px;color:#666;line-height:1.5;margin:4px 0 4px;">
                                 Satélite distinto al óptico: el radar <strong>atraviesa las nubes</strong> y sigue viendo el cultivo aunque el Sentinel-2 no pueda.
+                                <br><strong>No es una fotografía:</strong> es un mapa de la señal radar; cada color es una medición real y el rojo indica dónde cambió más.
                             </div>
                             <div style="font-size:10px;color:#888;margin-bottom:10px;">
-                                Radar de las <strong>últimas observaciones (últimos 60 días)</strong>; no depende de la fecha óptica elegida.
+                                Radar de las últimas observaciones. Si no hay óptico útil para una fecha, busca la pasada <strong>más cercana a esa fecha</strong>.
                             </div>
                             <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
                                 <button class="btn btn-sm btn-success" onclick="window.refreshRadar()" title="Fuerza una consulta nueva (ignora cache) de los últimos 60 días">Actualizar radar</button>
-                                <button class="btn btn-sm btn-outline-success" onclick="window.toggleSentinel1Layer()" title="Superpone la capa RVI (verde = vigor) sobre el mapa">Mostrar/ocultar capa RVI</button>
+                                <button class="btn btn-sm btn-outline-success" onclick="window.toggleSentinel1Layer()" title="Superpone la capa RVI (verde = mayor vigor) sobre el mapa">Mostrar/ocultar capa RVI</button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="window.toggleSentinel1ChangeLayer()" title="Superpone la capa de cambio (rojo = cambio significativo entre las dos últimas pasadas)">Mostrar/ocultar cambios</button>
                                 <button class="btn btn-sm btn-outline-secondary" onclick="window.toggleS1Help()" title="Explicación de los datos radar">¿Qué significa esto?</button>
+                                <button class="btn btn-sm btn-outline-secondary" onclick="window.showS2Disclaimer()" title="Limitaciones y cómo interpretar los datos">Aviso importante</button>
                             </div>
                             <div id="s1HelpPanel" style="display:none;background:#f8f9fa;border:1px solid #e3e6e8;border-radius:10px;padding:10px 12px;margin:8px 0;font-size:11.5px;color:#555;line-height:1.55;">
                                 <div style="font-weight:700;color:#145A32;margin-bottom:4px;">Cómo leer el radar</div>
                                 <ul style="margin:0 0 0 16px;padding:0;">
                                     <li><b>Sentinel-2 (óptico)</b>: fotografía el color del cultivo. Se tapa con nubes.</li>
                                     <li><b>Sentinel-1 (radar)</b>: emite microondas y mide cuánto rebotan. Atraviesa nubes y funciona de día o de noche.</li>
+                                    <li><b>La capa no es una foto</b>: es un mapa de la señal radar. Los colores son una leyenda de los valores medidos, no una imagen de cámara.</li>
                                     <li><b>VV / VH</b>: las dos polarizaciones del radar. <b>VV</b> responde más al suelo y la estructura; <b>VH</b> al follaje.</li>
                                     <li><b>dB (decibelios)</b>: intensidad de la señal. Son valores negativos; <b>menos negativo = más señal</b> (más biomasa/humedad).</li>
-                                    <li><b>Nivel de atención</b>: <i>sin cambios</i> = todo estable; <i>revisar / revisar pronto</i> = conviene mirar el lote.</li>
-                                    <li><b>Colores en el mapa</b>: <span style="color:#1e7b34;font-weight:700;">verde = vigor del cultivo</span> · <span style="color:#c0392b;font-weight:700;">rojo = cambio detectado</span> entre dos fechas.</li>
+                                    <li><b>Nivel de atención</b>: <i>estable</i> = sin variación relevante; <i>revisar / revisar pronto</i> = conviene mirar el lote.</li>
+                                    <li><b>Cómo se mide el cambio (principal)</b>: comparamos <b>píxel por píxel</b> las <b>dos últimas imágenes radar</b> (las fechas exactas se muestran arriba).</li>
+                                    <li><b>Qué es “significativo”</b>: una variación de la señal (VV + VH) mayor al <b>umbral indicado en la comparación</b> (por defecto 6 dB) en un píxel. Es una <b>señal para revisar</b>, no un diagnóstico de enfermedad.</li>
+                                    <li><b>Tendencia 60 días (secundaria)</b>: compara la <b>media del lote</b> entre la primera y la última observación; sirve para ver el rumbo general, no el detalle por zona.</li>
+                                    <li><b>Colores en el mapa (capa RVI)</b>: <span style="color:#1e7b34;font-weight:700;">verde = mayor vigor</span> · <span style="color:#c8a428;font-weight:700;">amarillo</span> · <span style="color:#8a4b1e;font-weight:700;">café = menor vigor</span>. Calculado con radar real (VV/VH) del día indicado.</li>
                                 </ul>
                             </div>
                             <div id="s1LayerStatus" style="font-size:11px;color:#888;margin-bottom:8px;"></div>
@@ -286,8 +311,38 @@
             </div>
         `;
         document.body.appendChild(modal);
+
+        // Aviso informativo cerrable (tipo cookies). Se muestra la primera vez y
+        // se puede reabrir con el botón "Aviso importante".
+        if (!document.getElementById('s2DisclaimerOverlay')) {
+            const disclaimer = document.createElement('div');
+            disclaimer.id = 's2DisclaimerOverlay';
+            disclaimer.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20000;align-items:center;justify-content:center;padding:16px;';
+            disclaimer.innerHTML = `
+                <div style="max-width:560px;width:100%;background:#fff;border-radius:14px;padding:22px 24px;box-shadow:0 10px 40px rgba(0,0,0,.3);font-size:13px;color:#333;line-height:1.55;">
+                    <div style="font-size:17px;font-weight:800;color:#145A32;margin-bottom:6px;">Antes de interpretar los datos</div>
+                    <div style="background:#e6f4ea;border-radius:10px;padding:10px 12px;color:#145A32;font-weight:600;margin-bottom:12px;">
+                        “Cuando las nubes no dejan ver, el radar sigue midiendo tu lote y te dice qué % cambió para que sepas dónde revisar.”
+                    </div>
+                    <ul style="margin:0 0 14px 18px;padding:0;">
+                        <li style="margin-bottom:6px;"><b>No es un diagnóstico ni detecta enfermedades.</b></li>
+                        <li style="margin-bottom:6px;">El radar <b>no ve color</b>: mide estructura y humedad.</li>
+                        <li style="margin-bottom:6px;">La nubosidad de la escena <b>no es la del lote</b>.</li>
+                        <li>Un cambio puede ser <b>cosecha, lluvia, manejo o estructura</b>; no solo un problema.</li>
+                    </ul>
+                    <div style="font-size:11px;color:#777;margin-bottom:14px;">
+                        Usa esta información como una <b>señal para revisar en campo</b>.
+                    </div>
+                    <div style="display:flex;justify-content:flex-end;gap:8px;">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="window.closeS2Disclaimer()">Cerrar</button>
+                        <button class="btn btn-sm btn-success" onclick="window.closeS2Disclaimer()">Entendido</button>
+                    </div>
+                </div>`;
+            document.body.appendChild(disclaimer);
+        }
+
         // Al abrir el modal, cargar Sentinel-1 en vivo (radar independiente de nubes).
-        modal.addEventListener('shown.bs.modal', () => { loadSentinel1Radar(); });
+        modal.addEventListener('shown.bs.modal', () => { maybeShowDisclaimer(); loadSentinel1Radar(); });
         console.log(`${MODULE_TAG} UI inyectada`);
 
         // Leyenda dinámica según índice
@@ -647,18 +702,60 @@
     }
 
     let s1RviLayer = null;
+    let s1ChangeLayer = null;
+    let radarTargetDate = null;
 
     function fmtDb(v) {
         return (v == null || isNaN(v)) ? '—' : Number(v).toFixed(2) + ' dB';
     }
 
-    async function loadSentinel1Radar(force = false) {
+    // Aviso informativo cerrable (tipo cookies).
+    function showDisclaimer() {
+        const el = document.getElementById('s2DisclaimerOverlay');
+        if (el) el.style.display = 'flex';
+    }
+    function maybeShowDisclaimer() {
+        try {
+            if (localStorage.getItem('agrotech_s2_disclaimer_v1') === '1') return;
+        } catch (e) {}
+        showDisclaimer();
+    }
+    window.showS2Disclaimer = showDisclaimer;
+    window.closeS2Disclaimer = function () {
+        const el = document.getElementById('s2DisclaimerOverlay');
+        if (el) el.style.display = 'none';
+        try { localStorage.setItem('agrotech_s2_disclaimer_v1', '1'); } catch (e) {}
+    };
+
+    // Cadena: si el óptico no deja ver, se busca el radar en la fecha más cercana.
+    function runOpticalRadarChain(date) {
+        radarTargetDate = date || null;
+        const body = document.getElementById('s1RadarBody');
+        if (body) {
+            body.innerHTML = `<span style="color:#b45309;">No hay óptico útil para ${date || 'la fecha pedida'}. Buscando la observación radar más cercana…</span>`;
+            if (body.scrollIntoView) body.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        loadSentinel1Radar(false, radarTargetDate);
+    }
+    window.runOpticalRadarChain = runOpticalRadarChain;
+
+    async function loadSentinel1Radar(force = false, targetDate = undefined) {
+        if (targetDate !== undefined) radarTargetDate = targetDate;
+        const target = radarTargetDate;
         const body = document.getElementById('s1RadarBody');
         const parcelId = selectedParcelId();
         if (!parcelId) { if (body) body.innerHTML = '⚠️ Selecciona primero una parcela.'; return; }
-        if (body) body.innerHTML = 'Consultando Sentinel-1…';
+        if (body) {
+            body.innerHTML = target
+                ? `Consultando radar cerca de ${target}…`
+                : 'Consultando Sentinel-1…';
+        }
         try {
-            const urlRadar = `${getBaseUrl()}/parcel/${parcelId}/radar/${force ? '?refresh=1' : ''}`;
+            const params = new URLSearchParams();
+            if (force) params.set('refresh', '1');
+            if (target) params.set('target_date', target);
+            const qs = params.toString();
+            const urlRadar = `${getBaseUrl()}/parcel/${parcelId}/radar/${qs ? '?' + qs : ''}`;
             const resp = await authFetch(urlRadar);
             let data = {};
             try { data = await resp.json(); } catch (e) {}
@@ -679,25 +776,67 @@
                 return;
             }
             const last = data.last_observation || {};
-            const ch = data.change || {};
+            const recent = data.recent_change || null;
+            const trend = data.change || {};
             const obs = Array.isArray(data.time_series) ? data.time_series.length : 0;
-            const attentionText = ({ none: 'sin cambios', moderate: 'revisar', high: 'revisar pronto' })[data.attention_level] || (data.attention_level || '—');
-            let html = `
+            const attentionText = ({ none: 'estable', moderate: 'revisar', high: 'revisar pronto' })[data.attention_level] || (data.attention_level || '—');
+            let html = '';
+            if (target) {
+                html += `<div style="font-size:10px;color:#b45309;margin-bottom:6px;">
+                    Cadena sin óptico: observación radar más cercana a <strong>${target}</strong>.
+                </div>`;
+            }
+            html += `
                 <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
                     <div><div style="font-size:10px;color:#888;">Última observación</div><div style="font-weight:700;color:#222;">${last.date || '—'}</div></div>
                     <div><div style="font-size:10px;color:#888;">Nivel de atención</div><div style="font-weight:700;color:#222;">${attentionText}</div></div>
                     <div><div style="font-size:10px;color:#888;">Imágenes radar</div><div style="font-weight:700;color:#222;">${obs}</div></div>
                     <div><div style="font-size:10px;color:#888;" title="Intensidad de la señal radar en decibelios (menos negativo = más señal)">Señal radar (VV / VH)</div><div style="font-weight:700;color:#222;" title="VV responde al suelo/estructura; VH al follaje">${fmtDb(last.vv_db)} / ${fmtDb(last.vh_db)}</div></div>
                 </div>`;
-            if (ch && (ch.change_detected != null || ch.changed_percent != null)) {
-                const detected = !!ch.change_detected;
-                html += `<div style="font-size:11px;font-weight:600;color:${detected ? '#c0392b' : '#2e7d32'};">
-                    ${detected ? `Cambio detectado${ch.changed_percent != null ? ` (${ch.changed_percent}% de la parcela)` : ''}.` : 'Sin cambios significativos detectados.'}
+            // Métrica principal: cambio reciente por píxel (últimas dos pasadas).
+            // Si no hay capa, se usa la tendencia de la media como respaldo.
+            const primary = recent || trend;
+            if (primary && primary.change_detected != null) {
+                const detected = !!primary.change_detected;
+                const from = primary.from_date || '—';
+                const to = primary.to_date || '—';
+                const thr = primary.threshold_db != null ? `${Number(primary.threshold_db).toFixed(1)} dB` : '2.0 dB';
+                let detail;
+                if (recent) {
+                    const pct = recent.changed_percent != null ? `${recent.changed_percent}%` : '—';
+                    const mean = recent.mean_magnitude_db != null ? `${Number(recent.mean_magnitude_db).toFixed(2)} dB` : '—';
+                    const max = recent.max_magnitude_db != null ? `${Number(recent.max_magnitude_db).toFixed(2)} dB` : '—';
+                    detail = `Por píxel: <strong>${pct}</strong> del lote cambió (>${thr}) · magnitud media ${mean} · máx ${max}.`;
+                } else {
+                    const mag = trend.magnitude != null ? `${Number(trend.magnitude).toFixed(2)} dB` : '—';
+                    detail = `Media del lote: variación ${mag} (umbral ${thr}) · ${trend.observations || obs} observaciones.`;
+                }
+                html += `<div style="font-size:11px;line-height:1.5;margin-top:2px;">
+                    <div style="font-weight:600;color:${detected ? '#c0392b' : '#2e7d32'};">
+                        ${recent
+                            ? (detected ? 'Cambio reciente por píxel' : 'Sin cambios recientes por píxel')
+                            : (detected ? 'Cambio en la media del lote' : 'Sin cambios en la media del lote')}
+                    </div>
+                    <div style="color:#666;">Comparación: <strong>${from}</strong> → <strong>${to}</strong> · ${detail}</div>
+                    <div style="color:#888;font-size:10px;">Es una señal para revisar, no un diagnóstico.</div>
+                </div>`;
+            }
+            // Tendencia de 60 días (secundaria): media del lote, primera vs última.
+            if (recent && trend && trend.change_detected != null) {
+                const tFrom = trend.from_date || '—';
+                const tTo = trend.to_date || '—';
+                const tMag = trend.magnitude != null ? `${Number(trend.magnitude).toFixed(2)} dB` : '—';
+                const tThr = trend.threshold_db != null ? `${Number(trend.threshold_db).toFixed(1)} dB` : '2.0 dB';
+                html += `<div style="font-size:10px;color:#888;margin-top:4px;">
+                    Tendencia 60 días (secundaria, media del lote): ${tFrom} → ${tTo} · Δ ${tMag}
+                    (umbral ${tThr}) · ${trend.change_detected ? 'cambió' : 'sin cambio'}.
                 </div>`;
             }
             if (data.message) html += `<div style="font-size:11px;color:#777;margin-top:4px;">${data.message}</div>`;
             html += `<div style="font-size:10px;color:#888;margin-top:8px;border-top:1px solid #eee;padding-top:6px;">
-                En el mapa: <span style="color:#1e7b34;font-weight:700;">verde = vigor del cultivo</span> · <span style="color:#c0392b;font-weight:700;">rojo = cambio detectado</span>.
+                En el mapa: <span style="color:#1e7b34;font-weight:700;">verde = mayor vigor (RVI)</span> ·
+                <span style="color:#8a4b1e;font-weight:700;">café = menor vigor</span> ·
+                <span style="color:#c0392b;font-weight:700;">rojo = cambio significativo</span> (capa de cambios entre las dos últimas pasadas).
             </div>`;
             if (body) body.innerHTML = html;
         } catch (e) {
@@ -719,7 +858,9 @@
         if (el) el.textContent = txt || '';
     }
 
-    async function toggleSentinel1Layer(force = false) {
+    async function toggleSentinel1Layer(force = false, targetDate = undefined) {
+        if (targetDate !== undefined) radarTargetDate = targetDate;
+        const target = radarTargetDate;
         const map = window.map;
         if (!map) return;
         if (s1RviLayer) {
@@ -733,7 +874,11 @@
         if (!parcelId) { setS1LayerStatus('Selecciona primero una parcela.'); return; }
         setS1LayerStatus('Cargando capa RVI…');
         try {
-            const resp = await authFetch(`${getBaseUrl()}/parcel/${parcelId}/radar-layers/${force ? '?refresh=1' : ''}`);
+            const params = new URLSearchParams();
+            if (force) params.set('refresh', '1');
+            if (target) params.set('target_date', target);
+            const qs = params.toString();
+            const resp = await authFetch(`${getBaseUrl()}/parcel/${parcelId}/radar-layers/${qs ? '?' + qs : ''}`);
             let data = {};
             try { data = await resp.json(); } catch (e) {}
             const rvi = data && data.layers && data.layers.rvi;
@@ -745,14 +890,66 @@
             const b = rvi.bounds;
             s1RviLayer = L.imageOverlay(`data:image/png;base64,${rvi.image_base64}`, [[b[1], b[0]], [b[3], b[2]]], { opacity: 0.72 });
             s1RviLayer.addTo(map);
-            setS1LayerStatus('Capa RVI visible en el mapa (verde = vigor, rojo = cambio).');
-            if (typeof window.showInfoToast === 'function') window.showInfoToast('Capa RVI Sentinel-1 visible en el mapa.');
+            const layerDate = (data.layers && data.layers.date) ? data.layers.date : '';
+            setS1LayerStatus(`Capa RVI visible${layerDate ? ` (radar real del ${layerDate})` : ''}. Verde = mayor vigor; café = menor vigor.`);
+            if (typeof window.showInfoToast === 'function') window.showInfoToast('Capa RVI Sentinel-1 visible (datos reales).');
         } catch (e) {
             setS1LayerStatus('No se pudo cargar la capa RVI.');
             console.error(`${MODULE_TAG} radar layers error`, e);
         }
     }
     window.toggleSentinel1Layer = toggleSentinel1Layer;
+
+    // Capa de cambio real: píxeles donde la señal radar varió > umbral entre las
+    // dos últimas pasadas (naranja→rojo). Solo se pintan las celdas con cambio.
+    async function toggleSentinel1ChangeLayer(force = false, targetDate = undefined) {
+        if (targetDate !== undefined) radarTargetDate = targetDate;
+        const target = radarTargetDate;
+        const map = window.map;
+        if (!map) return;
+        if (s1ChangeLayer) {
+            try { map.removeLayer(s1ChangeLayer); } catch (e) {}
+            s1ChangeLayer = null;
+            setS1LayerStatus('Capa de cambio oculta.');
+            return;
+        }
+        const parcelId = selectedParcelId();
+        if (!parcelId) { setS1LayerStatus('Selecciona primero una parcela.'); return; }
+        setS1LayerStatus('Cargando capa de cambio…');
+        try {
+            const params = new URLSearchParams();
+            if (force) params.set('refresh', '1');
+            if (target) params.set('target_date', target);
+            const qs = params.toString();
+            const resp = await authFetch(`${getBaseUrl()}/parcel/${parcelId}/radar-layers/${qs ? '?' + qs : ''}`);
+            let data = {};
+            try { data = await resp.json(); } catch (e) {}
+            const chg = data && data.change;
+            if (!resp.ok || !data.available || !chg || !chg.change_heatmap || !chg.bounds) {
+                setS1LayerStatus('Sin cambios que dibujar en este periodo (o sin datos radar). El texto de arriba indica la comparación.');
+                if (typeof window.showInfoToast === 'function') window.showInfoToast('No hay celdas con cambio significativo entre las dos últimas pasadas.');
+                return;
+            }
+            const b = chg.bounds;
+            s1ChangeLayer = L.imageOverlay(
+                `data:image/png;base64,${chg.change_heatmap}`,
+                [[b[1], b[0]], [b[3], b[2]]],
+                { opacity: 0.8 }
+            );
+            s1ChangeLayer.addTo(map);
+            const thr = chg.threshold_db != null ? Number(chg.threshold_db).toFixed(1) : '2.0';
+            setS1LayerStatus(
+                `Capa de cambio visible: ${chg.from_date} → ${chg.to_date} · ` +
+                `${chg.changed_percent != null ? chg.changed_percent : '—'}% de la parcela cambió ` +
+                `(>${thr} dB en VV+VH). Rojo = cambio significativo.`
+            );
+            if (typeof window.showInfoToast === 'function') window.showInfoToast('Capa de cambio Sentinel-1 visible (datos reales).');
+        } catch (e) {
+            setS1LayerStatus('No se pudo cargar la capa de cambio.');
+            console.error(`${MODULE_TAG} radar change layer error`, e);
+        }
+    }
+    window.toggleSentinel1ChangeLayer = toggleSentinel1ChangeLayer;
 
     window.toggleS1Help = function () {
         const el = document.getElementById('s1HelpPanel');
@@ -763,14 +960,20 @@
     // Fuerza actualización (ignora cache) del monitoreo y de la capa si está visible.
     window.refreshRadar = async function () {
         setS1LayerStatus('Forzando actualización…');
-        await loadSentinel1Radar(true);
-        if (s1RviLayer) {
+        await loadSentinel1Radar(true, radarTargetDate);
+        const hadRvi = !!s1RviLayer;
+        const hadChange = !!s1ChangeLayer;
+        if (hadRvi) {
             try { window.map.removeLayer(s1RviLayer); } catch (e) {}
             s1RviLayer = null;
-            await toggleSentinel1Layer(true);
-        } else {
-            setS1LayerStatus('Datos radar actualizados.');
+            await toggleSentinel1Layer(true, radarTargetDate);
         }
+        if (hadChange) {
+            try { window.map.removeLayer(s1ChangeLayer); } catch (e) {}
+            s1ChangeLayer = null;
+            await toggleSentinel1ChangeLayer(true, radarTargetDate);
+        }
+        if (!hadRvi && !hadChange) setS1LayerStatus('Datos radar actualizados.');
     };
 
     window.loadSentinel2Compare = loadSentinel2;
