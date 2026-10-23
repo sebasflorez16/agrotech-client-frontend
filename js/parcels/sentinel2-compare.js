@@ -786,52 +786,62 @@
                     Cadena sin óptico: observación radar más cercana a <strong>${target}</strong>.
                 </div>`;
             }
+            // Lenguaje simple para el productor; los dB quedan en "detalles técnicos".
+            const usedDate = (recent && recent.to_date) || last.date || '—';
+            const fromDate = (recent && recent.from_date) || trend.from_date || '—';
+            const toDate = (recent && recent.to_date) || trend.to_date || '—';
+            const pct = recent && recent.changed_percent != null ? Number(recent.changed_percent) : null;
+            const thr = (recent && recent.threshold_db != null) ? Number(recent.threshold_db)
+                : (trend.threshold_db != null ? Number(trend.threshold_db) : 6.0);
+            const meanDb = recent && recent.mean_magnitude_db != null ? Number(recent.mean_magnitude_db) : null;
+            const maxDb = recent && recent.max_magnitude_db != null ? Number(recent.max_magnitude_db) : null;
+            const detected = recent ? !!recent.change_detected : !!trend.change_detected;
+            const attentionLabel = ({ none: 'Estable', moderate: 'Revisar', high: 'Revisar pronto' })[data.attention_level] || 'Estable';
+            const attentionColor = data.attention_level === 'high' ? '#c0392b' : (data.attention_level === 'moderate' ? '#b45309' : '#2e7d32');
+            const friendlyPct = pct == null ? null
+                : (pct >= 50 ? 'más de la mitad del lote' : pct >= 25 ? 'cerca de 1 de cada 4 partes' : pct >= 10 ? 'varias zonas' : 'unas zonas pequeñas');
+
             html += `
-                <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:8px;">
-                    <div><div style="font-size:10px;color:#888;">Última observación</div><div style="font-weight:700;color:#222;">${last.date || '—'}</div></div>
-                    <div><div style="font-size:10px;color:#888;">Nivel de atención</div><div style="font-weight:700;color:#222;">${attentionText}</div></div>
-                    <div><div style="font-size:10px;color:#888;">Imágenes radar</div><div style="font-weight:700;color:#222;">${obs}</div></div>
-                    <div><div style="font-size:10px;color:#888;" title="Intensidad de la señal radar en decibelios (menos negativo = más señal)">Señal radar (VV / VH)</div><div style="font-weight:700;color:#222;" title="VV responde al suelo/estructura; VH al follaje">${fmtDb(last.vv_db)} / ${fmtDb(last.vh_db)}</div></div>
+                <div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:8px;">
+                    <div><div style="font-size:10px;color:#888;">Imagen radar</div><div style="font-weight:700;color:#222;">${usedDate}</div></div>
+                    <div><div style="font-size:10px;color:#888;">Nivel de atención</div><div style="font-weight:700;color:${attentionColor};">${attentionLabel}</div></div>
                 </div>`;
-            // Métrica principal: cambio reciente por píxel (últimas dos pasadas).
-            // Si no hay capa, se usa la tendencia de la media como respaldo.
-            const primary = recent || trend;
-            if (primary && primary.change_detected != null) {
-                const detected = !!primary.change_detected;
-                const from = primary.from_date || '—';
-                const to = primary.to_date || '—';
-                const thr = primary.threshold_db != null ? `${Number(primary.threshold_db).toFixed(1)} dB` : '2.0 dB';
-                let detail;
-                if (recent) {
-                    const pct = recent.changed_percent != null ? `${recent.changed_percent}%` : '—';
-                    const mean = recent.mean_magnitude_db != null ? `${Number(recent.mean_magnitude_db).toFixed(2)} dB` : '—';
-                    const max = recent.max_magnitude_db != null ? `${Number(recent.max_magnitude_db).toFixed(2)} dB` : '—';
-                    detail = `Por píxel: <strong>${pct}</strong> del lote cambió (>${thr}) · magnitud media ${mean} · máx ${max}.`;
-                } else {
-                    const mag = trend.magnitude != null ? `${Number(trend.magnitude).toFixed(2)} dB` : '—';
-                    detail = `Media del lote: variación ${mag} (umbral ${thr}) · ${trend.observations || obs} observaciones.`;
-                }
-                html += `<div style="font-size:11px;line-height:1.5;margin-top:2px;">
-                    <div style="font-weight:600;color:${detected ? '#c0392b' : '#2e7d32'};">
-                        ${recent
-                            ? (detected ? 'Cambio reciente por píxel' : 'Sin cambios recientes por píxel')
-                            : (detected ? 'Cambio en la media del lote' : 'Sin cambios en la media del lote')}
+
+            if (recent || trend.change_detected != null) {
+                html += `<div style="background:#f8f9fa;border-left:4px solid ${attentionColor};border-radius:8px;padding:10px 12px;font-size:12px;line-height:1.5;">
+                    <div style="font-weight:700;color:${attentionColor};font-size:13px;">
+                        ${detected ? 'Se detectaron cambios en el lote' : 'No se detectaron cambios relevantes'}
                     </div>
-                    <div style="color:#666;">Comparación: <strong>${from}</strong> → <strong>${to}</strong> · ${detail}</div>
-                    <div style="color:#888;font-size:10px;">Es una señal para revisar, no un diagnóstico.</div>
+                    ${pct != null ? `<div style="color:#444;margin-top:2px;">
+                        Cambió el <b>${pct}%</b> del lote${friendlyPct ? ` (${friendlyPct})` : ''} entre el <b>${fromDate}</b> y el <b>${toDate}</b>.
+                    </div>` : ''}
+                    <div style="color:#777;margin-top:2px;">
+                        ${detected ? 'Revisa las <b>zonas rojas</b> del mapa: ahí conviene mirar en campo.' : 'El lote se mantiene estable en este periodo.'}
+                    </div>
+                    <div style="color:#999;font-size:10px;margin-top:4px;">
+                        Es una señal para revisar, no un diagnóstico. Puede ser cosecha, lluvia, manejo o estructura.
+                    </div>
                 </div>`;
             }
-            // Tendencia de 60 días (secundaria): media del lote, primera vs última.
-            if (recent && trend && trend.change_detected != null) {
-                const tFrom = trend.from_date || '—';
-                const tTo = trend.to_date || '—';
-                const tMag = trend.magnitude != null ? `${Number(trend.magnitude).toFixed(2)} dB` : '—';
-                const tThr = trend.threshold_db != null ? `${Number(trend.threshold_db).toFixed(1)} dB` : '2.0 dB';
-                html += `<div style="font-size:10px;color:#888;margin-top:4px;">
-                    Tendencia 60 días (secundaria, media del lote): ${tFrom} → ${tTo} · Δ ${tMag}
-                    (umbral ${tThr}) · ${trend.change_detected ? 'cambió' : 'sin cambio'}.
+
+            if (recent && trend.change_detected != null) {
+                html += `<div style="font-size:11px;color:#777;margin-top:6px;">
+                    Tendencia general: <b>${trend.change_detected ? 'con cambios' : 'estable'}</b> en los últimos 60 días.
                 </div>`;
             }
+
+            html += `<details style="margin-top:8px;">
+                <summary style="cursor:pointer;font-size:11px;color:#888;">Ver detalles técnicos (para agrónomos)</summary>
+                <div style="font-size:11px;color:#666;line-height:1.6;margin-top:6px;">
+                    <div>Comparación: ${fromDate} → ${toDate} · misma órbita relativa</div>
+                    <div>Cambio por píxel: ${pct != null ? pct + '%' : '—'} · umbral ${thr.toFixed(1)} dB</div>
+                    ${meanDb != null ? `<div>Magnitud media: ${meanDb.toFixed(2)} dB · máxima: ${maxDb != null ? maxDb.toFixed(2) : '—'} dB</div>` : ''}
+                    <div>Señal VV/VH: ${fmtDb((recent && recent.vv_db != null) ? recent.vv_db : last.vv_db)} / ${fmtDb((recent && recent.vh_db != null) ? recent.vh_db : last.vh_db)}</div>
+                    <div>Observaciones: ${obs} · misma órbita relativa</div>
+                    <div>Tendencia 60 días: ${trend.change_detected ? 'cambió' : 'sin cambio'} · ${trend.magnitude != null ? Number(trend.magnitude).toFixed(2) + ' dB' : '—'} · umbral ${trend.threshold_db != null ? Number(trend.threshold_db).toFixed(1) : '—'} dB</div>
+                </div>
+            </details>`;
+
             if (data.message) html += `<div style="font-size:11px;color:#777;margin-top:4px;">${data.message}</div>`;
             html += `<div style="font-size:10px;color:#888;margin-top:8px;border-top:1px solid #eee;padding-top:6px;">
                 En el mapa: <span style="color:#1e7b34;font-weight:700;">verde = mayor vigor (RVI)</span> ·
