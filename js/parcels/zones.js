@@ -112,6 +112,27 @@
             attribution: 'Esri, Maxar, Earthstar Geographics',
             maxZoom: 19,
         }).addTo(state.map);
+        // Botón de pantalla completa en la esquina del mapa (estilo YouTube).
+        if (!state.map._zonesFsControl && typeof L.Control === 'function') {
+            const ZonesFsControl = L.Control.extend({
+                options: { position: 'topright' },
+                onAdd: function () {
+                    const btn = L.DomUtil.create('button', 'leaflet-bar');
+                    btn.type = 'button';
+                    btn.title = 'Pantalla completa';
+                    btn.innerHTML = '⛶';
+                    btn.style.cssText = 'background:#fff;width:34px;height:34px;font-size:18px;line-height:32px;text-align:center;cursor:pointer;border:none;';
+                    L.DomEvent.disableClickPropagation(btn);
+                    L.DomEvent.on(btn, 'click', (e) => {
+                        L.DomEvent.stop(e);
+                        window.toggleZonesFullscreen();
+                    });
+                    return btn;
+                },
+            });
+            state.map.addControl(new ZonesFsControl());
+            state.map._zonesFsControl = true;
+        }
         return state.map;
     }
 
@@ -265,8 +286,11 @@
                 state.currentZonification = latest;
                 renderZonesList(latest);
                 renderZonesOnMap(latest);
+                const extra = latest.notes
+                    ? `<div style="font-size:11px;color:#888;margin-top:3px;">${latest.notes}</div>`
+                    : '';
                 setStatus(
-                    `Última zonificación: imagen del ${latest.scene_date} (la más reciente con datos válidos) · ${latest.method_display || latest.method} · ${latest.k_zones} zonas`
+                    `Última zonificación: imagen del ${latest.scene_date} (la más reciente con datos válidos) · ${latest.method_display || latest.method} · ${latest.k_zones} zonas${extra}`
                 );
             } else {
                 setStatus('No hay zonas aún. Pulsa "Generar zonas".');
@@ -307,8 +331,11 @@
         state.currentZonification = data;
         renderZonesList(data);
         renderZonesOnMap(data);
+        const extra = data.notes
+            ? `<div style="font-size:11px;color:#888;margin-top:3px;">${data.notes}</div>`
+            : '';
         setStatus(
-            `✅ Zonificación lista · ${data.zones?.length || 0} zonas · ${data.total_pixels} píxeles · imagen del ${data.scene_date} (la más reciente con datos válidos)`,
+            `✅ Zonificación lista · ${data.zones?.length || 0} zonas · ${data.total_pixels} píxeles · imagen del ${data.scene_date} (la más reciente con datos válidos)${extra}`,
             '#27ae60'
         );
     }
@@ -328,7 +355,13 @@
         try {
             const data = await api('/api/parcels/parcel-zonifications/generate-for-parcel/', {
                 method: 'POST',
-                body: JSON.stringify({ parcel: parcelId, k_zones: k, index_base: idx }),
+                body: JSON.stringify({
+                    parcel: parcelId,
+                    k_zones: k,
+                    index_base: idx,
+                    // Misma fecha que el NDVI que el usuario está viendo (si existe).
+                    scene_date: window.AGROTECH_LAST_S2_DATE || undefined,
+                }),
             });
             if (data.status === 'ready') {
                 renderZonification(data);
