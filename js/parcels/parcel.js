@@ -547,6 +547,7 @@ function setupDrawingTools(map) {
         if (hint && window.innerWidth <= 767) hint.classList.add('show');
         setTimeout(() => { if (map) map.invalidateSize(); }, 150);
     }
+    window.enterMapFullscreen = enterMapFullscreen;
     window.exitMapFullscreen = function () {
         const mc = document.getElementById('mapContainer');
         if (mc) mc.classList.remove('fullscreen');

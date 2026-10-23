@@ -18,6 +18,7 @@
         currentZonification: null,
         map: null,
         layer: null,
+        ndviLayer: null,
     };
 
     // Colores por índice: NDVI/SAVI = vigor (rojo→verde), NDMI = humedad (seco→húmedo).
@@ -175,13 +176,38 @@
         setExportButtonsEnabled(true);
     }
 
-    function renderZonesOnMap(zonification) {
+    async function renderZonesOnMap(zonification) {
         const map = ensureMap();
         if (!map) return;
         if (state.layer) {
             map.removeLayer(state.layer);
             state.layer = null;
         }
+        if (state.ndviLayer) {
+            map.removeLayer(state.ndviLayer);
+            state.ndviLayer = null;
+        }
+
+        // Fondo NDVI real de la MISMA fecha de la zonificación: así las zonas
+        // se comparan contra la capa de color correcta y no contra otra imagen.
+        try {
+            const sceneDay = zonification && zonification.scene_date;
+            if (sceneDay && state.currentParcelId) {
+                const img = await api(`/api/parcels/parcel/${state.currentParcelId}/sentinel2-images/?analysis_index=ndvi&scene_date=${sceneDay}&exact_date=true`);
+                const b64 = img && img.images && img.images.ndvi;
+                const b = img && img.bounds;
+                if (b64 && b && b.length === 4) {
+                    state.ndviLayer = L.imageOverlay(
+                        `data:image/png;base64,${b64}`,
+                        [[b[1], b[0]], [b[3], b[2]]],
+                        { opacity: 0.9 }
+                    ).addTo(map);
+                }
+            }
+        } catch (e) {
+            console.warn('[ZONES] NDVI de fondo no disponible:', e.message || e);
+        }
+
         const indexBase = zonification.index_base || 'ndvi';
         const palette = colorsFor(indexBase);
         const field = { ndvi: ['ndvi_mean', 'NDVI'], ndmi: ['ndmi_mean', 'NDMI'], savi: ['savi_mean', 'SAVI'], ndre: ['ndre_mean', 'NDRE'] }[indexBase] || ['ndvi_mean', 'NDVI'];
@@ -240,7 +266,7 @@
                 renderZonesList(latest);
                 renderZonesOnMap(latest);
                 setStatus(
-                    `Última zonificación: imagen del ${latest.scene_date} (la más reciente disponible) · ${latest.method_display || latest.method} · ${latest.k_zones} zonas`
+                    `Última zonificación: imagen del ${latest.scene_date} (la más reciente con datos válidos) · ${latest.method_display || latest.method} · ${latest.k_zones} zonas`
                 );
             } else {
                 setStatus('No hay zonas aún. Pulsa "Generar zonas".');
@@ -282,7 +308,7 @@
         renderZonesList(data);
         renderZonesOnMap(data);
         setStatus(
-            `✅ Zonificación lista · ${data.zones?.length || 0} zonas · ${data.total_pixels} píxeles · imagen del ${data.scene_date} (la más reciente)`,
+            `✅ Zonificación lista · ${data.zones?.length || 0} zonas · ${data.total_pixels} píxeles · imagen del ${data.scene_date} (la más reciente con datos válidos)`,
             '#27ae60'
         );
     }
@@ -447,6 +473,16 @@
             document.head.appendChild(st);
         }
     }
+
+    // Pantalla completa para el mapa de zonificación (móvil y PC).
+    window.toggleZonesFullscreen = function () {
+        const el = document.getElementById('zonesMap');
+        const exit = document.getElementById('zonesFullscreenExit');
+        if (!el) return;
+        const on = el.classList.toggle('zones-map-fullscreen');
+        if (exit) exit.style.display = on ? 'block' : 'none';
+        if (state.map) setTimeout(() => state.map.invalidateSize(), 200);
+    };
 
     // Botón "Sectorizar parcela" → abre/cierra el panel de zonas.
     window.toggleZonesPanel = function () {

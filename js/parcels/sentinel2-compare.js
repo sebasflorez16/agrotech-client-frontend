@@ -110,6 +110,8 @@
             ).addTo(window.map);
             s2Visible = true;
             window.map.fitBounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]]);
+            // Pantalla completa al cargar la capa (mejor lectura en móvil y PC).
+            if (window.enterMapFullscreen) setTimeout(() => window.enterMapFullscreen(), 200);
 
             const scene = data.scene || {};
             const stats = data.statistics && data.statistics[index];
@@ -900,6 +902,7 @@
             const b = rvi.bounds;
             s1RviLayer = L.imageOverlay(`data:image/png;base64,${rvi.image_base64}`, [[b[1], b[0]], [b[3], b[2]]], { opacity: 0.72 });
             s1RviLayer.addTo(map);
+            if (window.enterMapFullscreen) setTimeout(() => window.enterMapFullscreen(), 150);
             const layerDate = (data.layers && data.layers.date) ? data.layers.date : '';
             setS1LayerStatus(`Capa RVI visible${layerDate ? ` (radar real del ${layerDate})` : ''}. Verde = mayor vigor; café = menor vigor.`);
             if (typeof window.showInfoToast === 'function') window.showInfoToast('Capa RVI Sentinel-1 visible (datos reales).');
@@ -947,6 +950,7 @@
                 { opacity: 0.8 }
             );
             s1ChangeLayer.addTo(map);
+            if (window.enterMapFullscreen) setTimeout(() => window.enterMapFullscreen(), 150);
             const thr = chg.threshold_db != null ? Number(chg.threshold_db).toFixed(1) : '2.0';
             setS1LayerStatus(
                 `Capa de cambio visible: ${chg.from_date} → ${chg.to_date} · ` +
