@@ -152,15 +152,17 @@
                 </div>
                 <div class="footer-col">
                     <h4>Empresa</h4>
-                    <a href="#">Sobre Nosotros</a>
-                    <a href="#">Blog</a>
-                    <a href="#">Contacto</a>
+                    <a href="/#features">Beneficios</a>
+                    <a href="/blog.html">Blog</a>
+                    <a href="/#contacto">Contacto</a>
+                    <a href="/privacidad.html">Privacidad</a>
+                    <a href="/terminos.html">Términos</a>
                 </div>
                 <div class="footer-col">
                     <h4>Contacto</h4>
-                    <p>info@agrotechdigital.com</p>
-                    <p>+57 300 123 4567</p>
-                    <p>Bogotá, Colombia</p>
+                    <p>contacto@agrotechcolombia.com</p>
+                    <p>+57 322 308 8873</p>
+                    <p>Carrera 23 # 14 - 10, Yopal, Casanare</p>
                 </div>
             </div>
             <div class="footer-bottom">
@@ -171,6 +173,7 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', function() {
+        if (window.trackEvent) window.trackEvent('view_pricing');
         var API = window.AGROTECH_CONFIG.API_BASE;
         var toggle = document.getElementById('billingToggle');
         var monthlyLabel = document.querySelector('.toggle-monthly');
@@ -182,31 +185,31 @@
         // Planes estáticos como fallback cuando el API no responde
         var FALLBACK_PLANS = [
             {
-                tier: 'free', name: 'Explorador', description: 'Plan gratuito',
+                tier: 'free', name: 'Explorador', description: 'Gratis para siempre',
                 price_cop: '0.00', price_usd: '0.00', frequency: 1,
-                limits: { users: 1, parcels: 2, hectares: 20, eosda_requests: 15 },
+                limits: { users: 1, parcels: 1, hectares: 30, eosda_requests: 5 },
                 features_included: ['ndvi'],
-                features_excluded: ['savi', 'ndmi', 'evi', 'weather_basic', 'weather_full'],
-                is_custom: false, trial_days: 14,
+                features_excluded: ['ndmi','evi','savi','weather_basic','weather_full','continuous_monitoring','pdf_reports','advanced_analytics','api_access','historical'],
+                is_custom: false, trial_days: 0,
                 yearly_discount: { yearly_price_cop: 0, savings_cop: 0, yearly_price_usd: 0, savings_usd: 0, discount_percent: 20 }
             },
             {
-                tier: 'basic', name: 'Agricultor', description: 'Plan profesional',
-                price_cop: '79000.00', price_usd: '19.00', frequency: 1,
-                limits: { users: 3, parcels: 10, hectares: 250, eosda_requests: 150 },
-                features_included: ['ndvi', 'savi', 'weather_basic'],
-                features_excluded: ['ndmi', 'evi', 'weather_full'],
+                tier: 'basic', name: 'Agricultor', description: 'Para agricultores profesionales',
+                price_cop: '79000.00', price_usd: '20.00', frequency: 1,
+                limits: { users: 2, parcels: 10, hectares: 100, eosda_requests: 100 },
+                features_included: ['ndvi','ndmi','savi','weather_basic','historical'],
+                features_excluded: ['evi','weather_full','continuous_monitoring','pdf_reports','advanced_analytics','api_access'],
                 is_custom: false, trial_days: 14,
-                yearly_discount: { yearly_price_cop: 790000, savings_cop: 158000, yearly_price_usd: 182, savings_usd: 46, discount_percent: 20 }
+                yearly_discount: { yearly_price_cop: 790000, savings_cop: 158000, yearly_price_usd: 200, savings_usd: 40, discount_percent: 20 }
             },
             {
-                tier: 'pro', name: 'Empresarial', description: 'Plan empresarial',
-                price_cop: '179000.00', price_usd: '43.00', frequency: 1,
-                limits: { users: 5, parcels: 20, hectares: 500, eosda_requests: 300 },
-                features_included: ['ndvi', 'savi', 'ndmi', 'evi', 'weather_full'],
+                tier: 'pro', name: 'Empresarial', description: 'Para empresas agrícolas',
+                price_cop: '179000.00', price_usd: '45.00', frequency: 1,
+                limits: { users: 3, parcels: 50, hectares: 300, eosda_requests: 500 },
+                features_included: ['ndvi','ndmi','evi','savi','weather_full','continuous_monitoring','pdf_reports','advanced_analytics','api_access','historical'],
                 features_excluded: [],
                 is_custom: false, trial_days: 14,
-                yearly_discount: { yearly_price_cop: 1790000, savings_cop: 358000, yearly_price_usd: 413, savings_usd: 103, discount_percent: 20 }
+                yearly_discount: { yearly_price_cop: 1790000, savings_cop: 358000, yearly_price_usd: 450, savings_usd: 90, discount_percent: 20 }
             }
         ];
 
@@ -249,7 +252,14 @@
             'ndmi': 'Análisis NDMI (Humedad)',
             'evi': 'Análisis EVI (Vegetación mejorado)',
             'weather_basic': 'Pronóstico climático básico',
-            'weather_full': 'Pronóstico climático completo'
+            'weather_full': 'Pronóstico climático completo',
+            'continuous_monitoring': 'Monitoreo continuo + radar Sentinel-1',
+            'pdf_reports': 'Informes PDF',
+            'advanced_analytics': 'Analítica avanzada / sectorización',
+            'api_access': 'API para integrar',
+            'historical': 'Histórico del cultivo',
+            'support_priority': 'Soporte prioritario',
+            'dedicated_account': 'Cuenta dedicada'
         };
 
         function render() {

@@ -110,6 +110,10 @@
             ).addTo(window.map);
             s2Visible = true;
             window.map.fitBounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]]);
+            if (window.trackEvent && !window.__agrotechFirstAnalysis) {
+                window.__agrotechFirstAnalysis = true;
+                window.trackEvent('first_analysis', { index: index });
+            }
 
             const scene = data.scene || {};
             // Guardar la fecha/escena que el usuario está viendo para que la
@@ -904,6 +908,10 @@
             const b = rvi.bounds;
             s1RviLayer = L.imageOverlay(`data:image/png;base64,${rvi.image_base64}`, [[b[1], b[0]], [b[3], b[2]]], { opacity: 0.72 });
             s1RviLayer.addTo(map);
+            if (window.trackEvent && !window.__agrotechFirstRadar) {
+                window.__agrotechFirstRadar = true;
+                window.trackEvent('radar_analysis');
+            }
             const layerDate = (data.layers && data.layers.date) ? data.layers.date : '';
             setS1LayerStatus(`Capa RVI visible${layerDate ? ` (radar real del ${layerDate})` : ''}. Verde = mayor vigor; café = menor vigor.`);
             if (typeof window.showInfoToast === 'function') window.showInfoToast('Capa RVI Sentinel-1 visible (datos reales).');

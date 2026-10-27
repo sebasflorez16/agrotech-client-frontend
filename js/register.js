@@ -68,7 +68,6 @@ function validateStep1() {
     const name = document.getElementById('name').value.trim();
     const lastName = document.getElementById('last_name').value.trim();
     const email = document.getElementById('email').value.trim();
-    const username = document.getElementById('username').value.trim();
     const password = document.getElementById('password').value;
     const passwordConfirm = document.getElementById('password_confirm').value;
     
@@ -87,13 +86,6 @@ function validateStep1() {
         valid = false;
     }
     
-    if (!username || username.length < 3) {
-        showFieldError('usernameError', 'Mínimo 3 caracteres');
-        valid = false;
-    } else if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-        showFieldError('usernameError', 'Solo letras, números y guión bajo');
-        valid = false;
-    }
     
     if (!password || password.length < 8) {
         showFieldError('passwordError', 'Mínimo 8 caracteres');
@@ -110,6 +102,15 @@ function validateStep1() {
 
 function isValidEmail(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+// El usuario inicia sesión con su email; generamos un username interno único.
+function generateUsername(email) {
+    const base = (email.split('@')[0] || 'usuario')
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '')
+        .slice(0, 20) || 'usuario';
+    return `${base}${Date.now().toString().slice(-6)}`;
 }
 
 // ========== FIELD ERRORS ==========
@@ -204,9 +205,10 @@ registerForm.addEventListener('submit', async (e) => {
     setLoading(true);
     if (window.trackEvent) window.trackEvent('begin_signup');
     
+    const emailValue = document.getElementById('email').value.trim();
     const payload = {
-        email: document.getElementById('email').value.trim(),
-        username: document.getElementById('username').value.trim(),
+        email: emailValue,
+        username: generateUsername(emailValue),
         password: document.getElementById('password').value,
         password_confirm: document.getElementById('password_confirm').value,
         name: document.getElementById('name').value.trim(),
@@ -229,7 +231,6 @@ registerForm.addEventListener('submit', async (e) => {
             if (data.errors) {
                 const fieldMap = {
                     email: 'emailError',
-                    username: 'usernameError',
                     password: 'passwordError',
                     password_confirm: 'passwordConfirmError',
                     organization_name: 'orgError',
@@ -266,6 +267,26 @@ registerForm.addEventListener('submit', async (e) => {
         
         // Success!
         if (window.trackEvent) window.trackEvent('signup_complete');
+
+        // Acceso inmediato: el backend devuelve tokens cuando la cuenta está activa.
+        if (data.data && data.data.tokens) {
+            localStorage.setItem('accessToken', data.data.tokens.access);
+            localStorage.setItem('refreshToken', data.data.tokens.refresh);
+            if (data.data.user) {
+                localStorage.setItem('userName', data.data.user.name);
+                localStorage.setItem('userEmail', data.data.user.email);
+            }
+            if (data.data.tenant) {
+                localStorage.setItem('tenantName', data.data.tenant.name);
+                localStorage.setItem('tenantDomain', data.data.tenant.domain);
+            }
+            showSuccess();
+            setTimeout(() => {
+                window.location.href = '/templates/dashboard.html';
+            }, 900);
+            return;
+        }
+
         if (data.requires_email_verification) {
             // Verificacion de email requerida → mostrar mensaje y no redirigir
             registerForm.style.display = 'none';
@@ -288,22 +309,6 @@ registerForm.addEventListener('submit', async (e) => {
             return;
         }
         
-        // Flujo legacy: si el backend devuelve tokens (sin verificacion)
-        if (data.data && data.data.tokens) {
-            localStorage.setItem('accessToken', data.data.tokens.access);
-            localStorage.setItem('refreshToken', data.data.tokens.refresh);
-            
-            // Store user info
-            if (data.data.user) {
-                localStorage.setItem('userName', data.data.user.name);
-                localStorage.setItem('userEmail', data.data.user.email);
-            }
-            if (data.data.tenant) {
-                localStorage.setItem('tenantName', data.data.tenant.name);
-                localStorage.setItem('tenantDomain', data.data.tenant.domain);
-            }
-        }
-        
         showSuccess();
         
         // Redirect to dashboard after 2 seconds
@@ -322,6 +327,7 @@ registerForm.addEventListener('submit', async (e) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🍎 Register - AgroTech Digital');
+    if (window.trackEvent) window.trackEvent('signup_start');
     
     // If already authenticated, redirect
     const token = localStorage.getItem('accessToken');
