@@ -33,8 +33,9 @@
 
 [[redirects]]
   from = "/staff"
-  to = "/templates/staff-dashboard.html"
-  status = 200
+  to = "https://agrotech-digital-production.up.railway.app/staff/"
+  status = 301
+  force = true
 
 # 3. Login
 [[redirects]]
@@ -94,6 +95,27 @@
   force = true
 
 # 5. Manejo de 404 - Landing page
+# 12. URLs legacy vistas en Search Console → páginas vigentes
+[[redirects]]
+  from = "/post.html"
+  to = "/blog.html"
+  status = 301
+
+[[redirects]]
+  from = "/templates/contact_expert.html"
+  to = "/#contacto"
+  status = 301
+
+[[redirects]]
+  from = "/templates/notify_waiting_list"
+  to = "/register"
+  status = 301
+
+[[redirects]]
+  from = "/templates/notify_waiting_list.html"
+  to = "/register"
+  status = 301
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
