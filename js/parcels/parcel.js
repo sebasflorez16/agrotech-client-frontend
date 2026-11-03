@@ -458,16 +458,30 @@ function initializeLeaflet() {
             console.warn('[LEAFLET] Plugin Geocoder no disponible - verifique que el script esté cargado');
         }
 
-        // 📺 Agregar control de pantalla completa
-        if (typeof L.Control.Fullscreen !== 'undefined') {
-            map.addControl(new L.Control.Fullscreen({
-                position: 'topright',
-                title: 'Ver en pantalla completa',
-                titleCancel: 'Salir de pantalla completa'
-            }));
-            console.log('[LEAFLET] Control de pantalla completa agregado');
-        } else {
-            console.warn('[LEAFLET] Plugin Fullscreen no disponible - verifique que el script esté cargado');
+        // 📺 Control de pantalla completa opcional (esquina inferior derecha)
+        if (typeof L.Control === 'function') {
+            const FullscreenToggle = L.Control.extend({
+                options: { position: 'bottomright' },
+                onAdd: function () {
+                    const btn = L.DomUtil.create('button', 'leaflet-bar');
+                    btn.type = 'button';
+                    btn.title = 'Pantalla completa';
+                    btn.setAttribute('aria-label', 'Pantalla completa');
+                    btn.innerHTML = '⛶';
+                    btn.style.cssText = 'background:#fff;width:34px;height:34px;font-size:18px;line-height:32px;text-align:center;cursor:pointer;border:none;';
+                    L.DomEvent.disableClickPropagation(btn);
+                    L.DomEvent.on(btn, 'click', function (e) {
+                        L.DomEvent.stop(e);
+                        window.toggleMapFullscreen();
+                        const on = document.getElementById('mapContainer').classList.contains('fullscreen');
+                        btn.innerHTML = on ? '⤢' : '⛶';
+                        btn.title = on ? 'Salir de pantalla completa' : 'Pantalla completa';
+                    });
+                    return btn;
+                }
+            });
+            map.addControl(new FullscreenToggle());
+            console.log('[LEAFLET] Control de pantalla completa (bottomright) agregado');
         }
 
         console.log('[LEAFLET] Mapa satelital Esri World Imagery cargado correctamente');
@@ -557,6 +571,12 @@ function setupDrawingTools(map) {
         if (hint) hint.classList.remove('show');
         setTimeout(() => { if (map) map.invalidateSize(); }, 150);
     };
+    window.toggleMapFullscreen = function () {
+        const mc = document.getElementById('mapContainer');
+        if (!mc) return;
+        if (mc.classList.contains('fullscreen')) window.exitMapFullscreen();
+        else window.enterMapFullscreen();
+    };
 
     window.startDrawing = function () {
         // Limpiar cualquier dibujo previo
@@ -564,9 +584,7 @@ function setupDrawingTools(map) {
         positions = [];
         currentPolygon = null;
 
-        // Pantalla completa para dibujar cómodamente (sobre todo en móvil)
-        enterMapFullscreen();
-        
+        // La pantalla completa es opcional: el usuario la activa con el botón.
         // Activar modo de dibujo
         new L.Draw.Polygon(map, drawControl.options.draw.polygon).enable();
         isDrawing = true;
@@ -713,8 +731,8 @@ function savePolygon() {
     // Validar límite de hectáreas ANTES de guardar (evita el 403 del servidor)
     const _coordsLngLat = positions.map(pos => [pos[1], pos[0]]);
     const _areaHa = polygonAreaHectares(_coordsLngLat);
-    const _limitHa = window.AGROTECH_PLAN_LIMIT_HA || 50;
-    if (_areaHa > _limitHa) {
+    const _limitHa = window.AGROTECH_PLAN_LIMIT_HA;
+    if (Number.isFinite(_limitHa) && _areaHa > _limitHa) {
         alert(`⚠️ La parcela tiene ${_areaHa.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha, pero tu plan permite máximo ${_limitHa} ha.\n\nDibuja un polígono más pequeño o mejora tu plan.`);
         return;
     }
@@ -1043,7 +1061,7 @@ function toRad(deg) {
 }
 
 // ── Validación de hectáreas en tiempo real (mientras se dibuja) ──
-window.AGROTECH_PLAN_LIMIT_HA = 50; // default free
+window.AGROTECH_PLAN_LIMIT_HA = Infinity; // sin límite hasta que el API responda
 
 async function fetchPlanHectareLimit() {
     try {
@@ -1055,13 +1073,18 @@ async function fetchPlanHectareLimit() {
         if (!resp.ok) return;
         const data = await resp.json();
         const limit = data.limits && data.limits.hectares;
-        if (limit) window.AGROTECH_PLAN_LIMIT_HA = limit;
+        if (data.unlimited || limit === 'unlimited') {
+            window.AGROTECH_PLAN_LIMIT_HA = Infinity;
+        } else if (typeof limit === 'number' && !isNaN(limit)) {
+            window.AGROTECH_PLAN_LIMIT_HA = limit;
+        }
     } catch (e) { /* silencioso */ }
 }
 
 function updateAreaFeedback(areaHa) {
-    const limit = window.AGROTECH_PLAN_LIMIT_HA || 50;
-    const over = areaHa > limit;
+    const limit = window.AGROTECH_PLAN_LIMIT_HA;
+    const hasLimit = Number.isFinite(limit);
+    const over = hasLimit && areaHa > limit;
     const cell = document.getElementById('parcelAreaCell');
     if (cell) {
         cell.textContent = `${areaHa.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha`;
