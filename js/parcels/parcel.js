@@ -741,8 +741,8 @@ function savePolygon() {
     const name = document.getElementById("parcelName").value.trim();
     const description = document.getElementById("parcelDescription").value.trim();
     const fieldType = document.getElementById("parcelFieldType").value.trim();
-    const soilType = document.getElementById("parcelSoilType").value.trim();
-    const topography = document.getElementById("parcelTopography").value.trim();
+    const soilType = document.getElementById("parcelSoilType").value.trim() || "No especificado";
+    const topography = document.getElementById("parcelTopography").value.trim() || "No especificado";
 
     // Validar que el nombre esté completo
     if (!name) {
@@ -781,8 +781,14 @@ function savePolygon() {
         location.reload();
     })
     .catch(error => {
-        console.error("Error al guardar la parcela:", error);
-        showErrorToast("Hubo un error al guardar la parcela. Revisa la consola para más detalles.");
+        const detail = error.response && error.response.data;
+        console.error("Error al guardar la parcela:", detail || error);
+        let msg = "No se pudo guardar la parcela.";
+        if (detail && typeof detail === "object") {
+            const parts = Object.entries(detail).map(([k, v]) => `${k}: ${Array.isArray(v) ? v.join(", ") : v}`);
+            if (parts.length) msg += " " + parts.join(" | ");
+        }
+        showErrorToast(msg);
     });
 }
 
@@ -1066,7 +1072,13 @@ window.AGROTECH_PLAN_LIMIT_HA = Infinity; // sin límite hasta que el API respon
 async function fetchPlanHectareLimit() {
     try {
         const token = localStorage.getItem('accessToken');
-        const base = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || 'http://localhost:8000';
+        const cfgBase = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
+        const ax = (typeof axiosInstance !== 'undefined' && axiosInstance) ? axiosInstance : window.axiosInstance;
+        const axBase = (ax && ax.defaults && ax.defaults.baseURL) || '';
+        const axOrigin = axBase.replace(/\/api\/parcels\/?$/, '');
+        const base = (cfgBase && !/localhost|127\.0\.0\.1/.test(cfgBase))
+            ? cfgBase.replace(/\/$/, '')
+            : (axOrigin || cfgBase || 'https://agrotech-digital-production.up.railway.app');
         const resp = await fetch(`${base}/billing/api/my-subscription/`, {
             headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
