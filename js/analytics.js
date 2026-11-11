@@ -22,7 +22,10 @@ window.AGROTECH_ANALYTICS = window.AGROTECH_ANALYTICS || {
   function gtag() { window.dataLayer.push(arguments); }
   window.gtag = window.gtag || gtag;
 
-  if (configured) {
+  var gaLoaded = false;
+  function loadGA() {
+    if (gaLoaded || !configured) return;
+    gaLoaded = true;
     var s = document.createElement('script');
     s.async = true;
     s.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(id);
@@ -32,9 +35,25 @@ window.AGROTECH_ANALYTICS = window.AGROTECH_ANALYTICS || {
     gtag('config', id, { anonymize_ip: true });
   }
 
+  function marketingConsentGranted() {
+    try {
+      return localStorage.getItem('agrotech_cookie_consent') === 'granted';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // GA4 solo se carga con consentimiento explícito.
+  if (marketingConsentGranted()) {
+    loadGA();
+  }
+  window.addEventListener('agrotech:consent', function (event) {
+    if (event && event.detail && event.detail.value === 'granted') loadGA();
+  });
+
   /** Helper para medir eventos de conversión. Nunca envía datos sensibles. */
   window.trackEvent = function (name, params) {
-    if (!configured || !name) return;
+    if (!configured || !name || !marketingConsentGranted()) return;
     gtag('event', name, params || {});
   };
 

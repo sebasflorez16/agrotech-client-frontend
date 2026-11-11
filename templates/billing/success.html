@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="../../style.css">
     <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
     <script src="../../js/config.js"></script>
+    <script src="../../js/meta-tracking.js"></script>
     <script src="../../js/auth-global.js"></script>
     <style>
         .success-container { text-align:center; padding:140px 0 60px; max-width:680px; margin:0 auto; }
@@ -155,11 +156,11 @@
         // Ajustar textos para plan gratuito
         if (isFree) {
             document.getElementById('successTitle').textContent = '¡Tu cuenta ha sido creada!';
-            document.getElementById('successSubtitle').textContent = 'Bienvenido a AgroTech Digital. Tu trial gratuito de 14 días está activo.';
+            document.getElementById('successSubtitle').textContent = 'Bienvenido a AgroTech Digital. Tu plan gratuito está activo.';
         }
 
         document.getElementById('detailPlan').textContent = planMap[tier] || tier;
-        document.getElementById('detailCycle').textContent = isFree ? 'Trial 14 días' : (cycle === 'yearly' ? 'Anual' : 'Mensual');
+        document.getElementById('detailCycle').textContent = isFree ? 'Plan gratis' : (cycle === 'yearly' ? 'Anual' : 'Mensual');
         document.getElementById('detailSubId').textContent = preapprovalId || tenantParam || '—';
 
         var confirmStatusEl = document.getElementById('confirmStatus');
@@ -181,7 +182,7 @@
 
             // Recuperar datos de checkout guardados en localStorage
             var checkoutUsername = localStorage.getItem('checkout_username') || '';
-            var checkoutPassword = localStorage.getItem('checkout_password') || '';
+            var checkoutPassword = sessionStorage.getItem('checkout_password') || '';
             var checkoutEmail = localStorage.getItem('checkout_email') || params.get('payer_email') || '';
             var checkoutTenant = localStorage.getItem('checkout_tenant') || '';
 
@@ -200,9 +201,15 @@
                 confirmPayload.preapproval_id = preapprovalId;
             }
 
+            var confirmHeaders = { 'Content-Type': 'application/json' };
+            var authToken = localStorage.getItem('accessToken');
+            if (authToken && authToken !== 'null' && authToken !== 'undefined') {
+                confirmHeaders['Authorization'] = 'Bearer ' + authToken;
+            }
+
             fetch(API + '/billing/api/confirm-payment/', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: confirmHeaders,
                 body: JSON.stringify(confirmPayload)
             })
             .then(function(r) { return r.json(); })
@@ -217,6 +224,21 @@
                     var badge = document.getElementById('detailStatus');
                     if (badge) badge.innerHTML = '<span style="color:var(--verde-claro)">✓</span> Activo y verificado';
 
+                    // Evento de compra para Meta (mismo eventID que usará CAPI).
+                    if (window.AgroTrack) {
+                        var unitPrices = { basic: 79000, pro: 179000 };
+                        var unit = unitPrices[tier] || 0;
+                        var purchaseValue = data.amount_cop || (cycle === 'yearly' ? Math.round(unit * 12 * 0.8) : unit);
+                        var eventId = 'purchase_' + (wompiRef || preapprovalId || Date.now());
+                        window.AgroTrack.event('Purchase', {
+                            value: purchaseValue,
+                            currency: 'COP',
+                            content_name: planMap[tier] || tier,
+                            content_ids: [tier],
+                            transaction_id: wompiRef || preapprovalId
+                        }, eventId);
+                    }
+
                     // Guardar tokens para auto-login
                     if (data.tokens) {
                         localStorage.setItem('accessToken', data.tokens.access);
@@ -228,7 +250,7 @@
 
                     // Limpiar datos temporales de checkout
                     localStorage.removeItem('checkout_username');
-                    localStorage.removeItem('checkout_password');
+                    sessionStorage.removeItem('checkout_password');
                     localStorage.removeItem('checkout_email');
                     localStorage.removeItem('checkout_tenant');
                     localStorage.removeItem('checkout_reference');
@@ -249,6 +271,12 @@
             var userName = localStorage.getItem('userName') || '';
             confirmStatusEl.textContent = '✓ Tu espacio de trabajo "' + tenantParam + '" está listo.' + (userName ? ' Usuario: ' + userName : '');
             confirmStatusEl.className = 'confirm-status show success';
+            if (window.AgroTrack) {
+                window.AgroTrack.event('CompleteRegistration', {
+                    content_name: 'free',
+                    status: 'active'
+                }, 'free_' + tenantParam);
+            }
         }
 
         // Confetti animation

@@ -1,24 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <!-- Meta Pixel Code -->
-    <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '1521929183273863');
-    fbq('track', 'PageView');
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=1521929183273863&ev=PageView&noscript=1"
-    /></noscript>
-    <!-- End Meta Pixel Code -->
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgroTech Digital | Monitoreo Satelital, Radar e Imágenes 30 cm</title>
@@ -58,6 +40,8 @@
     }
     </script>
     <script src="js/analytics.js"></script>
+    <!-- Meta Pixel + consentimiento (carga el pixel solo tras aceptar) -->
+    <script src="js/meta-tracking.js"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -170,7 +154,7 @@
 
         <!-- CTA Principal -->
         <a href="/register" class="cta-hero" data-ga-event="click_cta_trial" data-ga-location="hero">
-            <span class="cta-text">Comenzar prueba gratuita</span>
+            <span class="cta-text">Comenzar gratis</span>
             <span class="cta-arrow">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M4 10h12M12 4l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </span>
@@ -222,7 +206,7 @@
                         <li><span class="check">✓</span> Identificación de zonas problemáticas</li>
                         <li><span class="check">✓</span> Base para decidir siembra y fertilización</li>
                     </ul>
-                    <a href="https://agrotechcolombia.netlify.app" class="btn-product btn-product-ghost">Ver Informes Satelitales →</a>
+                    <a href="/servicios/informes-historicos" class="btn-product btn-product-ghost">Ver Informes Satelitales →</a>
                 </div>
 
                 <div class="product-card">
@@ -263,32 +247,32 @@
             <p class="section-subtitle">Todo lo que necesitas para conocer el estado real de tu cultivo.</p>
             <div class="features-grid">
                 <div class="feature-card">
-                    <img src="https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=600&h=300&fit=crop&q=80" alt="Análisis Satelital">
+                    <img src="https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=600&h=300&fit=crop&q=80" width="600" height="300" loading="lazy" decoding="async" alt="Análisis Satelital">
                     <h3>Análisis Satelital</h3>
-                    <p>Imágenes de alta resolución cada 3-5 días para monitorear tus cultivos desde el espacio con precisión milimétrica.</p>
+                    <p>Imágenes de alta resolución cada 3-5 días para monitorear tus cultivos desde el espacio con alta precisión.</p>
                 </div>
                 <div class="feature-card">
-                    <img src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&h=300&fit=crop&q=80" alt="Índices">
+                    <img src="https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=600&h=300&fit=crop&q=80" width="600" height="300" loading="lazy" decoding="async" alt="Índices">
                     <h3>Índices de Vegetación</h3>
                     <p>NDVI, NDMI y MSAVI para análisis detallado de salud vegetal. Detecta problemas antes de que sean visibles.</p>
                 </div>
                 <div class="feature-card">
-                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=300&fit=crop&q=80" alt="Dashboard">
+                    <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=300&fit=crop&q=80" width="600" height="300" loading="lazy" decoding="async" alt="Dashboard">
                     <h3>Dashboard Inteligente</h3>
                     <p>Visualiza todos tus datos en un solo lugar. Gráficos, tendencias y reportes personalizados.</p>
                 </div>
                 <div class="feature-card">
-                    <img src="https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?w=600&h=300&fit=crop&q=80" alt="Riego">
+                    <img src="https://images.unsplash.com/photo-1615811361523-6bd03d7748e7?w=600&h=300&fit=crop&q=80" width="600" height="300" loading="lazy" decoding="async" alt="Riego">
                     <h3>Gestión de Riego</h3>
-                    <p>Detecta zonas con estrés hídrico y optimiza el uso del agua. Ahorra hasta un 40% en costos.</p>
+                    <p>Detecta zonas con estrés hídrico y optimiza el uso del agua antes de que el problema sea visible.</p>
                 </div>
                 <div class="feature-card">
-                    <img src="https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=600&h=300&fit=crop&q=80" alt="Clima">
+                    <img src="https://images.unsplash.com/photo-1534088568595-a066f410bcda?w=600&h=300&fit=crop&q=80" width="600" height="300" loading="lazy" decoding="async" alt="Clima">
                     <h3>Datos Climáticos</h3>
                     <p>Pronósticos meteorológicos precisos integrados con análisis de parcelas. Anticipa condiciones adversas.</p>
                 </div>
                 <div class="feature-card">
-                    <img src="https://images.unsplash.com/photo-1473163928189-364b2c4e1135?w=600&h=300&fit=crop&q=80" alt="Tecnología">
+                    <img src="https://images.unsplash.com/photo-1473163928189-364b2c4e1135?w=600&h=300&fit=crop&q=80" width="600" height="300" loading="lazy" decoding="async" alt="Tecnología">
                     <h3>Análisis Avanzado</h3>
                     <p>Procesamiento multiespectral y mapas de calor para identificar patrones y tomar decisiones informadas.</p>
                 </div>
@@ -385,12 +369,11 @@
                         <span class="amount">Gratis</span>
                     </div>
                     <ul class="features-list">
-                        <li><span class="check">✓</span> 5 parcelas</li>
-                        <li><span class="check">✓</span> 50 hectáreas</li>
+                        <li><span class="check">✓</span> 1 parcela</li>
+                        <li><span class="check">✓</span> 30 hectáreas</li>
                         <li><span class="check">✓</span> 1 usuario</li>
-                        <li><span class="check">✓</span> 20 análisis/mes</li>
+                        <li><span class="check">✓</span> 5 análisis/mes</li>
                         <li><span class="check">✓</span> Análisis NDVI</li>
-                        <li><span class="check">✓</span> Histórico del cultivo</li>
                     </ul>
                     <a href="templates/billing/plan-detail.html?plan=free" class="btn-plan" data-ga-event="select_plan" data-ga-plan="free">Probar Gratis</a>
                 </div>
@@ -444,10 +427,10 @@
     <section class="final-cta">
         <div class="container">
             <h2>¿Listo para ver tu finca desde el espacio?</h2>
-            <p>Empieza hoy. 14 días de prueba · Sin tarjeta de crédito.</p>
+            <p>Empieza hoy. Plan gratis para siempre · Sin tarjeta de crédito.</p>
             <div class="final-cta-buttons">
                 <a href="/register" class="btn-hero btn-hero-primary" data-ga-event="click_cta_trial" data-ga-location="final">Crear cuenta gratis →</a>
-                <a href="https://agrotechcolombia.netlify.app" class="btn-hero btn-hero-ghost">Ver Informes Satelitales</a>
+                <a href="/servicios/informes-historicos" class="btn-hero btn-hero-ghost">Ver Informes Satelitales</a>
             </div>
         </div>
     </section>
@@ -466,7 +449,7 @@
                 <div class="footer-col">
                     <h4>Producto</h4>
                     <a href="#servicios">Monitoreo Continuo</a>
-                    <a href="https://agrotechcolombia.netlify.app">Informes Satelitales</a>
+                    <a href="/servicios/informes-historicos">Informes Satelitales</a>
                     <a href="#features">Beneficios</a>
                     <a href="#pricing">Planes</a>
                 </div>
