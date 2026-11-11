@@ -14,6 +14,7 @@
     <link href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" rel="stylesheet" />
     <script src="../../js/config.js"></script>
     <script src="../../js/analytics.js"></script>
+    <script src="../../js/meta-tracking.js"></script>
     <script src="../../js/auth-global.js"></script>
     <style>
         .pricing-hero{text-align:center;padding:140px 0 40px;}
@@ -109,13 +110,14 @@
                 <table class="comparison-table">
                     <thead><tr><th>Característica</th><th>Explorador</th><th>Agricultor</th><th>Empresarial</th></tr></thead>
                     <tbody>
-                        <tr><td>Hectáreas</td><td>20</td><td>100</td><td>500</td></tr>
-                        <tr><td>Análisis satelitales/mes</td><td>15</td><td>60</td><td>300</td></tr>
-                        <tr><td>Usuarios</td><td>1</td><td>3</td><td>5</td></tr>
-                        <tr><td>Parcelas</td><td>2</td><td>5</td><td>20</td></tr>
+                        <tr><td>Hectáreas</td><td>30</td><td>100</td><td>300</td></tr>
+                        <tr><td>Análisis satelitales/mes</td><td>5</td><td>100</td><td>500</td></tr>
+                        <tr><td>Usuarios</td><td>1</td><td>2</td><td>3</td></tr>
+                        <tr><td>Parcelas</td><td>1</td><td>10</td><td>50</td></tr>
                         <tr><td>Análisis NDVI</td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
+                        <tr><td>Análisis NDMI (estrés hídrico)</td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
                         <tr><td>Análisis SAVI</td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
-                        <tr><td>NDMI + EVI</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
+                        <tr><td>Análisis EVI</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
                         <tr><td>Pronóstico climático</td><td><span class="cross-icon">✗</span></td><td>Básico</td><td>Completo</td></tr>
                         <tr><td>Soporte</td><td>Email</td><td>Email prioritario</td><td>Prioritario</td></tr>
                     </tbody>
@@ -174,6 +176,9 @@
     <script>
     document.addEventListener('DOMContentLoaded', function() {
         if (window.trackEvent) window.trackEvent('view_pricing');
+        if (window.AgroTrack) {
+            window.AgroTrack.event('ViewContent', { content_name: 'pricing' });
+        }
         var API = window.AGROTECH_CONFIG.API_BASE;
         var toggle = document.getElementById('billingToggle');
         var monthlyLabel = document.querySelector('.toggle-monthly');
@@ -200,7 +205,7 @@
                 features_included: ['ndvi','ndmi','savi','weather_basic','historical'],
                 features_excluded: ['evi','weather_full','continuous_monitoring','pdf_reports','advanced_analytics','api_access'],
                 is_custom: false, trial_days: 14,
-                yearly_discount: { yearly_price_cop: 790000, savings_cop: 158000, yearly_price_usd: 200, savings_usd: 40, discount_percent: 20 }
+                yearly_discount: { yearly_price_cop: 758400, savings_cop: 189600, yearly_price_usd: 192, savings_usd: 48, discount_percent: 20 }
             },
             {
                 tier: 'pro', name: 'Empresarial', description: 'Para empresas agrícolas',
@@ -209,7 +214,7 @@
                 features_included: ['ndvi','ndmi','evi','savi','weather_full','continuous_monitoring','pdf_reports','advanced_analytics','api_access','historical'],
                 features_excluded: [],
                 is_custom: false, trial_days: 14,
-                yearly_discount: { yearly_price_cop: 1790000, savings_cop: 358000, yearly_price_usd: 450, savings_usd: 90, discount_percent: 20 }
+                yearly_discount: { yearly_price_cop: 1718400, savings_cop: 429600, yearly_price_usd: 432, savings_usd: 108, discount_percent: 20 }
             }
         ];
 

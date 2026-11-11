@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="../../css/liquid-glass-system.css">
     <script src="../../js/config.js"></script>
     <script src="../../js/analytics.js"></script>
+    <script src="../../js/meta-tracking.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/@tabler/icons-webfont@latest/tabler-icons.min.css" />
     <style>
         body {
@@ -70,89 +71,85 @@
 
     <script>
     (() => {
-        const PLANS = {
-            free: {
-                tier: 'free', name: 'Explorador', badge: 'GRATIS',
-                tagline: 'Para empezar a ver tu finca desde el espacio, sin costo.',
-                price: 'Gratis', period: '', note: 'Sin tarjeta de crédito · 14 días de prueba completa',
-                includes: [
-                    'Análisis NDVI (vigor del cultivo)',
-                    'Histórico de evolución del cultivo',
-                    'Mapa satelital de tu parcela',
-                ],
-                limits: [
-                    { v: '5', l: 'parcelas' },
-                    { v: '50 ha', l: 'hectáreas' },
-                    { v: '1', l: 'usuario' },
-                    { v: '20', l: 'análisis/mes' },
-                ],
-                cta: 'Empezar gratis', secondary: false,
-            },
-            basic: {
-                tier: 'basic', name: 'Agricultor', badge: 'POPULAR',
-                tagline: 'Para productores que quieren datos reales y accionables.',
-                price: '$79.000', period: '/mes', note: 'Cancela cuando quieras',
-                includes: [
-                    'Índices NDVI + NDMI + SAVI (vigor, humedad y suelo)',
-                    'Histórico de evolución del cultivo',
-                    'Pronóstico climático básico',
-                    'Escenas satelitales disponibles por fecha',
-                    'Mapa satelital de tus parcelas',
-                ],
-                limits: [
-                    { v: '10', l: 'parcelas' },
-                    { v: '100 ha', l: 'hectáreas' },
-                    { v: '2', l: 'usuarios' },
-                    { v: '100', l: 'análisis/mes' },
-                ],
-                cta: 'Comenzar ahora', secondary: false,
-            },
-            pro: {
-                tier: 'pro', name: 'Empresarial', badge: 'PRECISIÓN',
-                tagline: 'Para operaciones que necesitan precisión y prescripción.',
-                price: '$179.000', period: '/mes', note: 'Cancela cuando quieras',
-                includes: [
-                    'Todos los índices: NDVI + NDMI + SAVI + EVI',
-                    'Sectorización de manejo (zonas de vigor con K-means)',
-                    'Mapa de prescripción (GeoJSON/KML para tu maquinaria)',
-                    'Monitoreo continuo + alertas automáticas',
-                    'Pronóstico climático completo',
-                    'Reportes PDF de tus parcelas',
-                ],
-                limits: [
-                    { v: '50', l: 'parcelas' },
-                    { v: '300 ha', l: 'hectáreas' },
-                    { v: '3', l: 'usuarios' },
-                    { v: '500', l: 'análisis/mes' },
-                ],
-                cta: 'Comenzar ahora', secondary: false,
-            },
+        const API = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) || '';
+        const FEATURE_LABELS = {
+            ndvi: 'Análisis NDVI (vigor del cultivo)',
+            ndmi: 'NDMI (estrés hídrico)',
+            savi: 'SAVI (suelo y vegetación)',
+            evi: 'EVI (vigor mejorado)',
+            weather_basic: 'Pronóstico climático básico',
+            weather_full: 'Pronóstico climático completo',
+            historical: 'Histórico de evolución del cultivo',
+            continuous_monitoring: 'Monitoreo continuo + alertas automáticas',
+            pdf_reports: 'Reportes PDF de tus parcelas',
+            advanced_analytics: 'Analítica avanzada',
+            api_access: 'Acceso API',
+            support_priority: 'Soporte prioritario',
+            dedicated_account: 'Cuenta dedicada',
+        };
+        const META = {
+            free: { badge: 'GRATIS', tagline: 'Para empezar a ver tu finca desde el espacio, sin costo.', cta: 'Empezar gratis', note: 'Gratis para siempre · Sin tarjeta' },
+            basic: { badge: 'POPULAR', tagline: 'Para productores que quieren datos reales y accionables.', cta: 'Comenzar ahora', note: 'Cancela cuando quieras' },
+            pro: { badge: 'PRECISIÓN', tagline: 'Para operaciones que necesitan precisión y prescripción.', cta: 'Comenzar ahora', note: 'Cancela cuando quieras' },
+            enterprise: { badge: 'CORPORATIVO', tagline: 'Para operaciones de gran escala con acompañamiento dedicado.', cta: 'Hablar con ventas', note: 'Precio personalizado' },
+        };
+        const FALLBACK = {
+            free: { tier: 'free', name: 'Explorador', price_cop: '0', limits: { parcels: 1, hectares: 30, users: 1, eosda_requests: 5 }, features_included: ['ndvi'] },
+            basic: { tier: 'basic', name: 'Agricultor', price_cop: '79000', limits: { parcels: 10, hectares: 100, users: 2, eosda_requests: 100 }, features_included: ['ndvi', 'ndmi', 'savi', 'weather_basic', 'historical'] },
+            pro: { tier: 'pro', name: 'Empresarial', price_cop: '179000', limits: { parcels: 50, hectares: 300, users: 3, eosda_requests: 500 }, features_included: ['ndvi', 'ndmi', 'savi', 'evi', 'weather_full', 'historical', 'continuous_monitoring', 'pdf_reports', 'advanced_analytics', 'api_access'] },
+            enterprise: { tier: 'enterprise', name: 'Corporativo', price_cop: '600000', limits: { parcels: 9999, hectares: 99999, users: 10, eosda_requests: 99999 }, features_included: ['ndvi', 'ndmi', 'savi', 'evi', 'weather_full', 'historical', 'continuous_monitoring', 'pdf_reports', 'advanced_analytics', 'api_access', 'support_priority', 'dedicated_account'] },
         };
 
+        const fmtCOP = (n) => '$' + new Intl.NumberFormat('es-CO').format(Number(n) || 0);
         const params = new URLSearchParams(window.location.search);
         let tier = params.get('plan') || 'basic';
-        if (!PLANS[tier]) tier = 'basic';
-        const p = PLANS[tier];
+        if (!FALLBACK[tier]) tier = 'basic';
 
-        const container = document.getElementById('planContent');
-        const includes = p.includes.map(f =>
-            '<li><i class="ti ti-check icon"></i><span>' + f + '</span></li>'
-        ).join('');
-        const limits = p.limits.map(l =>
-            '<div class="limit-box"><div class="limit-value">' + l.v + '</div><div class="limit-label">' + l.l + '</div></div>'
-        ).join('');
+        function render(plan) {
+            const meta = META[plan.tier] || META.basic;
+            if (window.AgroTrack) {
+                window.AgroTrack.event('ViewContent', {
+                    content_name: 'plan_' + plan.tier,
+                    content_ids: [plan.tier],
+                    value: Number(plan.price_cop) || 0,
+                    currency: 'COP'
+                });
+            }
+            const limits = plan.limits || {};
+            const features = (plan.features_included || []).map(code => FEATURE_LABELS[code]).filter(Boolean);
+            const isFree = plan.tier === 'free';
+            const container = document.getElementById('planContent');
+            const includes = features.map(f =>
+                '<li><i class="ti ti-check icon"></i><span>' + f + '</span></li>'
+            ).join('');
+            const limitBoxes = [
+                { v: limits.parcels >= 9999 ? '∞' : limits.parcels, l: 'parcelas' },
+                { v: limits.hectares >= 99999 ? '∞' : limits.hectares + ' ha', l: 'hectáreas' },
+                { v: limits.users >= 9999 ? '∞' : limits.users, l: 'usuarios' },
+                { v: limits.eosda_requests >= 9999 ? '∞' : limits.eosda_requests, l: 'análisis/mes' },
+            ].map(l =>
+                '<div class="limit-box"><div class="limit-value">' + l.v + '</div><div class="limit-label">' + l.l + '</div></div>'
+            ).join('');
+            const ctaHref = isFree ? '/register' : ('checkout.html?plan=' + plan.tier + '&cycle=monthly');
+            container.innerHTML =
+                '<div class="plan-header"><span class="plan-badge">' + meta.badge + '</span><h1 class="plan-name">' + plan.name + '</h1></div>' +
+                '<p class="plan-tagline">' + meta.tagline + '</p>' +
+                '<div class="price-row"><span class="price-amount">' + (isFree ? 'Gratis' : fmtCOP(plan.price_cop)) + '</span><span class="price-period">' + (isFree ? '' : '/mes') + '</span><span class="price-note"> · ' + meta.note + '</span></div>' +
+                '<div class="section-label">Qué incluye</div>' +
+                '<ul class="features-list">' + includes + '</ul>' +
+                '<div class="section-label">Límites del plan</div>' +
+                '<div class="limits-grid">' + limitBoxes + '</div>' +
+                '<a href="' + ctaHref + '" class="btn-pay">' + meta.cta + '</a>';
+        }
 
-        const ctaHref = 'checkout.html?plan=' + p.tier + '&cycle=monthly';
-
-        container.innerHTML =
-            '<div class="plan-header"><span class="plan-badge">' + p.badge + '</span><h1 class="plan-name">' + p.name + '</h1></div>' +
-            '<p class="plan-tagline">' + p.tagline + '</p>' +
-            '<div class="price-row"><span class="price-amount">' + p.price + '</span><span class="price-period">' + p.period + '</span><span class="price-note"> · ' + p.note + '</span></div>' +
-            '<div class="section-label">Qué incluye</div>' +
-            '<ul class="features-list">' + includes + '</ul>' +
-            '<div class="section-label">Límites del plan</div>' +
-            '<div class="limits-grid">' + limits + '</div>' +
-            '<a href="' + ctaHref + '" class="btn-pay' + (p.secondary ? ' secondary' : '') + '">' + p.cta + '</a>';
+        render(FALLBACK[tier]);
+        fetch(API + '/billing/api/plans/')
+            .then(r => r.ok ? r.json() : Promise.reject())
+            .then(list => {
+                const apiPlan = (list || []).find(p => p.tier === tier);
+                if (apiPlan) render(apiPlan);
+            })
+            .catch(() => { /* se queda el fallback corregido */ });
     })();
     </script>
 </body>

@@ -204,8 +204,13 @@ registerForm.addEventListener('submit', async (e) => {
     
     setLoading(true);
     if (window.trackEvent) window.trackEvent('begin_signup');
-    
     const emailValue = document.getElementById('email').value.trim();
+
+    const ids = window.AgroTrack ? window.AgroTrack.getFbcFbp() : {};
+    const attribution = window.AgroTrack ? window.AgroTrack.getAttribution() : {};
+    const eventId = (window.crypto && window.crypto.randomUUID)
+        ? window.crypto.randomUUID()
+        : ('reg_' + Date.now());
     const payload = {
         email: emailValue,
         username: generateUsername(emailValue),
@@ -215,6 +220,11 @@ registerForm.addEventListener('submit', async (e) => {
         last_name: document.getElementById('last_name').value.trim(),
         organization_name: orgName,
         phone: document.getElementById('phone').value.trim() || undefined,
+        fbp: ids.fbp || undefined,
+        fbc: ids.fbc || undefined,
+        event_id: eventId,
+        attribution: attribution,
+        marketing_consent: window.AgroTrack ? window.AgroTrack.consent() === 'granted' : false,
     };
     
     try {
@@ -266,7 +276,14 @@ registerForm.addEventListener('submit', async (e) => {
         }
         
         // Success!
-        if (window.trackEvent) window.trackEvent('signup_complete');
+        if (window.AgroTrack) {
+            window.AgroTrack.event('CompleteRegistration', {
+                content_name: 'register',
+                status: data.requires_email_verification ? 'pending_verification' : 'active'
+            }, eventId);
+        } else if (window.trackEvent) {
+            window.trackEvent('signup_complete');
+        }
 
         // Acceso inmediato: el backend devuelve tokens cuando la cuenta está activa.
         if (data.data && data.data.tokens) {
@@ -286,7 +303,6 @@ registerForm.addEventListener('submit', async (e) => {
             }, 900);
             return;
         }
-
         if (data.requires_email_verification) {
             // Verificacion de email requerida → mostrar mensaje y no redirigir
             registerForm.style.display = 'none';
@@ -294,16 +310,47 @@ registerForm.addEventListener('submit', async (e) => {
             document.querySelector('.subtitle').style.display = 'none';
             document.querySelector('.login-link').style.display = 'none';
             
+            const registeredEmail = document.getElementById('email').value.trim();
             document.getElementById('successMessage').innerHTML = `
                 <h3>🌱 Cuenta creada!</h3>
-                <p>Te hemos enviado un correo de verificacion a <strong>${document.getElementById('email').value}</strong>.</p>
+                <p>Te hemos enviado un correo de verificacion a <strong>${registeredEmail}</strong>.</p>
                 <p style="margin-top: 12px; font-size: 0.85rem; color: var(--text-secondary);">
                     Revisa tu bandeja de entrada (y spam) y haz clic en el enlace para activar tu cuenta.
                 </p>
+                <button type="button" id="resendVerificationBtn" style="margin-top: 14px; background: transparent; color: var(--agrotech-primary); border: 1px solid var(--agrotech-primary); padding: 9px 20px; border-radius: 100px; font-weight: 600; cursor: pointer;">
+                    Reenviar correo
+                </button>
+                <p id="resendVerificationStatus" style="margin-top: 8px; font-size: 0.85rem;"></p>
                 <a href="login.html" style="display: inline-block; margin-top: 16px; background: var(--agrotech-primary); color: white; padding: 10px 24px; border-radius: 100px; text-decoration: none; font-weight: 600;">
                     Ir a iniciar sesion
                 </a>
             `;
+            const resendBtn = document.getElementById('resendVerificationBtn');
+            const resendStatus = document.getElementById('resendVerificationStatus');
+            resendBtn.addEventListener('click', async () => {
+                resendBtn.disabled = true;
+                resendStatus.textContent = 'Reenviando...';
+                try {
+                    const resendResp = await fetch(`${API_BASE_URL}/api/auth/resend-verification/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: registeredEmail })
+                    });
+                    const resendData = await resendResp.json().catch(() => ({}));
+                    if (resendResp.ok) {
+                        resendStatus.textContent = 'Correo reenviado. Revisa tu bandeja y spam.';
+                        resendStatus.style.color = 'var(--agrotech-primary-dark)';
+                    } else {
+                        resendStatus.textContent = resendData.error || 'No pudimos reenviar el correo. Intenta de nuevo.';
+                        resendStatus.style.color = '#c0392b';
+                    }
+                } catch (err) {
+                    resendStatus.textContent = 'No se pudo conectar con el servidor.';
+                    resendStatus.style.color = '#c0392b';
+                } finally {
+                    resendBtn.disabled = false;
+                }
+            });
             successMessage.classList.add('show');
             setLoading(false);
             return;
@@ -328,7 +375,6 @@ registerForm.addEventListener('submit', async (e) => {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🍎 Register - AgroTech Digital');
     if (window.trackEvent) window.trackEvent('signup_start');
-    
     // If already authenticated, redirect
     const token = localStorage.getItem('accessToken');
     if (token && token !== 'null' && token !== 'undefined') {

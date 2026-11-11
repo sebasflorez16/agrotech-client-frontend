@@ -1,6 +1,6 @@
-// Script para actualizar el resumen de parcelas en el dashboard
-// Suponiendo un límite de parcelas por plan (puedes cambiar este valor)
-const PARCEL_LIMIT = 50;
+// Script para actualizar el resumen de parcelas en el dashboard.
+// El límite SIEMPRE viene del plan real (respuesta del backend), no de una
+// constante: antes todos los clientes veían "50 parcelas" sin importar su plan.
 
 // Base URL centralizada (accesible por todas las funciones del módulo)
 const cfgBase = (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE)
@@ -54,7 +54,11 @@ async function fetchParcelSummary() {
         // Actualizar los elementos del DOM con los datos obtenidos
         document.getElementById('parcelCount').textContent = data.total || 0;
         document.getElementById('parcelTotalArea').textContent = (data.total_area || 0).toLocaleString(undefined, {maximumFractionDigits:2}) + ' ha';
-        document.getElementById('parcelRemaining').textContent = Math.max(PARCEL_LIMIT - (data.total || 0), 0);
+        document.getElementById('parcelRemaining').textContent = data.unlimited
+            ? '∞'
+            : ((data.parcel_restante !== undefined && data.parcel_restante !== null)
+                ? data.parcel_restante
+                : '—');
         document.getElementById('parcelActive').textContent = data.activas || 0;
         document.getElementById('parcelInactive').textContent = data.inactivas || 0;
         document.getElementById('parcelAvgArea').textContent = (data.area_promedio || 0).toLocaleString(undefined, {maximumFractionDigits:2}) + ' ha';

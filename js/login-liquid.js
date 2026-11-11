@@ -42,6 +42,38 @@ function hideError() {
     errorMessage.classList.remove('show');
 }
 
+// Cuenta sin verificar: mensaje accionable + reenvío de correo.
+function showVerificationError(identifier) {
+    errorMessage.classList.add('show');
+    errorText.innerHTML =
+        'Tu cuenta aún no está verificada. Revisa tu correo (y spam). ' +
+        '<button type="button" id="resendVerifyBtn" style="margin-left:6px;background:none;border:0;color:inherit;text-decoration:underline;cursor:pointer;font:inherit;padding:0;">Reenviar correo</button>' +
+        '<span id="resendVerifyStatus" style="display:block;margin-top:6px;font-size:12px;"></span>';
+    const btn = document.getElementById('resendVerifyBtn');
+    const status = document.getElementById('resendVerifyStatus');
+    btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        status.textContent = 'Reenviando...';
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/auth/resend-verification/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: identifier, username: identifier })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (res.ok) {
+                status.textContent = data.message || 'Correo reenviado. Revisa tu bandeja.';
+            } else {
+                status.textContent = data.error || 'No se pudo reenviar el correo.';
+            }
+        } catch (e) {
+            status.textContent = 'No se pudo conectar con el servidor.';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+}
+
 // Cambiar estado de loading
 function setLoading(loading) {
     btnLogin.disabled = loading;
@@ -96,8 +128,10 @@ loginForm.addEventListener('submit', async (e) => {
                 showError('Usuario o contraseña incorrectos');
             } else if (response.status === 400) {
                 showError(data.detail || data.error || 'Datos inválidos');
+            } else if (response.status === 403 && data.needs_verification) {
+                showVerificationError(username);
             } else {
-                showError('Error al iniciar sesión. Intenta nuevamente');
+                showError(data.error || data.detail || 'Error al iniciar sesión. Intenta nuevamente');
             }
             setLoading(false);
             return;
