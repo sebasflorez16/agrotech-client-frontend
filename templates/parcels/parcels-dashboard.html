@@ -585,6 +585,7 @@
             <h3>Opciones</h3>
             <button class="custom-button" onclick="startDrawing()">Iniciar Dibujo</button>
             <button class="custom-button" onclick="openModal()">Guardar Polígono</button>
+            <button class="custom-button" onclick="openImportModal()">Importar archivo</button>
             <button class="custom-button" id="cancel-button" onclick="cancelDrawing()" style="display: none; background-color: red; color: white;">
                 Cancelar Dibujo
             </button>
@@ -621,6 +622,17 @@
             <div class="form-group mb-3">
                 <label for="parcelDescription">Descripción:</label>
                 <textarea id="parcelDescription" name="description" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="form-group mb-3" style="background:#f1f8f2;border:1px dashed #9ccc9f;border-radius:10px;padding:12px;">
+                <label for="parcelFile" style="font-weight:600;color:#1a7a2e;">Importar archivo (opcional)</label>
+                <input type="file" id="parcelFile" name="file" class="form-control"
+                       accept=".geojson,.json,.kml,.kmz,.zip,.gpx,.gpkg">
+                <small style="display:block;margin-top:6px;color:#666;line-height:1.4;">
+                    GeoJSON, KML, KMZ, Shapefile (.zip), GPX o GeoPackage.
+                    Si el archivo trae varios lotes, se crea una parcela por lote.
+                    Si subes archivo, no necesitas dibujar el polígono.
+                </small>
             </div>
 
             <details class="mb-4" style="background:#f8f9fa;border-radius:10px;padding:10px 14px;">

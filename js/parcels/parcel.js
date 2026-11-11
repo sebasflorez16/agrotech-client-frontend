@@ -715,6 +715,70 @@ window.openModal = function () {
     document.getElementById("parcelModal").style.display = "block";
 };
 
+// Abrir el modal para importar un archivo sin necesidad de dibujar.
+window.openImportModal = function () {
+    window.exitMapFullscreen();
+    positions = [];
+    currentPolygon = null;
+    if (drawnItems) drawnItems.clearLayers();
+    const fileInput = document.getElementById("parcelFile");
+    if (fileInput) fileInput.value = "";
+    document.getElementById("parcelModal").style.display = "block";
+};
+
+// Importar GeoJSON/KML/KMZ/Shapefile ZIP/GPX/GPKG y crear las parcelas.
+function importParcelFile(file) {
+    const nameInput = document.getElementById("parcelName");
+    const baseName = (nameInput.value || "").trim() || file.name.replace(/\.[^.]+$/, "");
+    if (!baseName) {
+        alert("Escribe un nombre para la parcela o usa el nombre del archivo.");
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("name", baseName);
+    formData.append("description", document.getElementById("parcelDescription").value.trim());
+    formData.append("field_type", document.getElementById("parcelFieldType").value.trim());
+    formData.append("soil_type", document.getElementById("parcelSoilType").value.trim());
+    formData.append("topography", document.getElementById("parcelTopography").value.trim());
+
+    if (typeof showInfoToast === "function") showInfoToast("Importando archivo…");
+
+    axiosInstance.post("parcel/import/", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+    })
+        .then(response => {
+            const data = response.data || {};
+            const parcels = data.parcels || [];
+            if (typeof showInfoToast === "function") {
+                showInfoToast(data.message || `${data.count || parcels.length} parcela(s) importada(s).`);
+            }
+            closeModal();
+            const fileInput = document.getElementById("parcelFile");
+            if (fileInput) fileInput.value = "";
+
+            // Sincronizar con EOSDA en segundo plano, sin bloquear la respuesta.
+            parcels.forEach(parcel => {
+                axiosInstance.post(`parcel/${parcel.id}/sync-eosda/`).catch(() => {});
+            });
+
+            // Recargar mapa y tabla para dibujar los lotes importados.
+            if (typeof loadParcels === "function") loadParcels();
+        })
+        .catch(error => {
+            const detail = error.response && error.response.data;
+            let message = "No se pudo importar el archivo.";
+            if (detail) {
+                if (typeof detail === "string") message = detail;
+                else if (detail.error) message = detail.error;
+                else if (detail.detail) message = detail.detail;
+            }
+            if (typeof showErrorToast === "function") showErrorToast(message);
+            else alert(message);
+        });
+}
+
 // Función para cerrar el modal
 window.closeModal = function () {
     document.getElementById("parcelModal").style.display = "none";
@@ -722,9 +786,17 @@ window.closeModal = function () {
 
 // Función para guardar el polígono
 function savePolygon() {
+    // Si hay un archivo seleccionado, importar en vez de usar el dibujo.
+    const fileInput = document.getElementById("parcelFile");
+    const selectedFile = fileInput && fileInput.files && fileInput.files[0];
+    if (selectedFile) {
+        importParcelFile(selectedFile);
+        return;
+    }
+
     // Validar si se ha dibujado un polígono
     if (!positions || positions.length === 0) {
-        alert("Primero dibuje el polígono de la parcela antes de guardar.");
+        alert("Primero dibuje el polígono de la parcela o selecciona un archivo para importar.");
         return;
     }
 
