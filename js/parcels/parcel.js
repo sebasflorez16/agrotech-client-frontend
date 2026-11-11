@@ -765,6 +765,21 @@ function importParcelFile(file) {
 
             // Recargar mapa y tabla para dibujar los lotes importados.
             if (typeof loadParcels === "function") loadParcels();
+
+            // Centrar el mapa en los lotes recién importados.
+            if (parcels.length && typeof map !== "undefined" && map) {
+                try {
+                    const importedLayers = parcels
+                        .filter(parcel => parcel.geom)
+                        .map(parcel => L.geoJSON(parcel.geom));
+                    if (importedLayers.length) {
+                        const group = L.featureGroup(importedLayers);
+                        map.fitBounds(group.getBounds(), { padding: [30, 30] });
+                    }
+                } catch (mapError) {
+                    console.warn("No se pudo centrar el mapa en los lotes importados:", mapError);
+                }
+            }
         })
         .catch(error => {
             const detail = error.response && error.response.data;
