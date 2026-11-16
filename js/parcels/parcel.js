@@ -2129,9 +2129,11 @@ function showFloatingImageToggleButton(cacheKey, bounds, mapInstance) {
 }
 // Función para mostrar la imagen NDVI/NDMI en Leaflet sobre la parcela seleccionada
 function showNDVIImageOnLeaflet(imageBase64, bounds, mapInstance) {
-    // Elimina capas NDVI previas
+    // Elimina capas ráster previas (EOSDA, Sentinel-2 y Sentinel-1) para que
+    // no se pinten unas encima de otras.
+    const rasterClasses = ['ndvi-layer', 's2-layer', 's1-rvi-layer', 's1-change-layer'];
     mapInstance.eachLayer(function (layer) {
-        if (layer.options && layer.options.className === 'ndvi-layer') {
+        if (layer.options && rasterClasses.includes(layer.options.className)) {
             mapInstance.removeLayer(layer);
         }
     });

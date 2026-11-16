@@ -19,6 +19,35 @@
     let s2Layer = null;
     let s2Visible = false;
 
+    // Solo una capa ráster visible a la vez: evita que Sentinel-1 y Sentinel-2
+    // (o dos índices distintos) se pinten uno encima del otro y alteren la imagen.
+    function _removeLayerByClass(className) {
+        if (!window.map || !className) return;
+        window.map.eachLayer(layer => {
+            if (layer && layer.options && layer.options.className === className) {
+                try { window.map.removeLayer(layer); } catch (e) {}
+            }
+        });
+    }
+
+    function _clearRasterLayers(keep) {
+        const layers = [
+            ['ndvi-layer', 'ndvi'],
+            ['s2-layer', 's2'],
+            ['s1-rvi-layer', 's1-rvi'],
+            ['s1-change-layer', 's1-change'],
+        ];
+        layers.forEach(([className, key]) => {
+            if (key !== keep) _removeLayerByClass(className);
+        });
+        if (keep !== 's2') {
+            s2Layer = null;
+            s2Visible = false;
+        }
+        if (keep !== 's1-rvi') s1RviLayer = null;
+        if (keep !== 's1-change') s1ChangeLayer = null;
+    }
+
     function getBaseUrl() {
         if (window.AGROTECH_CONFIG && window.AGROTECH_CONFIG.API_BASE) {
             return window.AGROTECH_CONFIG.API_BASE + '/api/parcels';
@@ -36,13 +65,16 @@
         return localStorage.getItem('accessToken') || '';
     }
 
-    function authFetch(url) {
+    function authFetch(url, options = {}) {
         // Usa el fetch autenticado del proyecto (auto-refresca el token si expira)
         if (typeof window.authenticatedFetch === 'function') {
-            return window.authenticatedFetch(url);
+            return window.authenticatedFetch(url, options);
         }
-        const headers = getToken() ? { Authorization: `Bearer ${getToken()}` } : {};
-        return fetch(url, { headers });
+        const headers = Object.assign(
+            getToken() ? { Authorization: `Bearer ${getToken()}` } : {},
+            options.headers || {}
+        );
+        return fetch(url, Object.assign({}, options, { headers }));
     }
 
     function selectedParcelId() {
@@ -102,6 +134,8 @@
             const bounds = data.bounds; // [west, south, east, north]
             if (!b64 || !bounds) throw new Error('Sin imagen o bounds en la respuesta.');
 
+            // Quitar cualquier otra capa ráster (Sentinel-1 / EOSDA) antes de pintar.
+            _clearRasterLayers('s2');
             if (s2Layer) window.map.removeLayer(s2Layer);
             s2Layer = L.imageOverlay(
                 `data:image/png;base64,${b64}`,
@@ -520,7 +554,21 @@
         if (to) params += `&date_to=${to}`;
         try {
             const url = `${getBaseUrl()}/parcel/${parcelId}/sentinel2-history/?${params}`;
-            const resp = await authFetch(url);
+            // Tope de seguridad: el backend devuelve parcial a los 75 s, pero si
+            // la red se cuelga no queremos un spinner infinito.
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 90000);
+            let resp;
+            try {
+                resp = await authFetch(url, { signal: controller.signal });
+            } catch (err) {
+                if (err && err.name === 'AbortError') {
+                    throw new Error('El histórico está tardando demasiado. Intenta de nuevo o reduce el rango de fechas.');
+                }
+                throw err;
+            } finally {
+                clearTimeout(timeoutId);
+            }
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) throw new Error(data.error || data.message || `HTTP ${resp.status}`);
             const series = data.series || [];
@@ -906,7 +954,12 @@
                 return;
             }
             const b = rvi.bounds;
-            s1RviLayer = L.imageOverlay(`data:image/png;base64,${rvi.image_base64}`, [[b[1], b[0]], [b[3], b[2]]], { opacity: 0.72 });
+            _clearRasterLayers('s1-rvi');
+            s1RviLayer = L.imageOverlay(
+                `data:image/png;base64,${rvi.image_base64}`,
+                [[b[1], b[0]], [b[3], b[2]]],
+                { opacity: 0.72, className: 's1-rvi-layer' }
+            );
             s1RviLayer.addTo(map);
             if (window.trackEvent && !window.__agrotechFirstRadar) {
                 window.__agrotechFirstRadar = true;
@@ -953,10 +1006,11 @@
                 return;
             }
             const b = chg.bounds;
+            _clearRasterLayers('s1-change');
             s1ChangeLayer = L.imageOverlay(
                 `data:image/png;base64,${chg.change_heatmap}`,
                 [[b[1], b[0]], [b[3], b[2]]],
-                { opacity: 0.8 }
+                { opacity: 0.8, className: 's1-change-layer' }
             );
             s1ChangeLayer.addTo(map);
             const thr = chg.threshold_db != null ? Number(chg.threshold_db).toFixed(1) : '2.0';
