@@ -36,6 +36,7 @@
             ['s2-layer', 's2'],
             ['s1-rvi-layer', 's1-rvi'],
             ['s1-change-layer', 's1-change'],
+            ['elevation-layer', 'elevation'],
         ];
         layers.forEach(([className, key]) => {
             if (key !== keep) _removeLayerByClass(className);

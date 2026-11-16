@@ -2131,7 +2131,7 @@ function showFloatingImageToggleButton(cacheKey, bounds, mapInstance) {
 function showNDVIImageOnLeaflet(imageBase64, bounds, mapInstance) {
     // Elimina capas ráster previas (EOSDA, Sentinel-2 y Sentinel-1) para que
     // no se pinten unas encima de otras.
-    const rasterClasses = ['ndvi-layer', 's2-layer', 's1-rvi-layer', 's1-change-layer'];
+    const rasterClasses = ['ndvi-layer', 's2-layer', 's1-rvi-layer', 's1-change-layer', 'elevation-layer'];
     mapInstance.eachLayer(function (layer) {
         if (layer.options && rasterClasses.includes(layer.options.className)) {
             mapInstance.removeLayer(layer);

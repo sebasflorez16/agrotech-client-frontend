@@ -130,6 +130,15 @@
         // Eliminar capa de elevación previa si existe
         removeElevationLayer(mapInstance);
 
+        // Una sola capa ráster visible: quitar Sentinel-2/Sentinel-1/NDVI.
+        ['ndvi-layer', 's2-layer', 's1-rvi-layer', 's1-change-layer'].forEach(className => {
+            mapInstance.eachLayer(layer => {
+                if (layer.options && layer.options.className === className) {
+                    mapInstance.removeLayer(layer);
+                }
+            });
+        });
+
         // Crear pane personalizado para elevación si no existe
         if (!mapInstance.getPane('elevationPane')) {
             const pane = mapInstance.createPane('elevationPane');
