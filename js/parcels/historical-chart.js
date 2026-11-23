@@ -124,7 +124,7 @@ async function mostrarGraficoHistorico() {
                 ${errorMessage}
                 <br><br>
                 <small class="text-muted">
-                    Tip: Asegúrate de que la parcela tenga un eosda_id configurado y que existan datos históricos.
+                    Tip: Verifica que existan imágenes satelitales para el rango seleccionado.
                 </small>
             </div>
         `;

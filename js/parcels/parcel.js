@@ -1014,26 +1014,22 @@ function loadParcels() {
 }
 
 /**
- * Renderiza la celda de estado de sincronización de una parcela.
- * Estados: local / syncing / synced / error.
+ * Renderiza la celda de estado de la parcela.
+ * La parcela ya no se sincroniza con EOSDA: se guarda localmente y los
+ * análisis usan Sentinel-2/1 sobre su geometría.
  */
 function renderSyncStatus(parcel) {
     const status = parcel.sync_status || 'local';
     const error = parcel.sync_error || '';
     const map = {
-        'synced':   { label: 'Sincronizada', cls: 'success', icon: '✅' },
-        'syncing':  { label: 'Sincronizando…', cls: 'warning', icon: '⏳' },
-        'local':    { label: 'Solo local', cls: 'secondary', icon: '📄' },
-        'error':    { label: 'Error', cls: 'danger', icon: '⚠️' },
+        'synced':   { label: 'Guardada', cls: 'success', icon: '✅' },
+        'syncing':  { label: 'Guardada', cls: 'secondary', icon: '📄' },
+        'local':    { label: 'Guardada', cls: 'secondary', icon: '📄' },
+        'error':    { label: 'Guardada', cls: 'secondary', icon: '📄' },
     };
     const info = map[status] || map.local;
     const errorTitle = error ? ` title="${error.replace(/"/g, '&quot;')}"` : '';
 
-    if (status === 'error' || status === 'local') {
-        return `<span${errorTitle} style="white-space:nowrap;">${info.icon} ${info.label}</span>
-            <button class="btn btn-sm btn-outline-primary" style="margin-left:6px;"
-                onclick="syncParcel(${parcel.id})" title="Reintentar sincronización">Sincronizar</button>`;
-    }
     return `<span${errorTitle} style="white-space:nowrap;">${info.icon} ${info.label}</span>`;
 }
 
