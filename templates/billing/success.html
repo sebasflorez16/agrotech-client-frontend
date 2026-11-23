@@ -226,7 +226,7 @@
 
                     // Evento de compra para Meta (mismo eventID que usará CAPI).
                     if (window.AgroTrack) {
-                        var unitPrices = { basic: 79000, pro: 179000 };
+                        var unitPrices = { basic: 79000, pro: 229000 };
                         var unit = unitPrices[tier] || 0;
                         var purchaseValue = data.amount_cop || (cycle === 'yearly' ? Math.round(unit * 12 * 0.8) : unit);
                         var eventId = 'purchase_' + (wompiRef || preapprovalId || Date.now());

@@ -195,12 +195,12 @@
         // Planes estáticos como fallback cuando el API no responde
         var FALLBACK_PLANS = [
             {
-                tier: 'free', name: 'Explorador', description: 'Gratis para siempre',
+                tier: 'free', name: 'Explorador', description: '14 días gratis',
                 price_cop: '0.00', price_usd: '0.00', frequency: 1,
                 limits: { users: 1, parcels: 1, hectares: 30, eosda_requests: 5 },
                 features_included: ['ndvi'],
                 features_excluded: ['ndmi','evi','savi','weather_basic','weather_full','continuous_monitoring','pdf_reports','advanced_analytics','api_access','historical'],
-                is_custom: false, trial_days: 0,
+                is_custom: false, trial_days: 14,
                 yearly_discount: { yearly_price_cop: 0, savings_cop: 0, yearly_price_usd: 0, savings_usd: 0, discount_percent: 20 }
             },
             {
@@ -214,12 +214,12 @@
             },
             {
                 tier: 'pro', name: 'Empresarial', description: 'Para empresas agrícolas',
-                price_cop: '179000.00', price_usd: '45.00', frequency: 1,
+                price_cop: '229000.00', price_usd: '55.00', frequency: 1,
                 limits: { users: 3, parcels: 50, hectares: 300, eosda_requests: 500 },
                 features_included: ['ndvi','ndmi','evi','savi','weather_full','continuous_monitoring','pdf_reports','advanced_analytics','api_access','historical'],
                 features_excluded: [],
                 is_custom: false, trial_days: 14,
-                yearly_discount: { yearly_price_cop: 1718400, savings_cop: 429600, yearly_price_usd: 432, savings_usd: 108, discount_percent: 20 }
+                yearly_discount: { yearly_price_cop: 2198400, savings_cop: 549600, yearly_price_usd: 528, savings_usd: 132, discount_percent: 20 }
             }
         ];
 
@@ -294,7 +294,7 @@
                 });
 
                 var btn = (p.tier === 'free')
-                    ? '<button class="btn-plan" onclick="selectPlan(\'' + p.tier + '\')">Probar Gratis</button>'
+                    ? '<button class="btn-plan" onclick="selectPlan(\'' + p.tier + '\')">Probar 14 días</button>'
                     : '<button class="btn-plan" onclick="selectPlan(\'' + p.tier + '\')">Comenzar Ahora</button>';
 
                 return '<div class="pricing-card ' + (featured ? 'featured' : '') + '">' +
