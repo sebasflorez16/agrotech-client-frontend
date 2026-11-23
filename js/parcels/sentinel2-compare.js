@@ -18,6 +18,21 @@
 
     let s2Layer = null;
     let s2Visible = false;
+    let allowedIndices = ['ndvi', 'ndmi', 'savi', 'ndre'];
+
+    // Habilita/deshabilita los índices según el plan del tenant.
+    function applyAllowedIndices(allowed) {
+        if (!Array.isArray(allowed) || !allowed.length) return;
+        allowedIndices = allowed;
+        const sel = document.getElementById('s2IndexSelect');
+        if (!sel) return;
+        Array.from(sel.options).forEach(opt => {
+            const ok = allowed.includes(opt.value);
+            opt.disabled = !ok;
+            opt.hidden = !ok;
+        });
+        if (!allowed.includes(sel.value)) sel.value = allowed[0];
+    }
 
     // Solo una capa ráster visible a la vez: evita que Sentinel-1 y Sentinel-2
     // (o dos índices distintos) se pinten uno encima del otro y alteren la imagen.
@@ -131,6 +146,7 @@
                 throw err;
             }
 
+            applyAllowedIndices(data.allowed_indices);
             const b64 = data.images && data.images[index];
             const bounds = data.bounds; // [west, south, east, north]
             if (!b64 || !bounds) throw new Error('Sin imagen o bounds en la respuesta.');
@@ -477,6 +493,7 @@
             const resp = await authFetch(url);
             const data = await resp.json().catch(() => ({}));
             if (!resp.ok) throw new Error(data.error || data.message || `HTTP ${resp.status}`);
+            applyAllowedIndices(data.allowed_indices);
             const scenes = data.scenes || [];
             if (!scenes.length) { panel.innerHTML = 'No hay imágenes en el rango de fechas.'; return; }
 
@@ -498,9 +515,11 @@
                     </td>
                     <td>
                         <div class="btn-group btn-group-sm">
-                            <button class="btn btn-outline-success" title="NDVI (vigor)" onclick="window.viewSceneImage('${s.date}', 'ndvi')">NDVI</button>
-                            <button class="btn btn-outline-primary" title="NDMI (humedad)" onclick="window.viewSceneImage('${s.date}', 'ndmi')">NDMI</button>
-                            <button class="btn btn-outline-warning" title="SAVI" onclick="window.viewSceneImage('${s.date}', 'savi')">SAVI</button>
+                            ${allowedIndices.map((idx) => {
+                                const cls = { ndvi: 'success', ndmi: 'primary', savi: 'warning', ndre: 'info' }[idx] || 'secondary';
+                                const label = { ndvi: 'NDVI', ndmi: 'NDMI', savi: 'SAVI', ndre: 'NDRE' }[idx] || idx.toUpperCase();
+                                return `<button class="btn btn-outline-${cls}" title="${label}" onclick="window.viewSceneImage('${s.date}', '${idx}')">${label}</button>`;
+                            }).join('')}
                             ${cc != null && cc > 40 ? `<button class="btn btn-outline-dark" title="Sentinel-1 Radar (atraviesa nubes)" onclick="window.openSentinel1ForScene()">Radar</button>` : ''}
                         </div>
                     </td>
@@ -642,7 +661,10 @@
                 renderS2HistoryChart(series);
             }
         } catch (e) {
-            panel.innerHTML = `<div style="padding:12px;color:#c0392b;">❌ ${e.message}</div>`;
+            const msg = (e && e.status === 403) || /feature|hist[oó]rico|historical/i.test(String(e && e.message))
+                ? 'El histórico del cultivo está disponible desde el plan Agricultor. Mejora tu plan para ver la evolución mes a mes.'
+                : 'No se pudo cargar el histórico. Inténtalo de nuevo.';
+            panel.innerHTML = `<div style="padding:12px;color:#b45309;">ℹ️ ${msg}</div>`;
         }
     }
 

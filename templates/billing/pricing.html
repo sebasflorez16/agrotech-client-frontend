@@ -122,7 +122,8 @@
                         <tr><td>Análisis NDVI</td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
                         <tr><td>Análisis NDMI (estrés hídrico)</td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
                         <tr><td>Análisis SAVI</td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td><td><span class="check-icon">✓</span></td></tr>
-                        <tr><td>Análisis EVI</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
+                        <tr><td>Análisis NDRE</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
+                        <tr><td>Radar Sentinel-1</td><td><span class="cross-icon">✗</span></td><td><span class="cross-icon">✗</span></td><td><span class="check-icon">✓</span></td></tr>
                         <tr><td>Pronóstico climático</td><td><span class="cross-icon">✗</span></td><td>Básico</td><td>Completo</td></tr>
                         <tr><td>Soporte</td><td>Email</td><td>Email prioritario</td><td>Prioritario</td></tr>
                     </tbody>
@@ -199,7 +200,7 @@
                 price_cop: '0.00', price_usd: '0.00', frequency: 1,
                 limits: { users: 1, parcels: 1, hectares: 30, eosda_requests: 5 },
                 features_included: ['ndvi'],
-                features_excluded: ['ndmi','evi','savi','weather_basic','weather_full','continuous_monitoring','pdf_reports','advanced_analytics','api_access','historical'],
+                features_excluded: ['ndmi','savi','ndre','weather_basic','weather_full','continuous_monitoring','pdf_reports','historical','radar'],
                 is_custom: false, trial_days: 14,
                 yearly_discount: { yearly_price_cop: 0, savings_cop: 0, yearly_price_usd: 0, savings_usd: 0, discount_percent: 20 }
             },
@@ -208,7 +209,7 @@
                 price_cop: '79000.00', price_usd: '20.00', frequency: 1,
                 limits: { users: 2, parcels: 10, hectares: 100, eosda_requests: 100 },
                 features_included: ['ndvi','ndmi','savi','weather_basic','historical'],
-                features_excluded: ['evi','weather_full','continuous_monitoring','pdf_reports','advanced_analytics','api_access'],
+                features_excluded: ['ndre','weather_full','continuous_monitoring','pdf_reports','radar'],
                 is_custom: false, trial_days: 14,
                 yearly_discount: { yearly_price_cop: 758400, savings_cop: 189600, yearly_price_usd: 192, savings_usd: 48, discount_percent: 20 }
             },
@@ -216,7 +217,7 @@
                 tier: 'pro', name: 'Empresarial', description: 'Para empresas agrícolas',
                 price_cop: '229000.00', price_usd: '55.00', frequency: 1,
                 limits: { users: 3, parcels: 50, hectares: 300, eosda_requests: 500 },
-                features_included: ['ndvi','ndmi','evi','savi','weather_full','continuous_monitoring','pdf_reports','advanced_analytics','api_access','historical'],
+                features_included: ['ndvi','ndmi','savi','ndre','weather_full','continuous_monitoring','pdf_reports','historical','radar'],
                 features_excluded: [],
                 is_custom: false, trial_days: 14,
                 yearly_discount: { yearly_price_cop: 2198400, savings_cop: 549600, yearly_price_usd: 528, savings_usd: 132, discount_percent: 20 }
@@ -260,13 +261,12 @@
             'ndvi': 'Análisis NDVI',
             'savi': 'Análisis SAVI',
             'ndmi': 'Análisis NDMI (Humedad)',
-            'evi': 'Análisis EVI (Vegetación mejorado)',
+            'ndre': 'Análisis NDRE (nitrógeno / clorofila)',
             'weather_basic': 'Pronóstico climático básico',
             'weather_full': 'Pronóstico climático completo',
-            'continuous_monitoring': 'Monitoreo continuo + radar Sentinel-1',
+            'continuous_monitoring': 'Monitoreo continuo del cultivo',
             'pdf_reports': 'Informes PDF',
-            'advanced_analytics': 'Analítica avanzada / sectorización',
-            'api_access': 'API para integrar',
+            'radar': 'Radar Sentinel-1 (atraviesa nubes)',
             'historical': 'Histórico del cultivo',
             'support_priority': 'Soporte prioritario',
             'dedicated_account': 'Cuenta dedicada'
