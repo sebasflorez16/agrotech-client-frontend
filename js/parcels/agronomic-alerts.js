@@ -291,16 +291,6 @@
         ]);
     }
 
-    function renderSetup(setup) {
-        return el('div', { class: 'agro-alerts-card', style: 'border-left:4px solid #f59e0b;' }, [
-            el('div', { class: 'agro-alerts-card__title' }, '⚠️ Configura tu cultivo'),
-            el('div', { class: 'agro-alerts-card__body' },
-                (setup && setup.mensaje) || 'Asigna un cultivo y fecha de siembra al lote para activar las alertas reales.'),
-            el('div', { class: 'agro-alerts-card__body', style: 'font-size:12px;color:#8a6d3b;margin-top:6px;' },
-                'Sin ciclo de cultivo no generamos alertas (no inventamos datos).'),
-        ]);
-    }
-
     function renderNoData() {
         return el('div', { class: 'agro-alerts-card', style: 'border-left:4px solid #64748b;' }, [
             el('div', { class: 'agro-alerts-card__title' }, '🛰️ Sin lecturas recientes'),
@@ -366,9 +356,12 @@
         }
 
         if (data && data.setup_required) {
-            host.appendChild(renderSetup(data.setup_required));
+            // Sin ciclo de cultivo no mostramos nada (evita ruido en el dashboard).
+            host.innerHTML = '';
+            host.style.display = 'none';
             return;
         }
+        host.style.display = '';
 
         const sinLecturas = data && data.estado
             && data.estado.codigo === 'sano'

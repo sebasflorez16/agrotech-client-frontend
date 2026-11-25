@@ -202,6 +202,7 @@
                 );
             }
             renderAnalysis(data.analysis);
+            loadRecommendations(parcelId, data.statistics, data.scene);
             console.log(`${MODULE_TAG} Imagen ${index} cargada (${smoothing})`);
         } catch (e) {
             const noOptical = (e && e.status === 404) || /no se (pudo|encontr)|sin datos/i.test(String(e && e.message));
@@ -318,6 +319,7 @@
                             Quitar capa
                         </button>
                         <div id="s2AnalysisPanel" style="margin-top:14px;display:none;"></div>
+                        <div id="s2RecommendationsPanel" style="margin-top:12px;"></div>
                         <div style="border-top:1px solid #eee;padding-top:12px;margin-top:14px;">
                             <div style="font-size:13px;font-weight:700;color:#145A32;margin-bottom:2px;">Sentinel-2 · Óptico</div>
                             <div style="font-size:11px;color:#888;margin-bottom:8px;">Imágenes ópticas (sensibles a las nubes). Elige el rango de fechas para ver las imágenes disponibles de tu parcela.</div>
@@ -469,6 +471,62 @@
                 ${catRows}
                 ${alerts ? `<div style="margin-top:8px;">${alerts}</div>` : ''}
                 ${recs ? `<div style="margin-top:4px;">${recs}</div>` : ''}
+            </div>
+        `;
+    }
+
+    async function loadRecommendations(parcelId, statistics, scene) {
+        const panel = document.getElementById('s2RecommendationsPanel');
+        if (!panel) return;
+        panel.innerHTML = '<div style="font-size:12px;color:#888;">🧠 Generando recomendaciones…</div>';
+        try {
+            const headers = { 'Content-Type': 'application/json' };
+            const token = getToken();
+            if (token) headers.Authorization = `Bearer ${token}`;
+            const resp = await fetch(`${getBaseUrl()}/parcel/${parcelId}/recommendations/`, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify({ statistics: statistics || null, scene: scene || null }),
+            });
+            const data = await resp.json().catch(() => ({}));
+            if (!resp.ok) throw new Error(data.error || data.message || `HTTP ${resp.status}`);
+            renderRecommendations(panel, data);
+        } catch (e) {
+            panel.innerHTML = `<div style="font-size:12px;color:#b45309;">No se pudieron generar las recomendaciones: ${e.message}</div>`;
+        }
+    }
+
+    function renderRecommendations(panel, data) {
+        const prioColor = { alta: '#c0392b', media: '#b45309', baja: '#1e7b34' };
+        const prioBg = { alta: '#fdecea', media: '#fdf1dc', baja: '#e6f4ea' };
+        const actions = (data.actions || []).map((a) => `
+            <div style="display:flex;gap:8px;align-items:flex-start;padding:8px 10px;border-radius:10px;background:${prioBg[a.priority] || '#f5f5f5'};margin-bottom:6px;">
+                <span style="font-size:10px;font-weight:700;color:${prioColor[a.priority] || '#666'};background:#fff;border-radius:20px;padding:2px 8px;white-space:nowrap;">${(a.priority || '').toUpperCase()}</span>
+                <div style="flex:1;">
+                    <div style="font-size:12.5px;font-weight:700;color:#333;">${a.title}${a.zone ? ' · ' + a.zone : ''}</div>
+                    <div style="font-size:12px;color:#555;line-height:1.45;">${a.detail}</div>
+                    <div style="font-size:11px;color:#888;margin-top:2px;">⏱ ${a.timing || ''}</div>
+                </div>
+            </div>
+        `).join('');
+        const weather = data.weather ? `
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 8px;">
+                ${data.weather.rain_next_7d_mm != null ? `<span style="font-size:11px;background:#eef6ff;color:#1d4ed8;border-radius:20px;padding:3px 9px;">🌧️ Lluvia 7d: ${data.weather.rain_next_7d_mm} mm</span>` : ''}
+                ${data.weather.tmax_avg_c != null ? `<span style="font-size:11px;background:#fff4e5;color:#b45309;border-radius:20px;padding:3px 9px;">🌡️ Tmax prom: ${data.weather.tmax_avg_c} °C</span>` : ''}
+            </div>` : '';
+        const zones = (data.zones || []).length ? `
+            <div style="margin-top:8px;font-size:12px;color:#555;">
+                <div style="font-weight:700;color:#333;margin-bottom:4px;">Zonas</div>
+                ${(data.zones).map((z) => `<div style="padding:5px 0;border-bottom:1px solid #eee;">${z.label} · ${z.area_ha} ha · ${z.finding} → ${z.action}</div>`).join('')}
+            </div>` : '';
+        panel.innerHTML = `
+            <div style="border:1px solid #d1fae5;border-radius:12px;padding:12px;background:#f8fffb;">
+                <div style="font-size:13px;font-weight:700;color:#145A32;margin-bottom:4px;">🧠 Recomendaciones</div>
+                <div style="font-size:12px;color:#444;line-height:1.5;margin-bottom:6px;">${data.summary || ''}</div>
+                ${weather}
+                ${actions}
+                ${zones}
+                <div style="font-size:10.5px;color:#999;margin-top:8px;">${data.disclaimer || ''}</div>
             </div>
         `;
     }
