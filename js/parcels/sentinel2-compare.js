@@ -521,12 +521,15 @@
             </div>` : '';
         panel.innerHTML = `
             <div style="border:1px solid #d1fae5;border-radius:12px;padding:12px;background:#f8fffb;">
-                <div style="font-size:13px;font-weight:700;color:#145A32;margin-bottom:4px;">🧠 Recomendaciones</div>
+                <div style="font-size:13px;font-weight:700;color:#145A32;margin-bottom:6px;">🧠 Sugerencias agrícolas</div>
+                <div style="background:#fff8e1;border:1px solid #ffe0a3;border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:11.5px;color:#7a5b00;line-height:1.45;">
+                    ⚠️ <strong>${data.disclaimer_short || 'Sugerencias automáticas, no órdenes. La última decisión es tuya.'}</strong>
+                </div>
                 <div style="font-size:12px;color:#444;line-height:1.5;margin-bottom:6px;">${data.summary || ''}</div>
                 ${weather}
                 ${actions}
                 ${zones}
-                <div style="font-size:10.5px;color:#999;margin-top:8px;">${data.disclaimer || ''}</div>
+                <div style="font-size:10.5px;color:#888;margin-top:8px;line-height:1.45;">${data.disclaimer || ''}</div>
             </div>
         `;
     }
