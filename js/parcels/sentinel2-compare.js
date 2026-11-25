@@ -525,7 +525,8 @@
                 <div style="background:#fff8e1;border:1px solid #ffe0a3;border-radius:10px;padding:8px 10px;margin-bottom:8px;font-size:11.5px;color:#7a5b00;line-height:1.45;">
                     ⚠️ <strong>${data.disclaimer_short || 'Sugerencias automáticas, no órdenes. La última decisión es tuya.'}</strong>
                 </div>
-                <div style="font-size:12px;color:#444;line-height:1.5;margin-bottom:6px;">${data.summary || ''}</div>
+                <div style="font-size:12px;color:#444;line-height:1.5;margin-bottom:4px;">${data.summary || ''}</div>
+                <div style="font-size:10.5px;color:#888;margin-bottom:6px;line-height:1.4;">${data.source_note || ''}</div>
                 ${weather}
                 ${actions}
                 ${zones}
